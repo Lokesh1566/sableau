@@ -1,0 +1,81 @@
+{
+  "run_id": "replay_20260813T191747Z_1c6515",
+  "capability_id": "meridian.record_claim_decision",
+  "capability_version": "1.0.0",
+  "started_at": "2026-08-13T19:17:47.767056+00:00",
+  "duration_ms": 3253,
+  "category": "HARD_FAILURE",
+  "code": "PERMISSION_DENIED",
+  "outputs": {},
+  "business_outcome": null,
+  "error": {
+    "code": "PERMISSION_DENIED",
+    "category": "HARD_FAILURE",
+    "message": "The signed in operator is not permitted to decide this claim.",
+    "step_id": "s6_save_the_decision",
+    "retryable": false,
+    "attempts": 1,
+    "evidence": {
+      "screenshot": "evidence/runs/replay_20260813T191747Z_1c6515/screenshots/outcome_permission_denied.png",
+      "dom_snapshot": "evidence/runs/replay_20260813T191747Z_1c6515/outcome_permission_denied.dom.html",
+      "url": "http://127.0.0.1:8099/claims/CLM-004215/decision",
+      "log_ref": "evidence/runs/replay_20260813T191747Z_1c6515/log.jsonl"
+    }
+  },
+  "control": {
+    "final_owner": "nobody",
+    "escalated": false,
+    "escalation_id": null,
+    "escalation_reason": null,
+    "human_actions": 0,
+    "resume_decision": null
+  },
+  "steps": [
+    {
+      "step_id": "s1_enter_the_claim_reference",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 549,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s2_run_the_search",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 600,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s3_open_the_matching_claim_re",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 632,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s4_choose_the_decision_outcom",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 538,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s5_record_the_decision_note_f",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 540,
+      "resolved_strategy": "placeholder",
+      "candidate_index": 0,
+      "note": null
+    }
+  ],
+  "llm_calls": 0
+}

@@ -1,10 +1,10 @@
 ### unit suite, no browser required
 ============================= test session starts ==============================
-platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /usr/bin/python3
+platform darwin -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- /Users/lokeshreddy/projects/sableau/.venv/bin/python3
 cachedir: .pytest_cache
-rootdir: /home/claude/sableau
+rootdir: /Users/lokeshreddy/projects/sableau
 configfile: pyproject.toml
-plugins: anyio-4.14.2, asyncio-1.4.0
+plugins: asyncio-1.4.0, anyio-4.14.2
 asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
 collecting ... collected 59 items
 
@@ -68,15 +68,15 @@ tests/test_no_llm_in_replay.py::test_production_path_never_imports_an_llm_client
 tests/test_no_llm_in_replay.py::test_replay_can_be_imported_with_no_llm_sdk_available PASSED [ 98%]
 tests/test_no_llm_in_replay.py::test_a_full_replay_completes_with_the_llm_sdk_poisoned PASSED [100%]
 
-============================== 59 passed in 0.30s ==============================
+============================== 59 passed in 0.12s ==============================
 
 ### integration suite, real Chromium against the live application
 ============================= test session starts ==============================
-platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0 -- /usr/bin/python3
+platform darwin -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0 -- /Users/lokeshreddy/projects/sableau/.venv/bin/python3
 cachedir: .pytest_cache
-rootdir: /home/claude/sableau
+rootdir: /Users/lokeshreddy/projects/sableau
 configfile: pyproject.toml
-plugins: anyio-4.14.2, asyncio-1.4.0
+plugins: asyncio-1.4.0, anyio-4.14.2
 asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
 collecting ... collected 9 items
 
@@ -90,4 +90,4 @@ tests/integration/test_live_stack.py::test_secret_inputs_never_reach_disk PASSED
 tests/integration/test_live_stack.py::test_surface_declares_the_features_the_capability_needs PASSED [ 88%]
 tests/integration/test_live_stack.py::test_iframe_scoped_locators_actually_resolve PASSED [100%]
 
-============================== 9 passed in 41.56s ==============================
+============================== 9 passed in 29.90s ==============================

@@ -1,4 +1,4 @@
-discovery run discovery_20260813T065343Z_fd7b31 :: planner=heuristic browser=http://127.0.0.1:9222
+discovery run discovery_20260813T191715Z_136f53 :: planner=heuristic browser=http://127.0.0.1:9222
   [  1] event=discovery.start goal=Record the supplied decision outcome on the supplied claim reference in Meridian Claims Desk, entering the supplied decision note, and capture the confirmation code and decided amount from the receipt screen. planner=heuristic entry_url=http://127.0.0.1:8099/claims
   [  2] event=discovery.decision turn=1 tool=act intent=Enter the claim reference in the search box hints=testid=claim-search-input, role=textbox, label=Claim, member or provider rationale=the search box is the only way into a record
   [  3] event=discovery.acted turn=1 action=type risk=safe resolved_via=testid durable_locators=['testid', 'label', 'placeholder', 'css'] url=http://127.0.0.1:8099/claims
@@ -25,7 +25,7 @@ discovery run discovery_20260813T065343Z_fd7b31 :: planner=heuristic browser=htt
 
 capability written: capabilities/meridian.record_claim_decision.v1.0.0.json
   steps=8 checkpoints=2 outputs=2 known_outcomes=8
-  evidence: evidence/runs/discovery_20260813T065343Z_fd7b31
+  evidence: evidence/runs/discovery_20260813T191715Z_136f53
 meridian.record_claim_decision@1.0.0 is valid
   title       Record a decision on a pending claim
   surface     dom requires ['dom_query', 'frames', 'label_query', 'role_query', 'testid_query', 'text_query']

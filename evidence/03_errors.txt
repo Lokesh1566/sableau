@@ -2,69 +2,69 @@
 ==============================================================
 CASE: invalid input, rejected before the browser is touched
 --------------------------------------------------------------
-
+replay run replay_20260813T191737Z_d6fac3 :: meridian.record_claim_decision@1.0.0
 HARD_FAILURE/INVALID_INPUT | error=input claim_id does not match required format ^CLM-[0-9]{6}$ | llm_calls=0
-  evidence: evidence/runs/replay_20260813T065406Z_e3ca2d
+  evidence: evidence/runs/replay_20260813T191737Z_d6fac3
 
 ==============================================================
 CASE: input outside the declared enum
 --------------------------------------------------------------
-
+replay run replay_20260813T191740Z_5a2368 :: meridian.record_claim_decision@1.0.0
 HARD_FAILURE/INVALID_INPUT | error=input outcome must be one of ['APPROVED', 'REJECTED'], got 'MAYBE' | llm_calls=0
-  evidence: evidence/runs/replay_20260813T065407Z_d1e53e
+  evidence: evidence/runs/replay_20260813T191740Z_5a2368
 
 ==============================================================
 CASE: record not found, a business answer rather than an error
 --------------------------------------------------------------
-
+replay run replay_20260813T191740Z_a1dd32 :: meridian.record_claim_decision@1.0.0
 BUSINESS_OUTCOME/RECORD_NOT_FOUND | outcome=search_no_match | llm_calls=0
-  evidence: evidence/runs/replay_20260813T065408Z_016874
+  evidence: evidence/runs/replay_20260813T191740Z_a1dd32
 
 ==============================================================
 CASE: claim already decided, no second write attempted
 --------------------------------------------------------------
-
+replay run replay_20260813T191742Z_02f17e :: meridian.record_claim_decision@1.0.0
 BUSINESS_OUTCOME/ALREADY_PROCESSED | outcome=already_decided | llm_calls=0
-  evidence: evidence/runs/replay_20260813T065410Z_ece446
+  evidence: evidence/runs/replay_20260813T191742Z_02f17e
 
 ==============================================================
 CASE: application level validation error the input schema cannot catch
 --------------------------------------------------------------
-
+replay run replay_20260813T191743Z_48a51a :: meridian.record_claim_decision@1.0.0
 HARD_FAILURE/VALIDATION_ERROR | error=The claims system rejected the decision form. | llm_calls=0
-  evidence: evidence/runs/replay_20260813T065413Z_63ff3d
+  evidence: evidence/runs/replay_20260813T191743Z_48a51a
 
 ==============================================================
 CASE: permission denied by the application
 --------------------------------------------------------------
-
+replay run replay_20260813T191747Z_1c6515 :: meridian.record_claim_decision@1.0.0
 HARD_FAILURE/PERMISSION_DENIED | error=The signed in operator is not permitted to decide this claim. | llm_calls=0
-  evidence: evidence/runs/replay_20260813T065418Z_99657e
+  evidence: evidence/runs/replay_20260813T191747Z_1c6515
 
 ==============================================================
 CASE: transient backend failure, absorbed by a bounded restart
 --------------------------------------------------------------
-
+replay run replay_20260813T191751Z_eec31c :: meridian.record_claim_decision@1.0.0
 SUCCESS/NONE | outputs=confirmation_code=MCD-77201, decided_amount=210.0 | llm_calls=0
-  evidence: evidence/runs/replay_20260813T065424Z_3bd21e
+  evidence: evidence/runs/replay_20260813T191751Z_eec31c
 
 ==============================================================
 CASE: slow page, waited out rather than failed
 --------------------------------------------------------------
-
+replay run replay_20260813T191758Z_c89818 :: meridian.record_claim_decision@1.0.0
 SUCCESS/NONE | outputs=confirmation_code=MCD-77202, decided_amount=78.0 | llm_calls=0
-  evidence: evidence/runs/replay_20260813T065433Z_8873bc
+  evidence: evidence/runs/replay_20260813T191758Z_c89818
 
 ==============================================================
 CASE: session expiry detected mid-run
 --------------------------------------------------------------
-
+replay run replay_20260813T191805Z_4f01a0 :: meridian.record_claim_decision@1.0.0
 RECOVERABLE/SESSION_EXPIRED | error=The session expired. Re-authenticate and invoke the capability again. | llm_calls=0
-  evidence: evidence/runs/replay_20260813T065442Z_407841
+  evidence: evidence/runs/replay_20260813T191805Z_4f01a0
 
 ==============================================================
 CASE: policy refuses a capability whose host is not allowed
 --------------------------------------------------------------
 HARD_FAILURE/POLICY_VIOLATION | error=capability declares hosts that the deployment policy does not allow: ['127.0.0.1:8099'] vs ['intranet.example.com'] | llm_calls=0
-  evidence: evidence/runs/replay_20260813T065452Z_0d613e
+  evidence: evidence/runs/replay_20260813T191815Z_011351
 
