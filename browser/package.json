@@ -1,0 +1,8 @@
+{
+  "name": "sableau-browser-shell",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chromium host exposing CDP for Sableau",
+  "main": "main.js",
+  "dependencies": { "electron": "^43.0.0" }
+}

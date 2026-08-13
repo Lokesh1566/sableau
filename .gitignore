@@ -1,0 +1,12 @@
+# secrets
+.env
+*.key
+
+# the Electron shell is ~270MB of downloaded binary, never commit it
+browser/node_modules/
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.venv/

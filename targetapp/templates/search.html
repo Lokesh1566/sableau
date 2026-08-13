@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="panel">
+  <h2>Find a claim</h2>
+  <div class="body">
+    <form method="get" action="/claims" role="search">
+      <div style="display:flex;gap:8px">
+        <label for="q" style="align-self:center;white-space:nowrap;color:#5b6773">Claim, member or provider</label>
+        <input type="text" id="q" name="q" value="{{ q }}" placeholder="e.g. CLM-004211" data-testid="claim-search-input">
+        <button type="submit" class="primary" data-testid="claim-search-submit">Search</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if searched %}
+<div class="panel">
+  <h2>Results</h2>
+  <div class="body">
+  {% if results %}
+    <table class="tbl-9f3a">
+      <thead><tr><th>Claim</th><th>Member</th><th>Provider</th><th>Service</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for c in results %}
+        <tr class="rw-c412">
+          <td><a href="/claims/{{ c.claim_id }}" class="lk-a7">{{ c.claim_id }}</a></td>
+          <td>{{ c.member }}</td><td>{{ c.provider }}</td><td>{{ c.service }}</td>
+          <td>{{ '%.2f'|format(c.amount) }}</td>
+          <td><span class="pill s-{{ c.status }}">{{ c.status }}</span></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p data-testid="no-results">No claims match that search.</p>
+  {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

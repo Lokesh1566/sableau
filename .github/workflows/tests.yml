@@ -1,0 +1,42 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      # The unit suite needs no browser and no API key, by design.
+      - run: python -m pytest tests/unit tests/test_no_llm_in_replay.py -v
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - run: python -m playwright install --with-deps chromium
+      - run: |
+          setsid nohup python -m targetapp.app > /tmp/app.log 2>&1 &
+          for _ in $(seq 1 30); do curl -sf http://127.0.0.1:8099/healthz && break; sleep 0.5; done
+      - run: |
+          CHROME=$(find ~/.cache/ms-playwright -name chrome -type f | head -1)
+          setsid nohup "$CHROME" --headless=new --remote-debugging-port=9222 --no-sandbox \
+            --user-data-dir=/tmp/profile about:blank > /tmp/browser.log 2>&1 &
+          for _ in $(seq 1 40); do curl -sf http://127.0.0.1:9222/json/version && break; sleep 0.5; done
+      - run: |
+          python -m sableau.cli discover --job jobs/approve_claim.json --planner heuristic \
+            --param claim_id=CLM-004211 --param outcome=APPROVED \
+            --param "note=Within plan limits, provider in network, no duplicate found."
+      - run: python -m pytest tests/integration -v

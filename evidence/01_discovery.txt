@@ -1,0 +1,37 @@
+discovery run discovery_20260813T065343Z_fd7b31 :: planner=heuristic browser=http://127.0.0.1:9222
+  [  1] event=discovery.start goal=Record the supplied decision outcome on the supplied claim reference in Meridian Claims Desk, entering the supplied decision note, and capture the confirmation code and decided amount from the receipt screen. planner=heuristic entry_url=http://127.0.0.1:8099/claims
+  [  2] event=discovery.decision turn=1 tool=act intent=Enter the claim reference in the search box hints=testid=claim-search-input, role=textbox, label=Claim, member or provider rationale=the search box is the only way into a record
+  [  3] event=discovery.acted turn=1 action=type risk=safe resolved_via=testid durable_locators=['testid', 'label', 'placeholder', 'css'] url=http://127.0.0.1:8099/claims
+  [  4] event=discovery.decision turn=2 tool=act intent=Run the search hints=testid=claim-search-submit, role=button, name=Search rationale=submit the search form
+  [  5] event=discovery.acted turn=2 action=click risk=safe resolved_via=testid durable_locators=['testid', 'role', 'text', 'css'] url=http://127.0.0.1:8099/claims?q=CLM-004211
+  [  6] event=discovery.decision turn=3 tool=act intent=Open the matching claim record from the results table hints=role=link, name=CLM-004211 rationale=the claim reference in the results table links to the record
+  [  7] event=discovery.acted turn=3 action=click risk=safe resolved_via=role durable_locators=['role', 'text', 'css'] url=http://127.0.0.1:8099/claims/CLM-004211
+  [  8] event=discovery.decision turn=4 tool=assert_state intent=The requested claim record is open hints=(no target) rationale=confirm we are on the right record before deciding
+  [  9] event=discovery.assert id=record_open holds=True
+  [ 10] event=discovery.decision turn=5 tool=act intent=Choose the decision outcome hints=testid=decision-select, role=combobox, label=Outcome rationale=the decision panel lives in the 'decision' iframe
+  [ 11] event=discovery.acted turn=5 action=select risk=safe resolved_via=testid durable_locators=['testid', 'text', 'css'] url=http://127.0.0.1:8099/claims/CLM-004211
+  [ 12] event=discovery.decision turn=6 tool=act intent=Record the decision note for the audit trail hints=role=textbox, label=Decision note rationale=the note is mandatory
+  [ 13] event=discovery.acted turn=6 action=type risk=safe resolved_via=label durable_locators=['placeholder', 'css'] url=http://127.0.0.1:8099/claims/CLM-004211
+  [ 14] event=discovery.decision turn=7 tool=act intent=Save the decision hints=testid=decision-submit, role=button, name=Save decision rationale=this is the state changing step
+  [ 15] event=discovery.acted turn=7 action=click risk=risky resolved_via=testid durable_locators=['testid', 'role', 'text', 'css'] url=http://127.0.0.1:8099/claims/CLM-004211/receipt
+  [ 16] event=discovery.decision turn=8 tool=assert_state intent=The receipt screen confirms the decision was recorded hints=(no target) rationale=the receipt is the proof the write succeeded
+  [ 17] event=discovery.assert id=decision_recorded holds=True
+  [ 18] event=discovery.decision turn=9 tool=act intent=Capture the confirmation code from the receipt hints=testid=confirmation-code rationale=the confirmation code is the caller's receipt
+  [ 19] event=discovery.acted turn=9 action=read risk=safe resolved_via=testid durable_locators=['testid', 'text', 'css'] url=http://127.0.0.1:8099/claims/CLM-004211/receipt
+  [ 20] event=discovery.decision turn=10 tool=act intent=Capture the decided amount from the receipt hints=testid=decided-amount rationale=the amount confirms which claim was acted on
+  [ 21] event=discovery.acted turn=10 action=read risk=safe resolved_via=testid durable_locators=['testid', 'text', 'css'] url=http://127.0.0.1:8099/claims/CLM-004211/receipt
+  [ 22] event=discovery.decision turn=11 tool=finish intent=Recorded APPROVED on CLM-004211 and captured the confirmation code hints=(no target) rationale=None
+  [ 23] event=discovery.finish status=success turns=11 summary=Recorded APPROVED on CLM-004211 and captured the confirmation code
+
+capability written: capabilities/meridian.record_claim_decision.v1.0.0.json
+  steps=8 checkpoints=2 outputs=2 known_outcomes=8
+  evidence: evidence/runs/discovery_20260813T065343Z_fd7b31
+meridian.record_claim_decision@1.0.0 is valid
+  title       Record a decision on a pending claim
+  surface     dom requires ['dom_query', 'frames', 'label_query', 'role_query', 'testid_query', 'text_query']
+  inputs      ['claim_id', 'outcome', 'note']
+  outputs     ['confirmation_code', 'decided_amount']
+  steps       8 (1 risky)
+  checkpoints ['cp_record_open', 'cp_decision_recorded']
+  outcomes    ['search_no_match', 'claim_missing', 'already_decided', 'decision_validation_error', 'permission_denied', 'compliance_dialog', 'claims_index_resyncing', 'session_expired']
+  hosts       ['127.0.0.1:8099']

@@ -1,0 +1,142 @@
+{
+  "app_id": "meridian-claims-desk",
+  "description": "Conditions this application is expected to be able to produce. Curated once per application, attached to every capability compiled against it. Each entry says how the condition is detected and, crucially, what kind of answer it is: a legitimate business result, something worth retrying, or a genuine failure.",
+  "outcomes": [
+    {
+      "id": "search_no_match",
+      "description": "The search returned no claims matching the reference.",
+      "detector": {
+        "kind": "text_present",
+        "value": "No claims match that search."
+      },
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "RECORD_NOT_FOUND",
+        "terminal": true,
+        "message": "No claim exists with that reference."
+      }
+    },
+    {
+      "id": "claim_missing",
+      "description": "The claim reference does not exist in the claims index.",
+      "detector": {
+        "kind": "text_present",
+        "value": "No claim exists with reference"
+      },
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "RECORD_NOT_FOUND",
+        "terminal": true,
+        "message": "No claim exists with that reference."
+      }
+    },
+    {
+      "id": "already_decided",
+      "description": "A decision has already been recorded against this claim.",
+      "detector": {
+        "kind": "text_present",
+        "value": "This claim has already been decided."
+      },
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "ALREADY_PROCESSED",
+        "terminal": true,
+        "message": "The claim was already decided, so no change was made."
+      }
+    },
+    {
+      "id": "decision_validation_error",
+      "description": "The claims system rejected the decision form.",
+      "detector": {
+        "kind": "element_visible",
+        "target": {
+          "candidates": [
+            {
+              "strategy": "testid",
+              "value": "decision-error"
+            }
+          ],
+          "ambiguity_policy": "first"
+        }
+      },
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "VALIDATION_ERROR",
+        "terminal": true,
+        "message": "The claims system rejected the decision form.",
+        "capture": {
+          "message": {
+            "step": "detector",
+            "binding": "text"
+          }
+        }
+      }
+    },
+    {
+      "id": "permission_denied",
+      "description": "This operator role may not decide this class of claim.",
+      "detector": {
+        "kind": "text_present",
+        "value": "You do not have permission to decide this claim."
+      },
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "PERMISSION_DENIED",
+        "terminal": true,
+        "message": "The signed in operator is not permitted to decide this claim."
+      }
+    },
+    {
+      "id": "compliance_dialog",
+      "description": "A compliance notice is covering the decision panel and must be cleared by a person.",
+      "detector": {
+        "kind": "element_visible",
+        "target": {
+          "candidates": [
+            {
+              "strategy": "role",
+              "role": "dialog"
+            }
+          ],
+          "ambiguity_policy": "first"
+        }
+      },
+      "result": {
+        "category": "RECOVERABLE",
+        "code": "UNEXPECTED_DIALOG",
+        "terminal": false,
+        "message": "A compliance notice is blocking the decision panel.",
+        "recovery": "escalate"
+      }
+    },
+    {
+      "id": "claims_index_resyncing",
+      "description": "The claims index is temporarily unavailable.",
+      "detector": {
+        "kind": "text_present",
+        "value": "Service temporarily unavailable"
+      },
+      "result": {
+        "category": "RECOVERABLE",
+        "code": "TRANSIENT_FAILURE",
+        "terminal": false,
+        "message": "The claims index was re-syncing.",
+        "recovery": "restart_capability"
+      }
+    },
+    {
+      "id": "session_expired",
+      "description": "The operator session ended and the application asked for a fresh sign in.",
+      "detector": {
+        "kind": "url_matches",
+        "value": "/login"
+      },
+      "result": {
+        "category": "RECOVERABLE",
+        "code": "SESSION_EXPIRED",
+        "terminal": true,
+        "message": "The session expired. Re-authenticate and invoke the capability again."
+      }
+    }
+  ]
+}

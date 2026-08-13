@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Claim not found{% endblock %}
+{% block content %}
+<div class="panel"><h2>Claim not found</h2><div class="body">
+<p data-testid="claim-missing">No claim exists with reference {{ claim_id }}.</p>
+<p><a href="/claims">Back to search</a></p>
+</div></div>
+{% endblock %}

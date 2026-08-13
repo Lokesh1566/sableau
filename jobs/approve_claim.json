@@ -1,0 +1,57 @@
+{
+  "capability_id": "meridian.record_claim_decision",
+  "version": "1.0.0",
+  "title": "Record a decision on a pending claim",
+  "description": "Find a claim by its reference in Meridian Claims Desk, record an approve or reject decision with an audit note, and return the confirmation code.",
+  "goal": "Record the supplied decision outcome on the supplied claim reference in Meridian Claims Desk, entering the supplied decision note, and capture the confirmation code and decided amount from the receipt screen.",
+  "app_id": "meridian-claims-desk",
+  "entry_url": "http://127.0.0.1:8099/claims",
+  "outcomes_ref": "capabilities/outcomes/meridian.json",
+  "max_retries": 3,
+  "redact_paths": ["input.note"],
+  "inputs": [
+    {
+      "name": "claim_id",
+      "type": "string",
+      "required": true,
+      "pattern": "^CLM-[0-9]{6}$",
+      "example": "CLM-004211",
+      "sensitivity": "low",
+      "description": "Claim reference as printed on the claim record."
+    },
+    {
+      "name": "outcome",
+      "type": "enum",
+      "required": true,
+      "enum": ["APPROVED", "REJECTED"],
+      "default": "APPROVED",
+      "sensitivity": "low",
+      "description": "Decision to record against the claim."
+    },
+    {
+      "name": "note",
+      "type": "string",
+      "required": true,
+      "min_length": 12,
+      "max_length": 400,
+      "example": "Within plan limits, provider in network, no prior duplicate.",
+      "sensitivity": "medium",
+      "description": "Audit note explaining the decision. Redacted from logs and evidence."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "confirmation_code",
+      "type": "string",
+      "required": true,
+      "extract_regex": "MCD-[0-9]+",
+      "description": "Receipt code the claims system issues for the decision."
+    },
+    {
+      "name": "decided_amount",
+      "type": "number",
+      "required": true,
+      "description": "Claim amount as shown on the receipt, used to confirm the right record was acted on."
+    }
+  ]
+}

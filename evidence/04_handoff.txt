@@ -1,0 +1,25 @@
+waiting for automation to hand over the session...
+
+--- automation paused ---
+  reason        UNEXPECTED_DIALOG: A compliance notice is covering the decision panel and must be cleared by a person.
+  at step       s3_open_the_matching_claim_re
+  screen        http://127.0.0.1:8099/claims/CLM-004214
+  evidence      evidence/runs/handoff_20260813T065453Z_514e47/screenshots/escalation_compliance_dialog.png
+  control owner nobody
+
+--- operator acts on the same live session ---
+  take control  {'ok': True, 'error': None}
+  clear notice  {'ok': True, 'error': None}
+  resume        {'ok': True, 'error': None}
+
+--- automation resumed and finished ---
+SUCCESS/NONE | outputs=confirmation_code=MCD-77201, decided_amount=385.0 | llm_calls=0
+  control: DONE escalations=1 human_actions=1
+  evidence: evidence/runs/handoff_20260813T065453Z_514e47
+
+--- control transitions recorded ---
+  06:54:57  AUTOMATION_RUNNING  -> PAUSED              owner=nobody     by automation (UNEXPECTED_DIALOG)
+  06:54:58  PAUSED              -> HUMAN_CONTROL       owner=human      by scripted-operator (operator took control)
+  06:54:58  HUMAN_CONTROL       -> AUTOMATION_RUNNING  owner=automation by scripted-operator (CONTINUE_FROM_CURRENT_STEP)
+  06:55:01  AUTOMATION_RUNNING  -> DONE                owner=nobody     by automation (run complete)
+  human action: click {'target': 'ack-compliance', 'frame': 'main', 'value': '', 'via': 'testid'}

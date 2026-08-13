@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sableau — LLM UI exploration compiled into deterministic capabilities</title>
+<meta name="description" content="An LLM works out how to drive an application's interface once. That run is compiled into a typed, versioned artifact that replays with zero model calls.">
+<meta property="og:title" content="Sableau">
+<meta property="og:description" content="LLM UI exploration, compiled into deterministic capabilities.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────────
+   Tokens. The subject is a machine that turns an ephemeral
+   transcript into a durable, punched record, so the page is a
+   dark bureau desk with card-stock panels laid on it.
+   ───────────────────────────────────────────────────────────── */
+:root{
+  --desk:#141c24;          /* ink-navy desk */
+  --desk-2:#1b242e;
+  --card:#e8e3d6;          /* card stock */
+  --card-2:#dcd5c4;
+  --ink:#1a222c;
+  --ink-soft:#4d5a68;
+  --oxide:#9a3b2a;         /* risk, mutation, failure */
+  --verdigris:#2c6a55;     /* pass, determinism */
+  --brass:#a8873f;         /* attention, handoff */
+  --line:#2c3a47;
+  --line-card:#c3b99f;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;
+  --cond:"IBM Plex Sans Condensed",var(--sans);
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+body{margin:0;background:var(--desk);color:#c9d3dd;font:16px/1.65 var(--sans);
+  -webkit-font-smoothing:antialiased}
+a{color:#8fb8d6}
+a:hover{color:#b6d6ee}
+:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+.wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+h2{font:600 13px/1.3 var(--cond);letter-spacing:.22em;text-transform:uppercase;
+  color:#7d8fa0;margin:0 0 6px}
+h3{font:600 22px/1.3 var(--cond);letter-spacing:.01em;color:#e6edf4;margin:0 0 10px}
+section{padding:72px 0;border-top:1px solid var(--line)}
+.lede{font-size:18px;color:#aab8c6;max-width:66ch}
+code,kbd{font-family:var(--mono)}
+
+/* ── masthead ───────────────────────────────────────────────── */
+header{padding:26px 0 0}
+.brand{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.brand b{font:700 15px/1 var(--cond);letter-spacing:.3em;text-transform:uppercase;color:#e6edf4}
+.brand span{font:400 12px/1 var(--mono);color:#6d7d8c}
+nav{margin-left:auto;display:flex;gap:18px;font:500 12px/1 var(--cond);
+  letter-spacing:.14em;text-transform:uppercase}
+nav a{color:#8b9caa;text-decoration:none}
+nav a:hover{color:#dce6ef}
+
+/* ── hero ───────────────────────────────────────────────────── */
+.hero{padding:64px 0 8px}
+.hero h1{font:700 clamp(38px,6.2vw,72px)/1.02 var(--cond);letter-spacing:-.015em;
+  color:#f0f4f8;margin:0 0 22px;max-width:16ch}
+.hero h1 em{font-style:normal;color:var(--brass)}
+.pipeline{display:flex;gap:0;flex-wrap:wrap;margin:34px 0 0;
+  font:500 12px/1 var(--cond);letter-spacing:.16em;text-transform:uppercase}
+.pipeline div{padding:11px 18px;border:1px solid var(--line);border-right:0;color:#93a3b2}
+.pipeline div:last-child{border-right:1px solid var(--line)}
+.pipeline div.on{background:var(--verdigris);border-color:var(--verdigris);color:#eef6f2}
+.pipeline div.mid{background:var(--card);border-color:var(--line-card);color:var(--ink)}
+
+/* ── signature: the punched capability card ─────────────────── */
+.cardstock{background:var(--card);color:var(--ink);border:1px solid var(--line-card);
+  position:relative;margin:44px 0 0;box-shadow:0 18px 44px rgba(0,0,0,.42)}
+.cardstock::after{content:"";position:absolute;top:0;right:0;border-width:0 18px 18px 0;
+  border-style:solid;border-color:var(--desk) var(--desk) var(--line-card) var(--line-card)}
+.cardhead{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;
+  padding:12px 18px;border-bottom:1px solid var(--line-card);background:var(--card-2)}
+.cardhead b{font:600 12px/1 var(--cond);letter-spacing:.2em;text-transform:uppercase}
+.cardhead span{font:400 12px/1 var(--mono);color:#6b6250}
+.punchrow{display:grid;grid-template-columns:repeat(8,1fr);gap:0}
+.punch{border-right:1px solid var(--line-card);padding:16px 10px 18px;text-align:center;
+  background:none;font:inherit;cursor:pointer;transition:background .16s}
+.punch:last-child{border-right:0}
+.punch:hover{background:#efeade}
+.punch[aria-selected=true]{background:#f4f0e6;box-shadow:inset 0 -3px 0 var(--ink)}
+.punch[aria-selected=true] .n{color:var(--ink)}
+.punch .hole{display:block;width:15px;height:26px;margin:0 auto 10px;border-radius:2px;
+  background:var(--desk);box-shadow:inset 0 1px 3px rgba(0,0,0,.7)}
+.punch[aria-selected=true] .hole{background:var(--verdigris)}
+.punch[data-risk=risky] .hole{background:var(--oxide)}
+.punch .n{display:block;font:600 10px/1 var(--mono);letter-spacing:.1em;color:#7a7160}
+.punchout{padding:18px;border-top:1px solid var(--line-card);min-height:132px}
+.punchout .step-id{font:500 12px/1 var(--mono);color:#6b6250}
+.punchout .step-intent{font:600 19px/1.3 var(--cond);margin:6px 0 10px}
+.punchout dl{display:grid;grid-template-columns:112px 1fr;gap:4px 14px;margin:0;font-size:14px}
+.punchout dt{color:#6b6250;font:500 11px/1.6 var(--cond);letter-spacing:.1em;text-transform:uppercase}
+.punchout dd{margin:0;font-family:var(--mono);font-size:12.5px;word-break:break-word}
+.tag{display:inline-block;padding:1px 7px;border:1px solid;font:500 10px/1.7 var(--mono);
+  letter-spacing:.06em;text-transform:uppercase}
+.t-safe{color:var(--verdigris);border-color:var(--verdigris)}
+.t-risky{color:var(--oxide);border-color:var(--oxide);background:#f6e9e6}
+.caption{font-size:13px;color:#788a99;margin:12px 0 0}
+
+/* ── generic panels ─────────────────────────────────────────── */
+.grid{display:grid;gap:20px;margin-top:26px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.panel{background:var(--desk-2);border:1px solid var(--line);padding:20px}
+.panel h4{font:600 12px/1 var(--cond);letter-spacing:.18em;text-transform:uppercase;
+  color:var(--brass);margin:0 0 10px}
+.panel p{margin:0;font-size:14.5px;color:#a5b3c1}
+pre{background:#0f161d;border:1px solid var(--line);padding:16px;overflow-x:auto;
+  font:400 12.5px/1.7 var(--mono);color:#b9c8d6;margin:18px 0 0}
+pre b{color:var(--verdigris);font-weight:500}
+pre i{color:#6b7c8b;font-style:normal}
+pre u{color:var(--brass);text-decoration:none}
+table{width:100%;border-collapse:collapse;margin-top:22px;font-size:14px}
+th{text-align:left;font:600 10.5px/1.6 var(--cond);letter-spacing:.16em;text-transform:uppercase;
+  color:#7d8fa0;border-bottom:1px solid var(--line);padding:8px 10px}
+td{border-bottom:1px solid #222d38;padding:8px 10px;vertical-align:top}
+td.mono{font-family:var(--mono);font-size:12.5px}
+.cat{font:500 10px/1.7 var(--mono);letter-spacing:.05em;padding:1px 6px;border:1px solid}
+.c-biz{color:#8fb8d6;border-color:#3d637f}
+.c-hard{color:#c98878;border-color:#7a3b30}
+.c-rec{color:#8fc4ae;border-color:#3a6e5b}
+
+/* ── figures ────────────────────────────────────────────────── */
+figure{margin:0}
+figure img{width:100%;display:block;border:1px solid var(--line)}
+figcaption{font-size:12.5px;color:#788a99;margin-top:9px;font-family:var(--mono)}
+
+/* ── numbers ────────────────────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line);margin-top:26px}
+.stats div{background:var(--desk-2);padding:20px 16px}
+.stats b{display:block;font:600 30px/1 var(--cond);color:#f0f4f8}
+.stats span{display:block;font-size:12.5px;color:#8b9caa;margin-top:6px}
+
+/* ── timeline ───────────────────────────────────────────────── */
+.tl{margin-top:24px;border-left:2px solid var(--line);padding-left:22px}
+.tl li{list-style:none;position:relative;padding:0 0 20px}
+.tl li::before{content:"";position:absolute;left:-28px;top:7px;width:10px;height:10px;
+  border-radius:50%;background:var(--desk);border:2px solid var(--line)}
+.tl li.human::before{background:var(--brass);border-color:var(--brass)}
+.tl li.done::before{background:var(--verdigris);border-color:var(--verdigris)}
+.tl b{display:block;font:600 14px/1.4 var(--cond);letter-spacing:.06em;
+  text-transform:uppercase;color:#e6edf4}
+.tl span{font-family:var(--mono);font-size:12.5px;color:#8b9caa}
+ul.plain{padding-left:20px;color:#a5b3c1;font-size:14.5px}
+ul.plain li{margin:7px 0}
+
+footer{border-top:1px solid var(--line);padding:34px 0 60px;color:#6d7d8c;font-size:13px}
+footer a{margin-right:20px}
+@media (max-width:900px){
+  .g2,.g3,.stats{grid-template-columns:1fr}
+  .punchrow{grid-template-columns:repeat(4,1fr)}
+  .punch:nth-child(4n){border-right:0}
+  nav{width:100%;margin:14px 0 0;gap:14px;flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<header><div class="wrap brand">
+  <b>Sableau</b><span>capability recorder &amp; deterministic replay</span>
+  <nav>
+    <a href="#idea">Idea</a><a href="#artifact">Artifact</a><a href="#determinism">Determinism</a>
+    <a href="#outcomes">Outcomes</a><a href="#handoff">Handoff</a><a href="#run">Run it</a>
+  </nav>
+</div></header>
+
+<div class="wrap hero">
+  <h1>An agent should only have to <em>figure it out once</em>.</h1>
+  <p class="lede">A language model drives a real browser until the job is done. That successful run is
+  compiled into a typed, versioned artifact. Every run after it executes from the artifact with zero
+  model calls. When automation genuinely cannot continue, it hands the same live session to a person.</p>
+
+  <div class="pipeline">
+    <div>goal + app</div><div>observe → decide → act</div>
+    <div class="mid">capability.json</div><div class="on">replay · 0 llm calls</div>
+  </div>
+
+  <!-- Signature element: the compiled capability as a punched record. -->
+  <div class="cardstock">
+    <div class="cardhead">
+      <b>meridian.record_claim_decision</b>
+      <span>v1.0.0 · schema 1.0.0 · dom surface · 8 steps · 2 checkpoints · 2 outputs</span>
+    </div>
+    <div class="punchrow" role="tablist" aria-label="Compiled capability steps">
+      <button class="punch" role="tab" aria-selected="true"  data-risk="safe"  data-i="0"><span class="hole"></span><span class="n">S1</span></button>
+      <button class="punch" role="tab" aria-selected="false" data-risk="safe"  data-i="1"><span class="hole"></span><span class="n">S2</span></button>
+      <button class="punch" role="tab" aria-selected="false" data-risk="safe"  data-i="2"><span class="hole"></span><span class="n">S3</span></button>
+      <button class="punch" role="tab" aria-selected="false" data-risk="safe"  data-i="3"><span class="hole"></span><span class="n">S4</span></button>
+      <button class="punch" role="tab" aria-selected="false" data-risk="safe"  data-i="4"><span class="hole"></span><span class="n">S5</span></button>
+      <button class="punch" role="tab" aria-selected="false" data-risk="risky" data-i="5"><span class="hole"></span><span class="n">S6</span></button>
+      <button class="punch" role="tab" aria-selected="false" data-risk="safe"  data-i="6"><span class="hole"></span><span class="n">S7</span></button>
+      <button class="punch" role="tab" aria-selected="false" data-risk="safe"  data-i="7"><span class="hole"></span><span class="n">S8</span></button>
+    </div>
+    <div class="punchout" id="punchout" aria-live="polite"></div>
+  </div>
+  <p class="caption">Real fields from the committed artifact. The red punch is the one state-changing
+  step; the compiler marked it risky by inspecting what the run actually did, and replay refuses to
+  execute it without an explicit confirmation flag.</p>
+</div>
+
+<section id="idea"><div class="wrap">
+  <h2>The idea</h2>
+  <h3>The transcript is not the reusable thing</h3>
+  <p class="lede">A trace is one run, with one set of values, full of planner rationale, retries and
+  dead ends. Re-running it is not automation, it is a recording. The artifact is what a second system
+  can read, type-check, parameterise and hold to a contract.</p>
+  <div class="grid g3">
+    <div class="panel"><h4>Discovery</h4><p>The planner emits one typed tool call per turn and is
+      never allowed to write a selector. It describes controls the way a person would: role plus
+      accessible name, or a test id.</p></div>
+    <div class="panel"><h4>Compilation</h4><p>At the moment each action succeeds, the loop describes
+      the element it just touched, generates every plausible way to name it, and probes each one
+      against the live DOM. Only descriptions matching exactly one element survive.</p></div>
+    <div class="panel"><h4>Replay</h4><p>Capability plus parameters in, structured result out. Steps,
+      checkpoints, known outcomes, bounded retries, typed outputs. No model, enforced three
+      different ways.</p></div>
+  </div>
+  <pre><i># one discovery run, then the artifact does the work</i>
+11 planner turns  <u>──compiler──▶</u>  <b>8 steps · 2 checkpoints · 2 typed outputs · 8 known outcomes</b>
+                                25 literal values replaced by bindings
+                                every locator re-derived from live measurement</pre>
+</div></section>
+
+<section id="artifact"><div class="wrap">
+  <h2>Artifact</h2>
+  <h3>Targeting is measured, not guessed</h3>
+  <p class="lede">A locator that still resolves after the application changes can quietly match the
+  wrong control. That is the worst failure mode in UI automation, because it succeeds. So every step
+  carries ranked fallbacks and a verify predicate that turns a stale match into a loud failure.</p>
+<pre>"target": {
+  "candidates": [
+    { "strategy": "role", "role": "link", "name_equals": "<b>{{input.claim_id}}</b>", "confidence": 0.9 },
+    { "strategy": "text", "text": "<b>{{input.claim_id}}</b>", "confidence": 0.6 },
+    { "strategy": "css",  "value": "table.tbl-9f3a > tbody > tr > td > a", "confidence": 0.3 }
+  ],
+  "ambiguity_policy": "fail_if_multiple",
+  "verify": { "kind": "attribute_contains", "attr": "href", "value": "<b>/claims/{{input.claim_id}}</b>" }
+}</pre>
+  <p class="caption">Bindings are substituted inside locator names and verify predicates too, which is
+  what makes replay look for a <em>different</em> link on every invocation. The grammar is closed —
+  only <code>{{input.x}}</code> and <code>{{env.X}}</code> resolve — so loading an artifact can never
+  execute anything.</p>
+
+  <div class="grid g2">
+    <div class="panel"><h4>Contract</h4><p>Typed inputs with patterns and enums, typed outputs with
+      extraction bindings, checkpoints, known business outcomes, and the safety constraints the run
+      actually needed. Referential integrity is validated at load.</p></div>
+    <div class="panel"><h4>Not coupled to the DOM</h4><p>No <code>querySelector</code>, no element
+      handles, no CSS in the required path. The whole engine is also tested against an in-memory
+      surface with no browser at all — which is the proof the coupling is really absent.</p></div>
+  </div>
+</div></section>
+
+<section id="determinism"><div class="wrap">
+  <h2>Determinism</h2>
+  <h3>Zero model calls, enforced three ways</h3>
+  <ul class="plain">
+    <li><b>Import graph.</b> A test parses every module in the production path and fails if any of
+      them reaches an LLM SDK, an HTTP client, or the discovery package.</li>
+    <li><b>Poisoned SDK.</b> A test replaces <code>anthropic</code> and <code>openai</code> with an
+      object that raises on any attribute access, then runs a complete replay. It passes.</li>
+    <li><b>Result contract.</b> <code>llm_calls</code> is carried to the caller and asserted zero on
+      every run.</li>
+  </ul>
+<pre>$ python -m sableau.cli replay --capability meridian.record_claim_decision.v1.0.0.json \
+    --confirm-risky --param claim_id=<u>CLM-004212</u> --param outcome=APPROVED \
+    --param "note=Imaging authorised under referral 88213, within schedule."
+
+<i>step.ok  s3_open_the_matching_claim_re   strategy=role  candidate=<u>1</u>   </i><i># testid was gone; fell back</i>
+<i>step.ok  s6_save_the_decision            risk=risky     attempts=1</i>
+<b>SUCCESS/NONE | outputs=confirmation_code=MCD-77201, decided_amount=612.5 | llm_calls=0</b></pre>
+  <div class="stats">
+    <div><b>68</b><span>tests passing — 59 unit, 9 against real Chromium</span></div>
+    <div><b>0</b><span>model calls in every replay, asserted structurally</span></div>
+    <div><b>14</b><span>real run directories committed as evidence</span></div>
+    <div><b>16</b><span>outcome codes across four categories</span></div>
+  </div>
+</div></section>
+
+<section id="outcomes"><div class="wrap">
+  <h2>Outcomes</h2>
+  <h3>A business answer is not an exception</h3>
+  <p class="lede">"No claims match that search" is a successful execution that returned bad news.
+  Collapsing it into a generic error forces every caller to parse strings to find out whether anything
+  is actually wrong. Each condition below was produced against the live application, not simulated.</p>
+  <table>
+    <thead><tr><th>Condition</th><th>Category</th><th>Code</th><th>What replay does</th></tr></thead>
+    <tbody>
+      <tr><td>Search returns nothing</td><td><span class="cat c-biz">business</span></td><td class="mono">RECORD_NOT_FOUND</td><td>returns the answer, no error</td></tr>
+      <tr><td>Claim already decided</td><td><span class="cat c-biz">business</span></td><td class="mono">ALREADY_PROCESSED</td><td>stops before writing a second time</td></tr>
+      <tr><td>Parameter fails its schema</td><td><span class="cat c-hard">hard</span></td><td class="mono">INVALID_INPUT</td><td>rejected before the browser is touched</td></tr>
+      <tr><td>Application rejects the form</td><td><span class="cat c-hard">hard</span></td><td class="mono">VALIDATION_ERROR</td><td>captures the app's own message</td></tr>
+      <tr><td>Operator role not permitted</td><td><span class="cat c-hard">hard</span></td><td class="mono">PERMISSION_DENIED</td><td>screenshot, DOM snapshot, return</td></tr>
+      <tr><td>Assertion no longer holds</td><td><span class="cat c-hard">hard</span></td><td class="mono">CHECKPOINT_MISMATCH</td><td>evidence, return</td></tr>
+      <tr><td>Host outside the allowlist</td><td><span class="cat c-hard">hard</span></td><td class="mono">POLICY_VIOLATION</td><td>refused before execution</td></tr>
+      <tr><td>Control cannot be found</td><td><span class="cat c-rec">recoverable</span></td><td class="mono">MISSING_CONTROL</td><td>next locator candidate, then a person</td></tr>
+      <tr><td>Two controls match</td><td><span class="cat c-rec">recoverable</span></td><td class="mono">AMBIGUOUS_CONTROL</td><td>refuses to guess, escalates</td></tr>
+      <tr><td>Modal covers the form</td><td><span class="cat c-rec">recoverable</span></td><td class="mono">UNEXPECTED_DIALOG</td><td>hands the session to a person</td></tr>
+      <tr><td>Backend 503 on first load</td><td><span class="cat c-rec">recoverable</span></td><td class="mono">TRANSIENT_FAILURE</td><td>bounded capability restart, then succeeds</td></tr>
+      <tr><td>Session ended mid-run</td><td><span class="cat c-rec">recoverable</span></td><td class="mono">SESSION_EXPIRED</td><td>classified so the caller can re-auth</td></tr>
+    </tbody>
+  </table>
+  <div class="grid g2" style="margin-top:30px">
+    <figure><img src="img/denied.png" alt="The claims application showing a permission denial, captured automatically when the run failed.">
+      <figcaption>evidence captured on PERMISSION_DENIED</figcaption></figure>
+    <figure><img src="img/discovery.png" alt="The receipt screen of the claims application at the end of a discovery run.">
+      <figcaption>final screen of a discovery run</figcaption></figure>
+  </div>
+  <p class="caption">Two orderings in the engine were bugs first. Known outcomes are checked
+  <em>before</em> postcondition checkpoints, because a permission denial makes the "decision recorded"
+  checkpoint fail and reporting CHECKPOINT_MISMATCH there is technically true and operationally
+  useless. They are also checked <em>before</em> escalation, so a dead session does not page a human.</p>
+</div></section>
+
+<section id="handoff"><div class="wrap">
+  <h2>Handoff</h2>
+  <h3>The person gets the same live session, not a fresh one</h3>
+  <p class="lede">The console holds the same surface object the engine is using. A human click goes
+  through the same resolve-and-act path, subject to the same allowlist, recorded in the same audit
+  trail. One process, one event loop, one ownership token — so "same session" is true by construction
+  rather than by hope.</p>
+  <div class="grid g2">
+    <div>
+      <ul class="tl">
+        <li><b>Automation running</b><span>s3 opened claim CLM-004214</span></li>
+        <li><b>Paused — UNEXPECTED_DIALOG</b><span>a compliance notice is covering the decision panel<br>reason, step, url, screenshot and DOM captured</span></li>
+        <li class="human"><b>Human control</b><span>scripted-operator took control<br>click ack-compliance via testid, in frame main</span></li>
+        <li class="human"><b>Resumed</b><span>decision = CONTINUE_FROM_CURRENT_STEP</span></li>
+        <li class="done"><b>Done</b><span>SUCCESS · confirmation_code=MCD-77201 · llm_calls=0</span></li>
+      </ul>
+    </div>
+    <figure><img src="img/escalation.png" alt="The compliance notice modal that caused automation to pause and hand over control.">
+      <figcaption>the screen automation refused to guess at</figcaption></figure>
+  </div>
+  <p class="caption">Resume carries a decision: continue from the current step, retry it, skip it, or
+  abort. An operator abort has its own outcome code rather than being folded into a generic failure.</p>
+</div></section>
+
+<section id="run"><div class="wrap">
+  <h2>Run it</h2>
+  <h3>Everything reproduces from four commands</h3>
+<pre>git clone https://github.com/Lokesh1566/sableau.git &amp;&amp; cd sableau
+pip install -e ".[dev]" &amp;&amp; python -m playwright install chromium
+
+./scripts/up.sh                 <i># target app on :8099, shared Chromium on :9222</i>
+./scripts/make_evidence.sh      <i># discovery, replays, every error case, handoff, tests</i>
+python -m pytest -q             <i># </i><b>68 passed</b></pre>
+  <div class="grid g3" style="margin-top:26px">
+    <div class="panel"><h4>Honest limit</h4><p>The committed discovery evidence used the offline
+      rule-based planner, because the machine I built on had no API key. The Anthropic tool-use
+      planner is complete code on the same interface, and provenance records which one ran.</p></div>
+    <div class="panel"><h4>Honest limit</h4><p>One surface is implemented. Feature declaration and
+      compatibility refusal are real and tested, but accessibility-tree, coordinate and desktop
+      surfaces are designed for, not written.</p></div>
+    <div class="panel"><h4>Honest limit</h4><p>The demo application is friendlier than a genuinely
+      hostile legacy system. Generated ids, nested framesets and canvas widgets would stress locator
+      synthesis much harder than this does.</p></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <a href="https://github.com/Lokesh1566/sableau">Repository</a>
+  <a href="https://github.com/Lokesh1566/sableau/blob/main/REPORT.md">Design report</a>
+  <a href="https://github.com/Lokesh1566/sableau/blob/main/AUDIT.md">Requirement audit</a>
+  <a href="https://github.com/Lokesh1566/sableau/tree/main/evidence">Evidence</a>
+  <p style="margin-top:18px">Meridian Claims Desk is a fictional application with synthetic records.
+  No real financial data, members or credentials appear anywhere in this project.</p>
+</div></footer>
+
+<script>
+const STEPS = [
+  {id:"s1_enter_the_claim_reference", intent:"Enter the claim reference in the search box",
+   action:"type", value:"{{input.claim_id}}", frame:"main", risk:"safe",
+   locators:"testid · label · placeholder · css"},
+  {id:"s2_run_the_search", intent:"Run the search",
+   action:"click", value:"—", frame:"main", risk:"safe",
+   locators:"testid · role · text · css"},
+  {id:"s3_open_the_matching_claim_re", intent:"Open the matching claim record from the results table",
+   action:"click", value:"verify href contains /claims/{{input.claim_id}}", frame:"main", risk:"safe",
+   locators:"role · text · css"},
+  {id:"s4_choose_the_decision_outcom", intent:"Choose the decision outcome",
+   action:"select", value:"{{input.outcome}}", frame:"decision", risk:"safe",
+   locators:"testid · css"},
+  {id:"s5_record_the_decision_note_f", intent:"Record the decision note for the audit trail",
+   action:"type", value:"{{input.note}}  (redacted from logs)", frame:"decision", risk:"safe",
+   locators:"placeholder · css"},
+  {id:"s6_save_the_decision", intent:"Save the decision",
+   action:"click", value:"requires --confirm-risky", frame:"decision", risk:"risky",
+   locators:"testid · role · text · css"},
+  {id:"s7_capture_the_confirmation_c", intent:"Capture the confirmation code from the receipt",
+   action:"read", value:"→ confirmation_code, extract MCD-[0-9]+", frame:"main", risk:"safe",
+   locators:"testid · css"},
+  {id:"s8_capture_the_decided_amount", intent:"Capture the decided amount from the receipt",
+   action:"read", value:"→ decided_amount (number)", frame:"main", risk:"safe",
+   locators:"testid · css"}
+];
+const out = document.getElementById("punchout");
+const tabs = Array.from(document.querySelectorAll(".punch"));
+function show(i){
+  const s = STEPS[i];
+  tabs.forEach((t,j)=>t.setAttribute("aria-selected", j===i ? "true":"false"));
+  out.innerHTML =
+    '<div class="step-id">'+s.id+'</div>'+
+    '<div class="step-intent">'+s.intent+'</div>'+
+    '<dl>'+
+      '<dt>Action</dt><dd>'+s.action+' <span class="tag t-'+s.risk+'">'+s.risk+'</span></dd>'+
+      '<dt>Bound value</dt><dd>'+s.value+'</dd>'+
+      '<dt>Frame</dt><dd>'+s.frame+'</dd>'+
+      '<dt>Locators</dt><dd>'+s.locators+'</dd>'+
+    '</dl>';
+}
+tabs.forEach((t,i)=>{
+  t.addEventListener("click", ()=>show(i));
+  t.addEventListener("keydown", e=>{
+    if(e.key==="ArrowRight"||e.key==="ArrowLeft"){
+      e.preventDefault();
+      const n = (i + (e.key==="ArrowRight"?1:tabs.length-1)) % tabs.length;
+      tabs[n].focus(); show(n);
+    }
+  });
+});
+show(0);
+</script>
+</body>
+</html>

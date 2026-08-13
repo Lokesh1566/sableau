@@ -1,0 +1,70 @@
+
+==============================================================
+CASE: invalid input, rejected before the browser is touched
+--------------------------------------------------------------
+
+HARD_FAILURE/INVALID_INPUT | error=input claim_id does not match required format ^CLM-[0-9]{6}$ | llm_calls=0
+  evidence: evidence/runs/replay_20260813T065406Z_e3ca2d
+
+==============================================================
+CASE: input outside the declared enum
+--------------------------------------------------------------
+
+HARD_FAILURE/INVALID_INPUT | error=input outcome must be one of ['APPROVED', 'REJECTED'], got 'MAYBE' | llm_calls=0
+  evidence: evidence/runs/replay_20260813T065407Z_d1e53e
+
+==============================================================
+CASE: record not found, a business answer rather than an error
+--------------------------------------------------------------
+
+BUSINESS_OUTCOME/RECORD_NOT_FOUND | outcome=search_no_match | llm_calls=0
+  evidence: evidence/runs/replay_20260813T065408Z_016874
+
+==============================================================
+CASE: claim already decided, no second write attempted
+--------------------------------------------------------------
+
+BUSINESS_OUTCOME/ALREADY_PROCESSED | outcome=already_decided | llm_calls=0
+  evidence: evidence/runs/replay_20260813T065410Z_ece446
+
+==============================================================
+CASE: application level validation error the input schema cannot catch
+--------------------------------------------------------------
+
+HARD_FAILURE/VALIDATION_ERROR | error=The claims system rejected the decision form. | llm_calls=0
+  evidence: evidence/runs/replay_20260813T065413Z_63ff3d
+
+==============================================================
+CASE: permission denied by the application
+--------------------------------------------------------------
+
+HARD_FAILURE/PERMISSION_DENIED | error=The signed in operator is not permitted to decide this claim. | llm_calls=0
+  evidence: evidence/runs/replay_20260813T065418Z_99657e
+
+==============================================================
+CASE: transient backend failure, absorbed by a bounded restart
+--------------------------------------------------------------
+
+SUCCESS/NONE | outputs=confirmation_code=MCD-77201, decided_amount=210.0 | llm_calls=0
+  evidence: evidence/runs/replay_20260813T065424Z_3bd21e
+
+==============================================================
+CASE: slow page, waited out rather than failed
+--------------------------------------------------------------
+
+SUCCESS/NONE | outputs=confirmation_code=MCD-77202, decided_amount=78.0 | llm_calls=0
+  evidence: evidence/runs/replay_20260813T065433Z_8873bc
+
+==============================================================
+CASE: session expiry detected mid-run
+--------------------------------------------------------------
+
+RECOVERABLE/SESSION_EXPIRED | error=The session expired. Re-authenticate and invoke the capability again. | llm_calls=0
+  evidence: evidence/runs/replay_20260813T065442Z_407841
+
+==============================================================
+CASE: policy refuses a capability whose host is not allowed
+--------------------------------------------------------------
+HARD_FAILURE/POLICY_VIOLATION | error=capability declares hosts that the deployment policy does not allow: ['127.0.0.1:8099'] vs ['intranet.example.com'] | llm_calls=0
+  evidence: evidence/runs/replay_20260813T065452Z_0d613e
+

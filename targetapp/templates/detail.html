@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Claim {{ c.claim_id }}{% endblock %}
+{% block content %}
+{% if c.compliance_notice %}
+<div class="modal-backdrop"></div>
+<div class="modal" role="dialog" aria-modal="true" aria-labelledby="cnh">
+  <h2 id="cnh" style="margin:0;padding:8px 12px;background:#dde3e9;border-bottom:1px solid #aab4be;font-size:12px;letter-spacing:.1em;text-transform:uppercase">Compliance notice</h2>
+  <div style="padding:14px">
+    <p style="margin-top:0">This provider is under a periodic network review. Confirm you have read the
+    current review bulletin before recording a decision on this claim.</p>
+    <form method="post" action="/claims/{{ c.claim_id }}/acknowledge">
+      <button type="submit" data-testid="ack-compliance">I have read the bulletin</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Claim {{ c.claim_id }}</h2>
+  <div class="body">
+    {% if c.status != 'PENDING' %}
+      <div class="notice" data-testid="already-decided">This claim has already been decided.
+        Recorded outcome: {{ c.status }}.</div>
+    {% endif %}
+    <dl class="dl">
+      <dt>Member</dt><dd>{{ c.member }}</dd>
+      <dt>Provider</dt><dd>{{ c.provider }}</dd>
+      <dt>Service</dt><dd>{{ c.service }}</dd>
+      <dt>Amount</dt><dd>{{ '%.2f'|format(c.amount) }}</dd>
+      <dt>Submitted</dt><dd>{{ c.submitted }}</dd>
+      <dt>Status</dt><dd><span class="pill s-{{ c.status }}">{{ c.status }}</span></dd>
+      {% if c.confirmation %}<dt>Confirmation</dt><dd><span class="docket">{{ c.confirmation }}</span></dd>{% endif %}
+    </dl>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Decision</h2>
+  <iframe name="decision" title="Decision panel" src="/claims/{{ c.claim_id }}/decision" height="260"></iframe>
+</div>
+<p><a href="/claims">Back to search</a></p>
+{% endblock %}
