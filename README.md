@@ -1,3 +1,6 @@
+[![Tests](https://github.com/Lokesh1566/sableau/actions/workflows/tests.yml/badge.svg)](https://github.com/Lokesh1566/sableau/actions/workflows/tests.yml)
+[![Project site](https://img.shields.io/badge/site-github%20pages-2c6a55)](https://lokesh1566.github.io/sableau/)
+
 # Sableau
 
 **Turning a language model's successful UI exploration into a deterministic, replayable capability.**
