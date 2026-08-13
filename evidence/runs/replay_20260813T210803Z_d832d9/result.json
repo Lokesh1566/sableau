@@ -1,0 +1,107 @@
+{
+  "run_id": "replay_20260813T210803Z_d832d9",
+  "capability_id": "meridian.record_claim_decision",
+  "capability_version": "1.0.0",
+  "started_at": "2026-08-13T21:08:03.649882+00:00",
+  "duration_ms": 5167,
+  "category": "SUCCESS",
+  "code": "NONE",
+  "outputs": {
+    "confirmation_code": "MCD-77201",
+    "decided_amount": 612.5
+  },
+  "business_outcome": null,
+  "error": null,
+  "control": {
+    "final_owner": "nobody",
+    "escalated": false,
+    "escalation_id": null,
+    "escalation_reason": null,
+    "human_actions": 0,
+    "resume_decision": null
+  },
+  "steps": [
+    {
+      "step_id": "s1_type_the_claim_id_into_the",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 562,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s2_submit_the_search_to_find",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 611,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s3_open_the_clm_004211_claim",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 644,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s4_select_approved_as_the_out",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 556,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s5_enter_the_decision_note_in",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 582,
+      "resolved_strategy": "text",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s6_type_the_decision_note_int",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 535,
+      "resolved_strategy": "text",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s7_submit_the_decision_form_b",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 602,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s8_read_the_confirmation_code",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 542,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s9_read_the_decided_amount_fr",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 527,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    }
+  ],
+  "llm_calls": 0
+}

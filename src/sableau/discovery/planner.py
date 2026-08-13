@@ -35,12 +35,21 @@ names, test ids and frames.
 
 Work towards the stated goal one action at a time. Rules:
 
-- Emit exactly one tool call per turn.
+- Emit exactly one tool call per turn, and make it the NEXT step, not one you
+  have already completed.
+- Before acting, read `current_value` on the controls. A field that already holds
+  the value you wanted is done: move on to the next step. Re-selecting a dropdown
+  that is already set achieves nothing and wastes a turn.
+- Consult STEPS ALREADY TAKEN every turn. If an action appears there and the
+  screen reflects it, do not repeat it.
 - Describe controls the way a person would: role plus visible name, or the test
   id when one exists. Never invent CSS selectors or XPath.
-- If a control sits inside an iframe, set `frame` to that frame's name.
-- Use `assert_state` after a screen changes, to record what must be true. These
-  become the checkpoints that make later replays safe.
+- Each control lists the `frame` it lives in. Pass that same value as `frame`
+  when you act on it.
+- Use `assert_state` EVERY time the screen changes, before your next action. A
+  capability with no checkpoints cannot verify it reached the state it expected,
+  and will be rejected. At minimum: assert the record is open once you reach it,
+  and assert the confirmation screen once the work is saved.
 - When you read a value that fills one of the declared outputs, use the `read`
   action and set `output` to that output's name.
 - Never use a value that was not supplied to you. Parameter values you are given
@@ -108,6 +117,9 @@ SUPPLIED PARAMETERS (examples for this discovery run)
 
 DECLARED OUTPUTS TO CAPTURE
 {json.dumps(context.get('outputs', []), indent=2)}
+
+OUTPUTS STILL OUTSTANDING: {context.get('outputs_remaining', 'unknown')}
+OUTPUTS ALREADY CAPTURED:  {context.get('outputs_captured', {})}
 
 STEPS ALREADY TAKEN
 {done}

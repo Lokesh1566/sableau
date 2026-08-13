@@ -354,9 +354,9 @@ pip install -e ".[dev]" &amp;&amp; python -m playwright install chromium
 ./scripts/make_evidence.sh      <i># discovery, replays, every error case, handoff, tests</i>
 python -m pytest -q             <i># </i><b>68 passed</b></pre>
   <div class="grid g3" style="margin-top:26px">
-    <div class="panel"><h4>Honest limit</h4><p>The committed discovery evidence used the offline
-      rule-based planner, because the machine I built on had no API key. The Anthropic tool-use
-      planner is complete code on the same interface, and provenance records which one ran.</p></div>
+    <div class="panel"><h4>Honest limit</h4><p>Discovery is one shot. If the planner gets stuck the loop
+      stops it after four identical actions and refuses to compile, rather than retrying with a
+      revised strategy. That is a deliberate cut, not an oversight.</p></div>
     <div class="panel"><h4>Honest limit</h4><p>One surface is implemented. Feature declaration and
       compatibility refusal are real and tested, but accessibility-tree, coordinate and desktop
       surfaces are designed for, not written.</p></div>

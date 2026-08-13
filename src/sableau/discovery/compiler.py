@@ -122,6 +122,14 @@ def compile_capability(
     if not steps:
         raise CompilationError("trace contained no successful actions")
 
+    if not checkpoints:
+        # A capability with no checkpoint cannot tell a successful run from one
+        # that clicked into the void. Better to refuse than to ship one.
+        raise CompilationError(
+            "the run recorded no checkpoints, so the capability could never verify "
+            "that it reached the expected state. Re-run discovery."
+        )
+
     outputs: list[OutputSpec] = []
     for spec in job.get("outputs", []):
         name = spec["name"]

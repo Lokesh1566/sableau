@@ -94,12 +94,16 @@ class DiscoveryLoop:
         recorder: RunRecorder,
         policy: Policy | None = None,
         max_turns: int = 25,
+        repeat_warn: int = 2,
+        repeat_abort: int = 4,
     ):
         self.surface = surface
         self.planner = planner
         self.recorder = recorder
         self.policy = policy or Policy.load()
         self.max_turns = max_turns
+        self.repeat_warn = repeat_warn
+        self.repeat_abort = repeat_abort
 
     async def run(self, job: dict[str, Any], params: dict[str, Any]) -> DiscoveryTrace:
         goal = job["goal"]
@@ -112,6 +116,11 @@ class DiscoveryLoop:
         )
         context = {"params": params, "outputs": job.get("outputs", []), "entry_url": job["entry_url"]}
         history: list[str] = []
+        repeats: dict[str, int] = {}
+        declared_outputs = [o["name"] for o in job.get("outputs", [])]
+        captured: dict[str, Any] = {}
+        context["outputs_remaining"] = list(declared_outputs)
+        context["outputs_captured"] = captured
 
         self.recorder.log("discovery.start", goal=goal, planner=self.planner.name,
                           entry_url=job["entry_url"])
@@ -127,6 +136,28 @@ class DiscoveryLoop:
                 hints=hint_summary(planned.args),
                 rationale=planned.rationale[:200] or None,
             )
+
+            # A planner that keeps re-issuing an action which changes nothing is
+            # stuck. Say so out loud rather than burning the turn budget in
+            # silence: first nudge it, then stop.
+            signature = _signature(planned, obs.url)
+            repeats[signature] = repeats.get(signature, 0) + 1
+            if repeats[signature] == self.repeat_warn:
+                history.append(
+                    f"NOTE: you have already done '{planned.intent}' "
+                    f"{self.repeat_warn} times and the screen did not change. "
+                    "Check the controls' current_value, then do the NEXT step or call finish."
+                )
+                self.recorder.log("discovery.repeat_warning", signature=signature,
+                                  count=repeats[signature])
+            if repeats[signature] >= self.repeat_abort:
+                trace.status = "stuck"
+                trace.summary = (
+                    f"planner repeated '{planned.intent}' {repeats[signature]} times "
+                    "without the screen changing"
+                )
+                self.recorder.log("discovery.stuck", signature=signature)
+                break
 
             entry = TraceEntry(
                 seq=turn,
@@ -154,8 +185,9 @@ class DiscoveryLoop:
                 self.recorder.log("discovery.assert", id=planned.args.get("id"), holds=ok)
                 continue
 
+            entry.args["_outputs_remaining"] = list(context.get("outputs_remaining", []))
             try:
-                await self._execute(planned, entry)
+                await self._execute(planned, entry, obs)
             except PolicyViolation as exc:
                 entry.status = "policy_blocked"
                 entry.error = exc.message
@@ -172,8 +204,31 @@ class DiscoveryLoop:
                 history.append(f"{history_key(planned)} FAILED {exc.code.value}")
                 continue
 
+            entry.args.pop("_outputs_remaining", None)
             trace.entries.append(entry)
-            history.append(f"{history_key(planned)} {planned.intent}")
+            if entry.tool == "act" and entry.args.get("action") == "read":
+                # Reads leave the screen untouched, so the only way the planner
+                # learns it succeeded is if we tell it what came back.
+                name = entry.args.get("output")
+                if name:
+                    captured[name] = entry.read_value
+                    context["outputs_remaining"] = [
+                        o for o in declared_outputs if o not in captured
+                    ]
+                history.append(
+                    f"{history_key(planned)} {planned.intent} -> captured {entry.read_value!r}"
+                )
+            else:
+                history.append(f"{history_key(planned)} {planned.intent}")
+
+            # A URL change is a screen change. Rather than hope the planner
+            # notices, say so: checkpoints are what make replay verifiable, and
+            # this is the one moment we know one is warranted.
+            if entry.url_after and entry.url_after != entry.url_before:
+                history.append(
+                    "NOTE: the screen changed. Call assert_state now to record what "
+                    "must be true here, before doing anything else."
+                )
 
         shot = await self.surface.observe(with_screenshot=True)
         self.recorder.write_screenshot("discovery_final.png", shot.screenshot_png)
@@ -184,11 +239,14 @@ class DiscoveryLoop:
 
     # ------------------------------------------------------------------
 
-    async def _execute(self, planned: Planned, entry: TraceEntry) -> None:
+    async def _execute(self, planned: Planned, entry: TraceEntry, obs=None) -> None:
         a = planned.args
         kind = a.get("action", "")
         self.policy.check_action(kind)
-        frame_path = _frame_path(a.get("frame"))
+        # The planner names controls the way a person would and often does not
+        # say which frame one lives in. The observation already knows, so infer
+        # it rather than making the planner track document boundaries.
+        frame_path = _frame_path(a.get("frame") or _infer_frame(a, obs))
         entry.frame_path = frame_path
 
         if kind == "navigate":
@@ -205,6 +263,13 @@ class DiscoveryLoop:
         descriptor = await describe(resolution) if describe else {}
         entry.descriptor = descriptor
         entry.probes = await self._probe(descriptor, frame_path)
+
+        if kind == "read" and not a.get("output"):
+            remaining = list(entry.args.get("_outputs_remaining") or [])
+            if len(remaining) == 1:
+                a["output"] = remaining[0]
+                entry.args["output"] = remaining[0]
+                self.recorder.log("discovery.output_inferred", output=remaining[0])
 
         action = _build_action(kind, a)
         risk = self.policy.classify_risk(kind, planned.intent)
@@ -255,6 +320,23 @@ class DiscoveryLoop:
 # ----------------------------------------------------------------------
 # hint and locator construction
 # ----------------------------------------------------------------------
+
+
+def _infer_frame(args: dict[str, Any], obs) -> str | None:
+    """Find the frame of the control the planner described."""
+    if obs is None:
+        return None
+    testid = args.get("target_testid")
+    name = (args.get("target_name") or args.get("target_label") or "").strip().lower()
+    for control in obs.controls:
+        if testid and control.get("testid") == testid:
+            return control.get("frame")
+        if name and name in (
+            (control.get("name") or "").lower(),
+            (control.get("label") or "").lower(),
+        ):
+            return control.get("frame")
+    return None
 
 
 def _frame_path(frame: str | None) -> list[str]:
@@ -355,6 +437,16 @@ def _build_action(kind: str, a: dict[str, Any]):
     if kind == "read":
         return ReadAction(binding="text")
     raise PolicyViolation(f"planner proposed an unsupported action: {kind}")
+
+
+def _signature(planned: Planned, url: str) -> str:
+    """Identify 'the same action on the same control on the same screen'."""
+    a = planned.args
+    bits = [planned.tool, str(a.get("action")), url]
+    bits += [str(a.get(k, "")) for k in
+             ("target_testid", "target_role", "target_name", "target_label",
+              "target_text", "output", "value", "text", "key", "url")]
+    return "|".join(bits)
 
 
 def load_job(path: str) -> dict[str, Any]:

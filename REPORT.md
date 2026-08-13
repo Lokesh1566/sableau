@@ -87,7 +87,7 @@ way, what known answers exist, and what it is allowed to touch.
   "schema_version": "1.0.0",
   "capability_id": "meridian.record_claim_decision",
   "version": "1.0.0",
-  "provenance": { "goal": "...", "planner": "heuristic", "model": null,
+  "provenance": { "goal": "...", "planner": "anthropic", "model": "claude-sonnet-4-6",
                   "trace_ref": "evidence/runs/.../trace.json", "compiler_version": "1.0.0" },
   "surface":  { "kind": "dom",
                 "required_features": ["frames","label_query","role_query","testid_query",...] },
@@ -399,10 +399,15 @@ credentials, bound to localhost.
 
 ### Limitations I would raise before being asked
 
-1. **The committed evidence used the heuristic planner.** The machine I built this on had no API key.
-   `AnthropicPlanner` is complete tool-use code on the same interface, and provenance records which
-   planner ran. Everything else in `evidence/` is genuine execution: real Chromium 150, real clicks,
-   real screenshots, real compilation, real replays.
+1. **Discovery is one shot and needed real guardrails.** The committed evidence is a genuine
+   `claude-sonnet-4-6` run, but getting there exposed three failure modes worth naming. A `<select>`
+   reported its option list as its name, so an already-set dropdown looked untouched and the model
+   re-set it twenty-two times. Reads do not change the screen, so the planner had no way to know a
+   capture succeeded and kept retrying. And nothing noticed the repetition. The fixes — report field
+   state, feed captured values back into the planner's history, and abort after four identical
+   actions on an unchanged screen — are the same bounded-retry discipline the replay engine already
+   used, applied to discovery. The offline `HeuristicPlanner` remains so the loop and CI run without
+   a credential.
 2. **One surface implemented.** The abstraction is exercised by two implementations and enforced by
    feature declaration, but the a11y, coordinate and desktop surfaces are designed for, not written.
 3. **Discovery is single-shot** and does not retry with a revised strategy on failure.

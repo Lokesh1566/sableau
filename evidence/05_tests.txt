@@ -68,7 +68,7 @@ tests/test_no_llm_in_replay.py::test_production_path_never_imports_an_llm_client
 tests/test_no_llm_in_replay.py::test_replay_can_be_imported_with_no_llm_sdk_available PASSED [ 98%]
 tests/test_no_llm_in_replay.py::test_a_full_replay_completes_with_the_llm_sdk_poisoned PASSED [100%]
 
-============================== 59 passed in 0.12s ==============================
+============================== 59 passed in 0.13s ==============================
 
 ### integration suite, real Chromium against the live application
 ============================= test session starts ==============================
@@ -90,4 +90,4 @@ tests/integration/test_live_stack.py::test_secret_inputs_never_reach_disk PASSED
 tests/integration/test_live_stack.py::test_surface_declares_the_features_the_capability_needs PASSED [ 88%]
 tests/integration/test_live_stack.py::test_iframe_scoped_locators_actually_resolve PASSED [100%]
 
-============================== 9 passed in 29.90s ==============================
+============================== 9 passed in 32.84s ==============================

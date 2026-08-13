@@ -2,9 +2,9 @@ waiting for automation to hand over the session...
 
 --- automation paused ---
   reason        UNEXPECTED_DIALOG: A compliance notice is covering the decision panel and must be cleared by a person.
-  at step       s3_open_the_matching_claim_re
+  at step       s3_open_the_clm_004211_claim
   screen        http://127.0.0.1:8099/claims/CLM-004214
-  evidence      evidence/runs/handoff_20260813T191815Z_5ef50f/screenshots/escalation_compliance_dialog.png
+  evidence      evidence/runs/handoff_20260813T210853Z_ee2b66/screenshots/escalation_compliance_dialog.png
   control owner nobody
 
 --- operator acts on the same live session ---
@@ -15,11 +15,11 @@ waiting for automation to hand over the session...
 --- automation resumed and finished ---
 SUCCESS/NONE | outputs=confirmation_code=MCD-77201, decided_amount=385.0 | llm_calls=0
   control: DONE escalations=1 human_actions=1
-  evidence: evidence/runs/handoff_20260813T191815Z_5ef50f
+  evidence: evidence/runs/handoff_20260813T210853Z_ee2b66
 
 --- control transitions recorded ---
-  19:18:18  AUTOMATION_RUNNING  -> PAUSED              owner=nobody     by automation (UNEXPECTED_DIALOG)
-  19:18:19  PAUSED              -> HUMAN_CONTROL       owner=human      by scripted-operator (operator took control)
-  19:18:19  HUMAN_CONTROL       -> AUTOMATION_RUNNING  owner=automation by scripted-operator (CONTINUE_FROM_CURRENT_STEP)
-  19:18:21  AUTOMATION_RUNNING  -> DONE                owner=nobody     by automation (run complete)
+  21:08:56  AUTOMATION_RUNNING  -> PAUSED              owner=nobody     by automation (UNEXPECTED_DIALOG)
+  21:08:56  PAUSED              -> HUMAN_CONTROL       owner=human      by scripted-operator (operator took control)
+  21:08:57  HUMAN_CONTROL       -> AUTOMATION_RUNNING  owner=automation by scripted-operator (CONTINUE_FROM_CURRENT_STEP)
+  21:09:00  AUTOMATION_RUNNING  -> DONE                owner=nobody     by automation (run complete)
   human action: click {'target': 'ack-compliance', 'frame': 'main', 'value': '', 'via': 'testid'}

@@ -48,7 +48,11 @@ ACT_TOOL = {
             "target_text": {"type": "string"},
             "output": {
                 "type": "string",
-                "description": "For read, the name of the declared output this value fills.",
+                "description": (
+                    "REQUIRED for read. The name of the declared output this value fills, "
+                    "exactly as listed in DECLARED OUTPUTS TO CAPTURE. A read without this "
+                    "is discarded."
+                ),
             },
         },
         "required": ["intent", "action"],

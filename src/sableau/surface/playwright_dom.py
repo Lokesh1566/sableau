@@ -277,11 +277,27 @@ class PlaywrightDomSurface:
                 const r = el.getBoundingClientRect();
                 if (r.width === 0 && r.height === 0) return;
                 if (out.length > 70) return;
+                const tag = el.tagName.toLowerCase();
+                const isField = tag === 'input' || tag === 'select' || tag === 'textarea';
+                // A field's identity is its label; its *state* is its value. Reporting
+                // a <select>'s innerText would hand back the whole option list and make
+                // an already-set control look untouched.
+                let value = '';
+                if (tag === 'select') {
+                  const o = el.options[el.selectedIndex];
+                  value = o ? o.text.trim() : '';
+                } else if (isField) {
+                  value = (el.value || '').slice(0, 60);
+                }
                 out.push({
-                  tag: el.tagName.toLowerCase(),
+                  tag,
                   role: el.getAttribute('role') || '',
                   type: el.getAttribute('type') || '',
-                  name: (el.getAttribute('aria-label') || el.innerText || el.value || '').trim().slice(0, 70),
+                  name: isField
+                    ? (el.getAttribute('aria-label') || labelFor(el) ||
+                       el.getAttribute('placeholder') || el.getAttribute('name') || '')
+                    : (el.getAttribute('aria-label') || el.innerText || '').trim().slice(0, 70),
+                  current_value: value,
                   label: labelFor(el),
                   testid: el.getAttribute('data-testid') || '',
                   placeholder: el.getAttribute('placeholder') || '',

@@ -130,7 +130,8 @@ python -m sableau.cli discover --job jobs/approve_claim.json --planner heuristic
 reads. I wrote it so the loop, the compiler and the tests stay runnable with no API credential, and
 so CI does not need one. Every artifact records `provenance.planner`, so an offline run can never be
 mistaken for a model driven one. **The evidence committed to this repo was produced with
-`heuristic`** — see [Honest limits](#honest-limits).
+`--planner anthropic` on `claude-sonnet-4-6`** — see `evidence/01_discovery.txt` and
+`provenance` in the compiled capability.
 
 Both write `capabilities/meridian.record_claim_decision.v1.0.0.json` and a full trace under
 `evidence/runs/`.
@@ -235,10 +236,13 @@ evidence/      real run output
 
 I would rather state these than have someone find them.
 
-- **The committed evidence used the heuristic planner.** `AnthropicPlanner` is complete tool-use code
-  on the same interface; run the discovery command above with a key and it produces model-driven
-  evidence. Everything else in `evidence/` — the UI interaction, the compilation, every replay, the
-  handoff — is genuine execution against real Chromium.
+- **Discovery is one shot, and the planner needed guardrails to get there.** Building the loop
+  against a real model surfaced three problems I had to fix: a `<select>` reported its option list
+  rather than its selected value, so an already-set dropdown looked untouched and the model kept
+  re-setting it; reads leave the screen unchanged, so the planner had no signal that a capture
+  landed; and nothing detected a planner repeating itself. The loop now reports field state,
+  feeds captured values back, and stops a repeating planner after four identical actions. Those
+  are guardrails around a model, not a substitute for one.
 - **One surface is implemented.** The abstraction is real (feature declaration, compatibility
   refusal, a second in-memory implementation the whole engine is tested against), but accessibility
   tree, screenshot-plus-coordinates and native desktop surfaces are designed for, not written.

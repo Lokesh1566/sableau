@@ -60,7 +60,7 @@ directories in `evidence/runs/`.
 
 | Requirement | What exists | What does not |
 |---|---|---|
-| Model-driven discovery evidence | `AnthropicPlanner` is complete tool-use code; one command runs it | the committed evidence used `--planner heuristic`, since the machine I built on had no API key. Provenance records which planner ran |
+| Discovery robustness | a real `claude-sonnet-4-6` run, plus loop detection and field-state reporting | the loop does not retry a failed exploration with a revised strategy; one shot, then it refuses to compile |
 | Multiple surfaces | protocol, feature declaration, compatibility refusal, two implementations | a11y-tree, coordinate and desktop surfaces designed for, not written |
 | Multi-tenant | namespaced ids, per-capability host scoping, policy intersection, isolated runs | no tenant registry or credential vaulting |
 | Session-expiry recovery | detected and classified `RECOVERABLE/SESSION_EXPIRED` | no automatic re-authentication |
