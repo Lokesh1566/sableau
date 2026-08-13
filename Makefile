@@ -15,6 +15,7 @@ up:                 ## start the target application and the shared browser
 
 down:               ## stop them
 	-pkill -f "targetapp.app"
+	-pkill -f "browser_host.py"
 	-pkill -f "electron .*browser"
 
 discover:           ## LLM discovery; set PLANNER=heuristic to run without a key
