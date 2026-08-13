@@ -66,8 +66,10 @@ Chromium works identically over CDP, and Electron pulls from GitHub release asse
 cd browser && npm install && cd ..
 ```
 
-`scripts/up.sh` and `sableau.browser` prefer this automatically when it is present. I developed
-against Chromium 150 under `xvfb` this way.
+`scripts/up.sh` uses this automatically when it is present *and* `xvfb-run` is available, which is
+the Linux-sandbox case. Everywhere else it launches Playwright's own Chromium via
+`scripts/browser_host.py`, which asks Playwright for the executable path rather than guessing at
+install directories.
 </details>
 
 ## Configure

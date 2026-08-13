@@ -93,15 +93,20 @@ def launch_browser(port: int = DEFAULT_PORT, headless: bool = True) -> subproces
 
 
 def _playwright_chromium() -> str | None:
-    root = Path.home() / ".cache" / "ms-playwright"
-    if not root.exists():
+    """Ask Playwright where its own Chromium is.
+
+    Much better than globbing install directories, which differ between macOS
+    (``chrome-mac/...app/Contents/MacOS/...``) and Linux
+    (``chrome-linux/chrome``) and change between releases.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+
+        with sync_playwright() as pw:
+            path = pw.chromium.executable_path
+    except Exception:  # noqa: BLE001
         return None
-    for path in sorted(root.glob("chromium-*/chrome-linux/chrome"), reverse=True):
-        return str(path)
-    for path in sorted(root.glob("chromium*/chrome-*/*"), reverse=True):
-        if path.is_file() and os.access(path, os.X_OK):
-            return str(path)
-    return None
+    return path if path and Path(path).exists() else None
 
 
 async def open_surface(port: int = DEFAULT_PORT):
