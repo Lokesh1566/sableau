@@ -10,19 +10,7 @@ CDP_PORT="${SABLEAU_CDP_PORT:-9222}"
 # Prefer the interpreter of an active virtualenv, then a local .venv, then
 # whatever python3 is on PATH. Background processes do not inherit an activated
 # venv the way an interactive shell does, so resolving this explicitly matters.
-if [ -n "${PYTHON:-}" ]; then
-  PY="$PYTHON"
-elif [ -n "${VIRTUAL_ENV:-}" ] && [ -x "$VIRTUAL_ENV/bin/python3" ]; then
-  PY="$VIRTUAL_ENV/bin/python3"
-elif [ -n "${VIRTUAL_ENV:-}" ] && [ -x "$VIRTUAL_ENV/bin/python" ]; then
-  PY="$VIRTUAL_ENV/bin/python"
-elif [ -x ".venv/bin/python3" ]; then
-  PY="$(pwd)/.venv/bin/python3"
-elif [ -x ".venv/bin/python" ]; then
-  PY="$(pwd)/.venv/bin/python"
-else
-  PY="python3"
-fi
+. scripts/_env.sh
 ELECTRON="browser/node_modules/electron/dist/electron"
 
 app_up ()     { curl -sf "http://127.0.0.1:$APP_PORT/healthz"      >/dev/null 2>&1; }

@@ -3,11 +3,13 @@
 # Each case prints the structured result line the engine returned.
 set -uo pipefail
 cd "$(dirname "$0")/.."
+. scripts/_env.sh
+
 CAP=${CAP:-capabilities/meridian.record_claim_decision.v1.0.0.json}
 APP=http://127.0.0.1:${APP_PORT:-8099}
 GOOD="Reviewed against plan schedule, provider in network, no duplicate."
 
-./scripts/up.sh >/dev/null
+./scripts/up.sh >/dev/null || { echo "could not bring up the stack"; exit 1; }
 curl -sf -X POST "$APP/admin/reset" >/dev/null
 
 run () {
@@ -16,8 +18,9 @@ run () {
   echo "=============================================================="
   echo "CASE: $label"
   echo "--------------------------------------------------------------"
-  timeout 180 python3 -m sableau.cli replay --capability "$CAP" --confirm-risky --tolerate \
-      --escalation-timeout 8 "$@" 2>/dev/null | tail -3
+  run_with_timeout 180 "$PY" -m sableau.cli replay --capability "$CAP" \
+      --confirm-risky --tolerate --escalation-timeout 8 "$@" 2>&1 \
+      | grep -vE "^  \[" | grep -vE "^$" | tail -3
 }
 
 run "invalid input, rejected before the browser is touched" \
@@ -50,9 +53,10 @@ echo "=============================================================="
 echo "CASE: session expiry detected mid-run"
 echo "--------------------------------------------------------------"
 curl -sf -X POST "$APP/admin/expire-session" >/dev/null
-timeout 120 python3 -m sableau.cli replay --capability "$CAP" --confirm-risky --tolerate \
-    --escalation-timeout 8 \
-    --param claim_id=CLM-004211 --param outcome=APPROVED --param "note=$GOOD" 2>/dev/null | tail -3
+run_with_timeout 120 "$PY" -m sableau.cli replay --capability "$CAP" \
+    --confirm-risky --tolerate --escalation-timeout 8 \
+    --param claim_id=CLM-004211 --param outcome=APPROVED --param "note=$GOOD" 2>&1 \
+    | grep -vE "^  \[" | grep -vE "^$" | tail -3
 curl -sf -X POST "$APP/admin/reset" >/dev/null
 
 echo ""
@@ -60,6 +64,8 @@ echo "=============================================================="
 echo "CASE: policy refuses a capability whose host is not allowed"
 echo "--------------------------------------------------------------"
 SABLEAU_POLICY=tests/fixtures/policy_other_host.json \
-timeout 60 python3 -m sableau.cli replay --capability "$CAP" --confirm-risky --tolerate \
-    --param claim_id=CLM-004211 --param outcome=APPROVED --param "note=$GOOD" 2>/dev/null | tail -2
+run_with_timeout 60 "$PY" -m sableau.cli replay --capability "$CAP" \
+    --confirm-risky --tolerate \
+    --param claim_id=CLM-004211 --param outcome=APPROVED --param "note=$GOOD" 2>&1 \
+    | grep -vE "^  \[" | grep -vE "^$" | tail -2
 echo ""
