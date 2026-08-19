@@ -1,8 +1,0 @@
-{
-  "allowed_hosts": ["127.0.0.1:8099", "localhost:8099"],
-  "allowed_actions": ["navigate", "click", "type", "select", "press", "read", "wait"],
-  "risky_intent_keywords": ["approve", "reject", "delete", "submit", "save", "pay", "cancel"],
-  "allow_risky": true,
-  "max_steps": 40,
-  "require_confirmation": false
-}

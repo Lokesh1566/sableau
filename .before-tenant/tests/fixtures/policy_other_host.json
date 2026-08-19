@@ -1,5 +1,0 @@
-{
-  "allowed_hosts": ["intranet.example.com"],
-  "allowed_actions": ["navigate", "click", "type", "select", "press", "read", "wait"],
-  "allow_risky": true
-}
