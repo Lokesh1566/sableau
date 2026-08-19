@@ -7,8 +7,8 @@
     <p>Claim {{ c.claim_id }} is now <span class="pill s-{{ c.status }}">{{ c.status }}</span>.</p>
     <dl class="dl">
       <dt>Confirmation code</dt>
-      <dd><span class="docket" data-testid="confirmation-code">{{ c.confirmation }}</span></dd>
-      <dt>Amount</dt><dd data-testid="decided-amount">{{ '%.2f'|format(c.amount) }}</dd>
+      <dd><span class="docket" data-testid="{{ t.code_testid }}">{{ c.confirmation }}</span></dd>
+      <dt>Amount</dt><dd data-testid="{{ t.amount_testid }}">{{ '%.2f'|format(c.amount) }}</dd>
       <dt>Recorded by</dt><dd>{{ user }}</dd>
       <dt>Note</dt><dd>{{ c.decision_note }}</dd>
     </dl>

@@ -36,7 +36,7 @@
 
 <div class="panel">
   <h2>Decision</h2>
-  <iframe name="decision" title="Decision panel" src="/claims/{{ c.claim_id }}/decision" height="260"></iframe>
+  <iframe name="{{ t.decision_frame }}" title="Decision panel" src="/claims/{{ c.claim_id }}/decision" height="260"></iframe>
 </div>
 <p><a href="/claims">Back to search</a></p>
 {% endblock %}

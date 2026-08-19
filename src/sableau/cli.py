@@ -26,6 +26,7 @@ from .kernel.control import SessionControl
 from .kernel.redaction import redactor_for
 from .replay import ReplayEngine
 from .schema import Capability
+from .tenancy import TenantOverlay, apply_overlay, unused_aliases
 
 EVIDENCE_ROOT = os.environ.get("SABLEAU_EVIDENCE", "evidence/runs")
 
@@ -108,8 +109,22 @@ async def cmd_discover(args) -> int:
 # ------------------------------------------------------------------- replay
 
 
+def _specialise(cap: Capability, overlay_path: str | None) -> Capability:
+    """Apply a tenant overlay, reporting what matched and what did not."""
+    if not overlay_path:
+        return cap
+    overlay = TenantOverlay.load(overlay_path)
+    stale = unused_aliases(cap, overlay)
+    if stale:
+        print(f"  overlay warning: aliases matched nothing: {stale}", file=sys.stderr)
+    specialised = apply_overlay(cap, overlay)
+    print(f"  tenant: {overlay.tenant_id} ({overlay_path})", file=sys.stderr)
+    return specialised
+
+
 async def cmd_replay(args) -> int:
     cap = Capability.model_validate_json(Path(args.capability).read_text())
+    cap = _specialise(cap, args.overlay)
     params = _params(args.param, args.params)
     run_id = new_run_id("replay")
     recorder = RunRecorder(run_id, root=EVIDENCE_ROOT)
@@ -126,6 +141,12 @@ async def cmd_replay(args) -> int:
         await surface.close()
 
     print("\n" + result.summary())
+    if result.drift.degraded:
+        print(f"  drift: {result.drift.first_choice}/{result.drift.steps_resolved} controls "
+              f"found by their preferred locator")
+        for d in result.drift.degraded:
+            print(f"    {d['step_id']}: fell back to candidate {d['candidate_index']} "
+                  f"({d['resolved_via']})")
     print(f"  evidence: {recorder.dir}")
     return 0 if result.ok else (0 if args.tolerate else 1)
 
@@ -137,6 +158,7 @@ async def cmd_handoff(args) -> int:
     import uvicorn
 
     cap = Capability.model_validate_json(Path(args.capability).read_text())
+    cap = _specialise(cap, getattr(args, "overlay", None))
     params = _params(args.param, args.params)
     run_id = new_run_id("handoff")
     recorder = RunRecorder(run_id, root=EVIDENCE_ROOT)
@@ -181,6 +203,7 @@ async def cmd_handoff(args) -> int:
 
 def cmd_validate(args) -> int:
     cap = Capability.model_validate_json(Path(args.capability).read_text())
+    cap = _specialise(cap, args.overlay)
     print(f"{cap.ref} is valid")
     print(f"  title       {cap.title}")
     print(f"  surface     {cap.surface.kind} requires {cap.surface.required_features}")
@@ -230,6 +253,8 @@ def build_parser() -> argparse.ArgumentParser:
     r = sub.add_parser("replay", help="execute a capability with no LLM in the loop")
     r.add_argument("--capability", required=True)
     r.add_argument("--confirm-risky", action="store_true")
+    r.add_argument("--overlay", default=None,
+                   help="tenant overlay to specialise the capability with")
     r.add_argument("--tolerate", action="store_true",
                    help="exit 0 even on a non-success outcome, for demos")
     r.add_argument("--escalation-timeout", type=float, default=20.0)
@@ -239,6 +264,7 @@ def build_parser() -> argparse.ArgumentParser:
     h = sub.add_parser("handoff", help="replay with the operator console attached")
     h.add_argument("--capability", required=True)
     h.add_argument("--console-port", type=int, default=8777)
+    h.add_argument("--overlay", default=None)
     h.add_argument("--confirm-risky", action="store_true")
     h.add_argument("--escalation-timeout", type=float, default=600.0)
     h.add_argument("--hold", type=float, default=0.0)
@@ -247,6 +273,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     v = sub.add_parser("validate", help="load and check a capability")
     v.add_argument("--capability", required=True)
+    v.add_argument("--overlay", default=None)
     v.set_defaults(func=cmd_validate, is_async=False)
 
     s = sub.add_parser("schema", help="print the capability JSON Schema")

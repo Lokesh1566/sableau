@@ -47,6 +47,7 @@ from ..schema.errors import (
 )
 from ..schema.results import (
     BusinessOutcome,
+    DriftReport,
     ControlReport,
     ErrorDetail,
     Evidence,
@@ -120,6 +121,7 @@ class ReplayEngine:
                 error=error,
                 control=self._control_report(),
                 steps=list(self._reports),
+                drift=self._drift_report(),
                 llm_calls=0,  # invariant of this path
             )
             self.recorder.write_json("result.json", result)
@@ -509,6 +511,20 @@ class ReplayEngine:
                 continue
             outputs[spec.name] = value
         return outputs
+
+    def _drift_report(self) -> DriftReport:
+        resolved = [r for r in self._reports if r.candidate_index is not None]
+        degraded = [
+            {"step_id": r.step_id, "resolved_via": r.resolved_strategy,
+             "candidate_index": r.candidate_index}
+            for r in resolved
+            if (r.candidate_index or 0) > 0
+        ]
+        return DriftReport(
+            steps_resolved=len(resolved),
+            first_choice=sum(1 for r in resolved if r.candidate_index == 0),
+            degraded=degraded,
+        )
 
     def _control_report(self) -> ControlReport:
         active = self.control.escalations[-1] if self.control.escalations else None

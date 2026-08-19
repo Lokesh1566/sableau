@@ -1,0 +1,52 @@
+{
+  "overlay_version": "1.0.0",
+  "tenant_id": "riverbend",
+  "capability_id": "meridian.record_claim_decision",
+  "capability_version": "1.0.0",
+  "description": "Riverbend Credit Union runs the same claims product as the reference instance, on an older build, with its own branding and no test ids on the search screen. Only control naming differs; the workflow is identical, so the base capability is reused rather than re-recorded.",
+  "entry_url": "http://127.0.0.1:8098/claims",
+  "allowed_hosts": ["127.0.0.1:8098"],
+  "frame_aliases": { "decision": "decisionPanel" },
+  "control_aliases": [
+    {
+      "control": "claim search box",
+      "when": { "strategy": "testid", "value": "claim-search-input" },
+      "add": [{ "strategy": "css", "value": "input[data-qa=\"search-field\"]", "confidence": 0.8 }]
+    },
+    {
+      "control": "search submit button",
+      "when": { "strategy": "testid", "value": "claim-search-submit" },
+      "add": [{ "strategy": "role", "role": "button", "name_equals": "Find", "confidence": 0.85 }]
+    },
+    {
+      "control": "search submit button (by label)",
+      "when": { "strategy": "role", "role": "button", "name_equals": "Search" },
+      "add": [{ "strategy": "role", "role": "button", "name_equals": "Find", "confidence": 0.85 }]
+    },
+    {
+      "control": "decision outcome dropdown",
+      "when": { "strategy": "testid", "value": "decision-select" },
+      "add": [{ "strategy": "testid", "value": "outcome-select", "confidence": 0.9 }]
+    },
+    {
+      "control": "save decision button",
+      "when": { "strategy": "testid", "value": "decision-submit" },
+      "add": [{ "strategy": "testid", "value": "save-btn", "confidence": 0.9 }]
+    },
+    {
+      "control": "save decision button (by label)",
+      "when": { "strategy": "role", "role": "button", "name_equals": "Save decision" },
+      "add": [{ "strategy": "role", "role": "button", "name_equals": "Record decision", "confidence": 0.85 }]
+    },
+    {
+      "control": "confirmation code on the receipt",
+      "when": { "strategy": "testid", "value": "confirmation-code" },
+      "add": [{ "strategy": "testid", "value": "receipt-code", "confidence": 0.9 }]
+    },
+    {
+      "control": "decided amount on the receipt",
+      "when": { "strategy": "testid", "value": "decided-amount" },
+      "add": [{ "strategy": "testid", "value": "claim-amount", "confidence": 0.9 }]
+    }
+  ]
+}

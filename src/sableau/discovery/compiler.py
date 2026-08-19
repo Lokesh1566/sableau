@@ -327,12 +327,28 @@ def _verify_for(entry, params, declared) -> dict[str, Any] | None:
     return None
 
 
+def _strip_host(pattern: str) -> str:
+    """Drop scheme and host from a url_matches pattern.
+
+    A checkpoint should assert *which page* we reached, not which deployment
+    served it. Recording an absolute URL binds the capability to one host, so
+    the same artifact could never run against another tenant's instance of the
+    same product. The path is the part that describes the workflow.
+    """
+    # matches http://host, https://host, and the regex-escaped forms a planner
+    # tends to emit, e.g. http://127\.0\.0\.1:8099
+    return re.sub(r"^\^?https?://[^/]+", "", pattern)
+
+
 def _checkpoint_from_assert(entry, params, declared) -> Checkpoint:
     a = entry.args
     kind = a["kind"]
     cond: dict[str, Any] = {"kind": kind, "frame_path": entry.frame_path}
     if kind in ("text_present", "url_matches"):
-        cond["value"] = _parameterise(a.get("value", ""), params, declared)
+        value = _parameterise(a.get("value", ""), params, declared)
+        if kind == "url_matches":
+            value = _strip_host(value)
+        cond["value"] = value
     else:
         cands: list[dict[str, Any]] = []
         if a.get("target_testid"):

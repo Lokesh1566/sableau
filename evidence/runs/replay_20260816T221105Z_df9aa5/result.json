@@ -1,0 +1,49 @@
+{
+  "run_id": "replay_20260816T221105Z_df9aa5",
+  "capability_id": "meridian.record_claim_decision",
+  "capability_version": "1.0.0",
+  "started_at": "2026-08-16T22:11:05.862244+00:00",
+  "duration_ms": 21694,
+  "category": "RECOVERABLE",
+  "code": "UNEXPECTED_DIALOG",
+  "outputs": {},
+  "business_outcome": null,
+  "error": {
+    "code": "UNEXPECTED_DIALOG",
+    "category": "RECOVERABLE",
+    "message": "A compliance notice is covering the decision panel and must be cleared by a person.",
+    "step_id": "s3_open_the_clm_004211_claim",
+    "retryable": true,
+    "attempts": 1,
+    "evidence": null
+  },
+  "control": {
+    "final_owner": "nobody",
+    "escalated": true,
+    "escalation_id": "esc_8bdb266b",
+    "escalation_reason": "UNEXPECTED_DIALOG",
+    "human_actions": 0,
+    "resume_decision": null
+  },
+  "steps": [
+    {
+      "step_id": "s1_type_the_claim_id_into_the",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 600,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s2_submit_the_search_to_find",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 615,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    }
+  ],
+  "llm_calls": 0
+}

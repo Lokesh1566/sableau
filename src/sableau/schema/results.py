@@ -72,6 +72,27 @@ class ControlReport(BaseModel):
     resume_decision: str | None = None
 
 
+class DriftReport(BaseModel):
+    """How far replay had to fall back to find things.
+
+    A capability whose first-choice locators all resolve is healthy. One that
+    keeps landing on candidate 2 or 3 still works, but is telling you the
+    application (or this tenant's build of it) has moved. That is the early
+    warning, well before a step fails outright.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    steps_resolved: int = 0
+    first_choice: int = 0
+    degraded: list[dict[str, Any]] = Field(default_factory=list)
+
+    @property
+    def score(self) -> float:
+        """1.0 when every control was found by its preferred locator."""
+        return 1.0 if not self.steps_resolved else self.first_choice / self.steps_resolved
+
+
 class ReplayResult(BaseModel):
     """What a caller gets back. Never a bare exception, never a raw string."""
 
@@ -96,6 +117,8 @@ class ReplayResult(BaseModel):
     #: Hard invariant of the production path. Asserted by tests.
     llm_calls: int = 0
 
+    drift: DriftReport = Field(default_factory=DriftReport)
+
     @property
     def ok(self) -> bool:
         return self.category is OutcomeCategory.SUCCESS
@@ -108,5 +131,7 @@ class ReplayResult(BaseModel):
             bits.append(f"outcome={self.business_outcome.id}")
         if self.error:
             bits.append(f"error={self.error.message}")
+        if self.drift.degraded:
+            bits.append(f"drift={self.drift.score:.2f} ({len(self.drift.degraded)} degraded)")
         bits.append(f"llm_calls={self.llm_calls}")
         return " | ".join(bits)

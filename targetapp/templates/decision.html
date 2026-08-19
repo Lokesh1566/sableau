@@ -18,14 +18,14 @@ button{font:12px Verdana,Tahoma,sans-serif;background:#25507e;color:#fff;
 {% else %}
 <form method="post" action="/claims/{{ c.claim_id }}/decision" target="_top">
   <label for="decision">Outcome</label>
-  <select id="decision" name="decision" data-testid="decision-select">
+  <select id="decision" name="decision" data-testid="{{ t.outcome_testid }}">
     <option value="">Select an outcome</option>
     <option value="APPROVED">Approve</option>
     <option value="REJECTED">Reject</option>
   </select>
   <label for="note">Decision note</label>
   <textarea id="note" name="note" placeholder="Explain the decision for the audit record"></textarea>
-  <button type="submit" data-testid="decision-submit">Save decision</button>
+  <button type="submit" data-testid="{{ t.submit_testid }}">{{ t.submit_label }}</button>
 </form>
 {% endif %}
 </body></html>

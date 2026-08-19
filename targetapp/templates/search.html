@@ -5,9 +5,11 @@
   <div class="body">
     <form method="get" action="/claims" role="search">
       <div style="display:flex;gap:8px">
-        <label for="q" style="align-self:center;white-space:nowrap;color:#5b6773">Claim, member or provider</label>
-        <input type="text" id="q" name="q" value="{{ q }}" placeholder="e.g. CLM-004211" data-testid="claim-search-input">
-        <button type="submit" class="primary" data-testid="claim-search-submit">Search</button>
+        <label for="q" style="align-self:center;white-space:nowrap;color:#5b6773">{{ t.search_label }}</label>
+        <input type="text" id="q" name="q" value="{{ q }}" placeholder="e.g. CLM-004211"
+               {% if t.search_testid %}data-testid="{{ t.search_testid }}"{% else %}data-qa="search-field"{% endif %}>
+        <button type="submit" class="primary"
+                {% if t.search_btn_testid %}data-testid="{{ t.search_btn_testid }}"{% endif %}>{{ t.search_button }}</button>
       </div>
     </form>
   </div>

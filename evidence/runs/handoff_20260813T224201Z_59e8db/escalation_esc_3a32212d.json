@@ -1,0 +1,13 @@
+{
+  "escalation_id": "esc_3a32212d",
+  "reason_code": "UNEXPECTED_DIALOG",
+  "reason": "A compliance notice is covering the decision panel and must be cleared by a person.",
+  "step_id": "s3_open_the_clm_004211_claim",
+  "state_url": "http://127.0.0.1:8099/claims/CLM-004214",
+  "screenshot_ref": "evidence/runs/handoff_20260813T224201Z_59e8db/screenshots/escalation_compliance_dialog.png",
+  "created_at": "2026-08-13T22:42:04.719996+00:00",
+  "resolved_at": null,
+  "decision": null,
+  "operator": null,
+  "human_actions": []
+}

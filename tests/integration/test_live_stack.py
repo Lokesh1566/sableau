@@ -168,3 +168,86 @@ async def test_iframe_scoped_locators_actually_resolve(live_surface, cap):
     framed = [s for s in cap.steps if s.target and s.target.frame_path]
     assert framed, "expected at least one frame scoped step"
     assert all(s.target.frame_path == ["decision"] for s in framed)
+
+
+# --------------------------------------------------- cross-tenant reuse
+
+TENANT_APP = "http://127.0.0.1:8098"
+OVERLAY_PATH = Path("capabilities/overlays/riverbend.json")
+
+
+def tenant_alive() -> bool:
+    try:
+        return httpx.get(f"{TENANT_APP}/healthz", timeout=2).status_code == 200
+    except Exception:  # noqa: BLE001
+        return False
+
+
+needs_tenant = pytest.mark.skipif(
+    not (cdp_alive() and tenant_alive() and CAP_PATH.exists() and OVERLAY_PATH.exists()),
+    reason="second tenant instance not running; run ./scripts/up.sh",
+)
+
+
+@needs_tenant
+async def test_one_capability_serves_a_second_tenant(cap, tmp_path):
+    """The base recording, replayed against another institution's instance.
+
+    Riverbend runs the same vendor product on an older build with its own
+    branding, no test ids on the search screen, and a differently named iframe.
+    Nothing is re-recorded: an overlay supplies the local control names.
+    """
+    from sableau.tenancy import TenantOverlay, apply_overlay
+
+    httpx.post(f"{TENANT_APP}/admin/reset", timeout=10)
+    overlay = TenantOverlay.load(OVERLAY_PATH)
+    specialised = apply_overlay(cap, overlay)
+
+    surface = await open_surface()
+    try:
+        await surface.navigate(f"{TENANT_APP}/claims")
+        rec = RunRecorder("it_tenant", root=str(tmp_path), echo=False)
+        eng = ReplayEngine(surface, rec, Policy(allowed_hosts=["127.0.0.1:8098"]),
+                           confirm_risky=True, escalation_timeout_s=5)
+        result = await eng.run(specialised, {
+            "claim_id": "CLM-004212",
+            "outcome": "APPROVED",
+            "note": "Imaging authorised under referral 88213, within schedule.",
+        })
+    finally:
+        await surface.close()
+
+    assert result.category is OutcomeCategory.SUCCESS
+    assert result.outputs["confirmation_code"].startswith("MCD-")
+    assert result.llm_calls == 0
+    assert "APPROVED" in httpx.get(f"{TENANT_APP}/claims/CLM-004212", timeout=10).text
+
+
+@needs_tenant
+async def test_drift_quantifies_how_far_the_tenant_has_moved(cap, tmp_path):
+    """Drift is measured as a by-product of replay, not a separate crawl."""
+    from sableau.tenancy import TenantOverlay, apply_overlay
+
+    httpx.post(f"{TENANT_APP}/admin/reset", timeout=10)
+    specialised = apply_overlay(cap, TenantOverlay.load(OVERLAY_PATH))
+
+    surface = await open_surface()
+    try:
+        await surface.navigate(f"{TENANT_APP}/claims")
+        rec = RunRecorder("it_drift", root=str(tmp_path), echo=False)
+        eng = ReplayEngine(surface, rec, Policy(allowed_hosts=["127.0.0.1:8098"]),
+                           confirm_risky=True, escalation_timeout_s=5)
+        result = await eng.run(specialised, {
+            "claim_id": "CLM-004211",
+            "outcome": "APPROVED",
+            "note": "Within plan limits, provider in network, no duplicate found.",
+        })
+    finally:
+        await surface.close()
+
+    # This tenant renames most controls, so the base locators should be losing
+    # to the overlay's on several steps. That is precisely the drift signal.
+    assert result.ok
+    assert result.drift.degraded, "expected the tenant's controls to differ from the base"
+    assert result.drift.score < 1.0
+    assert all(d["step_id"] for d in result.drift.degraded)

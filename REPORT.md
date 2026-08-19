@@ -259,13 +259,13 @@ What stops that being decorative is **feature declaration**. Each surface declar
 `frozenset[SurfaceFeature]`; each capability declares `required_features`, derived by the compiler
 from the strategies it actually recorded. At load, replay intersects them and refuses with
 `SURFACE_INCOMPATIBLE` before touching anything. A screenshot-plus-coordinates surface would declare
-`{COORDINATES, SCREENSHOT}`, so a capability whose locators are role-based gets correctly rejected
+`{COORDINATES, SCREENSHOT}`, so a capability whose locators are role-based is correctly rejected
 instead of silently misbehaving.
 
-I wrote two implementations. `PlaywrightDomSurface` is the real one. `NullSurface` is an in-memory
-fake against which the *entire* engine — checkpoints, outcomes, retries, escalation, output
-extraction — is tested with no browser. That second implementation is the proof: if the engine had
-DOM assumptions baked into it, `NullSurface` could not exist.
+Two implementations exist. `PlaywrightDomSurface` is real. `NullSurface` is an in-memory fake
+against which the *entire* engine — checkpoints, outcomes, retries, escalation, output extraction —
+is tested with no browser. That second implementation is the proof: if the engine had DOM
+assumptions baked into it, `NullSurface` could not exist.
 
 **Frames** are handled as `frame_path` on the target, not as a special case. The decision panel in
 the demo application lives in an iframe, and the compiled artifact records `"frame_path":
@@ -279,19 +279,112 @@ API, `kind: "desktop"`.
 
 ### Multi-tenancy
 
-Present in the design, not fully built.
+Hundreds of institutions, roughly twenty applications each, and many running the *same vendor
+product* configured, branded and versioned differently. Re-recording a capability per tenant would
+mean thousands of near-identical artifacts drifting apart independently, with no way to tell a
+deliberate difference from an accident. So a capability is recorded once against a reference
+instance, and each tenant gets an **overlay**.
 
-- `capability_id` is namespaced (`meridian.record_claim_decision`) and versioned semantically, so two
-  tenants can run different versions of the same workflow side by side.
-- `surface.app_id` plus `safety.allowed_hosts` scope an artifact to one application. A capability
-  compiled against one tenant's host cannot be pointed at another's; the policy intersection refuses.
-- `policy.json` is deployment-level and per-tenant by construction: the effective policy is always
-  `deployment ∩ capability`.
-- Runs are isolated by `run_id` with their own evidence directory, log stream and redactor.
-- **Not built:** a tenant registry, per-tenant credential vaulting, or capability promotion between
-  environments. See section 7.
+The demo ships two instances of the same claims product: the reference one, and Riverbend Credit
+Union on an older build with its own branding, no test ids on the search screen, "Find" instead of
+"Search", "Record decision" instead of "Save decision", different test ids on the decision panel and
+receipt, and an iframe named `decisionPanel` rather than `decision`. The base capability runs
+against Riverbend unchanged, specialised only by `capabilities/overlays/riverbend.json`
+(`src/sableau/tenancy.py`).
 
----
+```bash
+python -m sableau.cli replay --capability capabilities/meridian.record_claim_decision.v1.0.0.json \
+  --overlay capabilities/overlays/riverbend.json --confirm-risky --param claim_id=CLM-004212 ...
+```
+
+```
+SUCCESS/NONE | outputs=confirmation_code=MCD-77201, decided_amount=612.5 |
+              drift=0.33 (6 degraded) | llm_calls=0
+```
+
+**What an overlay is not allowed to do is the load-bearing decision.** It may alias controls, rename
+frames, point at a different host and entry URL, and narrow safety. It may *not* add, remove or
+reorder steps, change an action, alter inputs or outputs, or widen safety — and not by convention:
+the overlay schema has no field to express any of it, so `TenantOverlay.model_validate` rejects the
+attempt. That keeps the base artifact the single source of truth for *what the capability does*, and
+confines tenant variance to *how its controls are found*. A reviewer who approved the base
+capability does not have to re-review every tenant, because no overlay can change the behaviour they
+approved. A test asserts exactly this: steps, actions, inputs, outputs and checkpoints are identical
+before and after specialisation.
+
+**Aliases match on the recorded locator, not on step ids.**
+
+```jsonc
+{ "control": "save decision button",
+  "when": { "strategy": "testid", "value": "decision-submit" },
+  "add":  [{ "strategy": "testid", "value": "save-btn", "confidence": 0.9 }] }
+```
+
+Keying on step id would break the moment the base capability was re-discovered and its steps
+renumbered. Keying on the control means an overlay reads like documentation — *"this institution
+calls that button something else"* — and survives re-recording. Aliases are **additive**: the base
+candidate stays first and the tenant's is inserted after it, so an overlay that has gone stale
+degrades to base behaviour rather than breaking replay. Overlays that match nothing are reported
+rather than silently ignored (`unused_aliases`), because a dead alias usually means the control it
+referred to no longer exists.
+
+**Version binding.** An overlay declares `capability_version` and is refused against any other, with
+a message telling the operator to re-review. Tenant specialisation is a reviewed artifact, not a
+patch that silently follows the base wherever it goes.
+
+### The bug this surfaced
+
+The first cross-tenant run failed, and the cause was in my compiler rather than in the overlay.
+
+A discovery turn had recorded a checkpoint as
+`url_matches: http://127\.0\.0\.1:8099/claims/{{input.claim_id}}`. The model had baked the host into
+the assertion. Against Riverbend on port 8098 the check failed even though the page was correct.
+Notably it was inconsistent with itself: two turns later it recorded the receipt checkpoint as
+`/claims/{{input.claim_id}}/receipt`, with no host.
+
+The tempting fix was to let overlays rewrite URLs. I did not, because that patches a symptom. **A
+checkpoint should assert which page you reached, not which deployment served it.** The host is
+deployment configuration, not part of the workflow. So the compiler now strips scheme and host from
+`url_matches` conditions at compile time (`_strip_host`), and a test pins the behaviour.
+
+This is the third design bug the project has surfaced by being run rather than reasoned about, after
+the dropdown that reported its option list as its name and the ordering of known outcomes against
+checkpoints. All three were invisible until something real executed.
+
+### Detecting drift
+
+Drift detection is not a separate crawler, because a crawler would need its own model of what
+"correct" looks like. It falls out of replay for free.
+
+Every locator in an artifact was **measured at record time** to match exactly one element. At
+replay, the engine tries candidates in order and reports which one won. A control found by its
+first-choice locator is healthy; one found by the third has moved, even though the run succeeded.
+`DriftReport` turns that into a per-run score and names the steps:
+
+```
+drift: 3/9 controls found by their preferred locator
+  s1_type_the_claim_id_into_the: fell back to candidate 1 (css)
+  s2_submit_the_search_to_find:  fell back to candidate 1 (role)
+  s4_select_approved_as_the_out: fell back to candidate 1 (testid)
+```
+
+That is the early warning. A capability whose score is sliding across nightly runs is going stale
+weeks before a step fails outright, and the report says which controls to look at. Because the
+signal is per-tenant, it also distinguishes "the vendor shipped a new version" — every tenant on
+that version degrades together — from "this institution reconfigured something", where one tenant
+moves alone.
+
+The natural operational shape, not built here: replay each capability against a staging copy of each
+tenant nightly, alert when a score drops or a new step degrades, and use the named steps to scope a
+targeted re-discovery rather than re-recording the whole flow.
+
+### What is not built
+
+A tenant registry, per-tenant credential vaulting, and promotion of capabilities between
+environments. Those are infrastructure, and the brief is explicit that building scaling plumbing
+prematurely is not the goal. What matters is that the abstractions do not preclude them: artifacts
+are namespaced and versioned, overlays are separately reviewable and version-bound, policy is always
+`deployment ∩ capability`, and every run is isolated by `run_id`.
 
 ## 5. Escalation and handoff
 

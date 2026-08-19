@@ -1,0 +1,79 @@
+{
+  "run_id": "replay_20260819T125826Z_4474a8",
+  "capability_id": "meridian.record_claim_decision",
+  "capability_version": "1.0.0",
+  "started_at": "2026-08-19T12:58:27.794607+00:00",
+  "duration_ms": 13464,
+  "category": "HARD_FAILURE",
+  "code": "CHECKPOINT_MISMATCH",
+  "outputs": {},
+  "business_outcome": null,
+  "error": {
+    "code": "CHECKPOINT_MISMATCH",
+    "category": "HARD_FAILURE",
+    "message": "checkpoint cp_claim_record_open failed (postcondition of s3_open_the_clm_004211_claim): Claim CLM-004211 for Priya Nadar is open with PENDING status and amount 148.00, showing the decision form",
+    "step_id": "s3_open_the_clm_004211_claim",
+    "retryable": false,
+    "attempts": 1,
+    "evidence": {
+      "screenshot": "evidence/runs/replay_20260819T125826Z_4474a8/screenshots/fail_s3_open_the_clm_004211_claim.png",
+      "dom_snapshot": "evidence/runs/replay_20260819T125826Z_4474a8/fail_s3_open_the_clm_004211_claim.dom.html",
+      "url": "http://127.0.0.1:8098/claims/CLM-004212",
+      "log_ref": "evidence/runs/replay_20260819T125826Z_4474a8/log.jsonl"
+    }
+  },
+  "control": {
+    "final_owner": "nobody",
+    "escalated": false,
+    "escalation_id": null,
+    "escalation_reason": null,
+    "human_actions": 0,
+    "resume_decision": null
+  },
+  "steps": [
+    {
+      "step_id": "s1_type_the_claim_id_into_the",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2196,
+      "resolved_strategy": "css",
+      "candidate_index": 1,
+      "note": null
+    },
+    {
+      "step_id": "s2_submit_the_search_to_find",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 1994,
+      "resolved_strategy": "role",
+      "candidate_index": 1,
+      "note": null
+    },
+    {
+      "step_id": "s3_open_the_clm_004211_claim",
+      "status": "failed",
+      "attempts": 1,
+      "duration_ms": 0,
+      "resolved_strategy": null,
+      "candidate_index": null,
+      "note": "CHECKPOINT_MISMATCH"
+    }
+  ],
+  "llm_calls": 0,
+  "drift": {
+    "steps_resolved": 2,
+    "first_choice": 0,
+    "degraded": [
+      {
+        "step_id": "s1_type_the_claim_id_into_the",
+        "resolved_via": "css",
+        "candidate_index": 1
+      },
+      {
+        "step_id": "s2_submit_the_search_to_find",
+        "resolved_via": "role",
+        "candidate_index": 1
+      }
+    ]
+  }
+}

@@ -90,8 +90,8 @@ as risky. A capability can only ever be *more* restrictive than this file, never
 ./scripts/up.sh
 ```
 
-Starts Meridian Claims Desk on `http://127.0.0.1:8099` and a Chromium exposing CDP on 9222, skipping
-either if it is already up. Both outlive individual commands, which is what lets automation and the
+Starts Meridian Claims Desk on `http://127.0.0.1:8099`, a second tenant's instance of the same
+product on `http://127.0.0.1:8098`, and a Chromium exposing CDP on 9222, skipping any already up. Both outlive individual commands, which is what lets automation and the
 operator console share one session.
 
 Reset the seeded data whenever you want:
@@ -163,6 +163,36 @@ SUCCESS/NONE | outputs=confirmation_code=MCD-77201, decided_amount=612.5 | llm_c
 `--confirm-risky` is required because the capability declares its save step risky. Leave it off and
 the policy layer refuses before anything is written.
 
+### Cross-tenant reuse
+
+`scripts/up.sh` also starts a second instance of the same claims product on port 8098, branded and
+versioned as another institution would run it: Riverbend Credit Union, on an older build, with no
+test ids on the search screen, "Find" instead of "Search", "Record decision" instead of "Save
+decision", different test ids on the decision panel and receipt, and an iframe named
+`decisionPanel` rather than `decision`.
+
+The base capability runs against it with no re-recording, specialised only by an overlay:
+
+```bash
+python -m sableau.cli replay \\
+  --capability capabilities/meridian.record_claim_decision.v1.0.0.json \\
+  --overlay capabilities/overlays/riverbend.json --confirm-risky \\
+  --param claim_id=CLM-004212 --param outcome=APPROVED \\
+  --param "note=Imaging authorised under referral 88213, within schedule."
+```
+
+```
+SUCCESS/NONE | outputs=confirmation_code=MCD-77201, decided_amount=612.5 |
+              drift=0.33 (6 degraded) | llm_calls=0
+  drift: 3/9 controls found by their preferred locator
+    s1_type_the_claim_id_into_the: fell back to candidate 1 (css)
+    s2_submit_the_search_to_find:  fell back to candidate 1 (role)
+    ...
+```
+
+The drift line is the point: the run succeeded, and it also named the six controls this tenant has
+moved. See [REPORT §4](REPORT.md#4-heterogeneity-and-multi-tenant-design).
+
 ### Error and outcome demonstrations
 
 ```bash
@@ -197,9 +227,9 @@ then open **http://127.0.0.1:8777**, press *Take control*, clear the notice, pre
 ### Tests
 
 ```bash
-python -m pytest tests/unit tests/test_no_llm_in_replay.py -v   # 59 tests, no browser needed
-./scripts/up.sh && python -m pytest tests/integration -v        # 9 tests, real Chromium
-python -m pytest -q                                             # all 68
+python -m pytest tests/unit tests/test_no_llm_in_replay.py -v   # 72 tests, no browser needed
+./scripts/up.sh && python -m pytest tests/integration -v        # 11 tests, real Chromium
+python -m pytest -q                                             # all 83
 ```
 
 ### Rebuild all evidence
@@ -225,7 +255,7 @@ src/sableau/
   operator/    handoff console
 targetapp/     Meridian Claims Desk
 jobs/          discovery job specs: the contract declared up front
-capabilities/  compiled artifacts, outcome catalogues, exported JSON Schema
+capabilities/  compiled artifacts, tenant overlays, outcome catalogues, exported JSON Schema
 docs/          project site published to GitHub Pages
 evidence/      real run output
 ```

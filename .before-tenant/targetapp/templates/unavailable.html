@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Service unavailable{% endblock %}
+{% block content %}
+<div class="panel"><h2>Service unavailable</h2><div class="body">
+<div role="alert" data-testid="transient-error">Service temporarily unavailable. The claims index is
+re-syncing. Try the request again.</div>
+<p><a href="/claims/{{ claim_id }}">Retry this claim</a> &middot; <a href="/claims">Back to search</a></p>
+</div></div>
+{% endblock %}

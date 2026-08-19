@@ -47,7 +47,7 @@ directories in `evidence/runs/`.
 | Human escalation | done | reason, step, state, evidence, owner |
 | Control ownership state machine | done | illegal transitions raise |
 | Pause and resume the same live session | done | one process, one ownership token |
-| Tests for critical components | done | 68 tests |
+| Tests for critical components | done | 83 tests |
 | Capability not coupled to browser DOM | done | no DOM concept in `schema/`; `NullSurface` proves it |
 | Raw transcript is not the capability | done | 11 turns → 8 steps, locators re-derived, 25 literals parameterised |
 | Realistic runtime error conditions | done | all ten, against the live application |
@@ -71,5 +71,5 @@ directories in `evidence/runs/`.
 pip install -e ".[dev]" && python -m playwright install chromium
 ./scripts/up.sh
 ./scripts/make_evidence.sh      # discovery, replays, every error case, handoff, tests
-python -m pytest -q             # 68 tests
+python -m pytest -q             # 83 tests
 ```

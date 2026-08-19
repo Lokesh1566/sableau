@@ -25,6 +25,44 @@ from fastapi.templating import Jinja2Templates
 
 from .data import Store
 
+#: The same vendor product, configured and branded per institution. Selected by
+#: SABLEAU_TENANT so two instances can run side by side on different ports,
+#: which is exactly how two customers of one vendor look from the outside.
+TENANTS = {
+    "meridian": {
+        "brand": "Meridian Claims Desk",
+        "subtitle": "Claims operations \u00b7 internal",
+        "search_label": "Claim, member or provider",
+        "search_button": "Search",
+        "search_testid": "claim-search-input",
+        "search_btn_testid": "claim-search-submit",
+        "decision_frame": "decision",
+        "outcome_testid": "decision-select",
+        "submit_label": "Save decision",
+        "submit_testid": "decision-submit",
+        "code_testid": "confirmation-code",
+        "amount_testid": "decided-amount",
+        "build": "4.2.11",
+    },
+    "riverbend": {
+        "brand": "Riverbend Credit Union",
+        "subtitle": "Member claims \u00b7 staff only",
+        "search_label": "Claim or member",
+        "search_button": "Find",
+        "search_testid": "",                  # this tenant ships no test ids
+        "search_btn_testid": "",
+        "decision_frame": "decisionPanel",
+        "outcome_testid": "outcome-select",
+        "submit_label": "Record decision",
+        "submit_testid": "save-btn",
+        "code_testid": "receipt-code",
+        "amount_testid": "claim-amount",
+        "build": "4.1.7",
+    },
+}
+
+TENANT = TENANTS[os.environ.get("SABLEAU_TENANT", "meridian")]
+
 BASE = Path(__file__).parent
 templates = Jinja2Templates(directory=str(BASE / "templates"))
 
@@ -44,6 +82,7 @@ def _session(request: Request) -> tuple[str, dict]:
 
 
 def _render(request: Request, name: str, ctx: dict, sid: str, status: int = 200) -> Response:
+    ctx = {**ctx, "t": TENANT}
     resp = templates.TemplateResponse(request, name, ctx, status_code=status)
     resp.set_cookie("mcd_sid", sid, httponly=True, samesite="lax")
     return resp

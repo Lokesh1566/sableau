@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{% block title %}Meridian Claims Desk{% endblock %}</title>
+<title>{% block title %}{{ t.brand }}{% endblock %}</title>
 <style>
 :root{
   --ink:#1c2530; --paper:#e7ebef; --panel:#fff; --rule:#aab4be;
@@ -63,8 +63,8 @@ iframe{width:100%;border:0;display:block}
 </style>
 </head>
 <body>
-<div class="titlebar"><strong>Meridian Claims Desk</strong><span>Claims operations &middot; internal</span></div>
-<div class="statusstrip">Signed in as {{ user|default('operator.demo') }} &middot; Region: Midwest &middot; Build 4.2.11</div>
+<div class="titlebar"><strong>{{ t.brand }}</strong><span>{{ t.subtitle }}</span></div>
+<div class="statusstrip">Signed in as {{ user|default('operator.demo') }} &middot; Region: Midwest &middot; Build {{ t.build }}</div>
 <div class="wrap">{% block content %}{% endblock %}</div>
 <div class="foot">Fictional demo system. No real claims, members, or payments.</div>
 </body>

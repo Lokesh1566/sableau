@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Not permitted{% endblock %}
+{% block content %}
+<div class="panel"><h2>Not permitted</h2><div class="body">
+<div role="alert" data-testid="permission-denied">You do not have permission to decide this claim.
+Behavioural health claims require a clinical reviewer role.</div>
+<p>Claim {{ c.claim_id }} was left unchanged.</p>
+<p><a href="/claims">Back to search</a></p>
+</div></div>
+{% endblock %}

@@ -553,7 +553,7 @@
       "condition": {
         "kind": "url_matches",
         "target": null,
-        "value": "http://127\\.0\\.0\\.1:8099/claims/{{input.claim_id}}",
+        "value": "/claims/{{input.claim_id}}",
         "count": null,
         "frame_path": []
       },
