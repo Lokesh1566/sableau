@@ -1,0 +1,113 @@
+{
+  "run_id": "api_20260820T170832Z_5655af",
+  "capability_id": "meridian.record_claim_decision",
+  "capability_version": "1.0.0",
+  "started_at": "2026-08-20T17:08:32.827502+00:00",
+  "duration_ms": 5091,
+  "category": "HARD_FAILURE",
+  "code": "PERMISSION_DENIED",
+  "outputs": {},
+  "business_outcome": null,
+  "error": {
+    "code": "PERMISSION_DENIED",
+    "category": "HARD_FAILURE",
+    "message": "The signed in operator is not permitted to decide this claim.",
+    "step_id": "s9_submit_the_decision_by_cli",
+    "retryable": false,
+    "attempts": 1,
+    "evidence": {
+      "screenshot": "evidence/runs/api_20260820T170832Z_5655af/screenshots/outcome_permission_denied.png",
+      "dom_snapshot": "evidence/runs/api_20260820T170832Z_5655af/outcome_permission_denied.dom.html",
+      "url": "http://127.0.0.1:8099/claims/CLM-004215/decision",
+      "log_ref": "evidence/runs/api_20260820T170832Z_5655af/log.jsonl"
+    }
+  },
+  "control": {
+    "final_owner": "nobody",
+    "escalated": false,
+    "escalation_id": null,
+    "escalation_reason": null,
+    "human_actions": 0,
+    "resume_decision": null
+  },
+  "steps": [
+    {
+      "step_id": "s1_search_for_claim_clm_00421",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 661,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s2_submit_the_search_for_clai",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 606,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s3_open_the_clm_004211_claim",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 663,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s4_select_approve_as_the_deci",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 559,
+      "resolved_strategy": "testid",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s5_enter_the_decision_note_in",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 547,
+      "resolved_strategy": "text",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s6_enter_the_decision_note_in",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 546,
+      "resolved_strategy": "text",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s7_click_on_the_decision_note",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 555,
+      "resolved_strategy": "text",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s8_type_the_decision_note_in",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 531,
+      "resolved_strategy": "text",
+      "candidate_index": 0,
+      "note": null
+    }
+  ],
+  "llm_calls": 0,
+  "drift": {
+    "steps_resolved": 8,
+    "first_choice": 8,
+    "degraded": []
+  }
+}

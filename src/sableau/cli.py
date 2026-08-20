@@ -216,6 +216,20 @@ def cmd_validate(args) -> int:
     return 0
 
 
+async def cmd_serve(args) -> int:
+    """Run the capability API and dashboard."""
+    import uvicorn
+
+    from .api import build_api
+
+    app = build_api()
+    print(f"dashboard: http://127.0.0.1:{args.port}", file=sys.stderr)
+    print(f"api docs : http://127.0.0.1:{args.port}/docs", file=sys.stderr)
+    config = uvicorn.Config(app, host="127.0.0.1", port=args.port, log_level="warning")
+    await uvicorn.Server(config).serve()
+    return 0
+
+
 def cmd_schema(args) -> int:
     out = json.dumps(Capability.model_json_schema(), indent=2)
     if args.out:
@@ -275,6 +289,10 @@ def build_parser() -> argparse.ArgumentParser:
     v.add_argument("--capability", required=True)
     v.add_argument("--overlay", default=None)
     v.set_defaults(func=cmd_validate, is_async=False)
+
+    sv = sub.add_parser("serve", help="run the capability API and dashboard")
+    sv.add_argument("--port", type=int, default=8800)
+    sv.set_defaults(func=cmd_serve, is_async=True)
 
     s = sub.add_parser("schema", help="print the capability JSON Schema")
     s.add_argument("--out", default=None)

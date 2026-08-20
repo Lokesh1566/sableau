@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sableau — capability console</title>
+<style>
+:root{
+  --desk:#141c24; --panel:#1b242e; --rule:#2c3a47; --card:#e8e3d6;
+  --ink:#c9d3dd; --dim:#7d8fa0; --ok:#7fc4a0; --biz:#8fb8d6;
+  --rec:#e0b264; --bad:#c98878; --brass:#a8873f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--desk);color:var(--ink);
+  font:14px/1.5 "IBM Plex Sans",system-ui,-apple-system,sans-serif}
+code,pre,.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+header{background:#0e151c;border-bottom:1px solid var(--rule);padding:12px 20px;
+  display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+header b{font:700 13px/1 system-ui;letter-spacing:.22em;text-transform:uppercase}
+header span{font-size:12px;color:var(--dim)}
+header .spacer{flex:1}
+.pill{font:500 11px/1.8 "IBM Plex Mono",monospace;padding:1px 9px;border:1px solid var(--rule);
+  border-radius:2px;color:var(--dim)}
+main{display:grid;grid-template-columns:340px 1fr;gap:18px;padding:18px;max-width:1500px;margin:0 auto}
+.panel{background:var(--panel);border:1px solid var(--rule)}
+.panel h2{margin:0;padding:9px 14px;font:600 11px/1 system-ui;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim);background:#202b36;border-bottom:1px solid var(--rule)}
+.panel .body{padding:14px}
+.cap{padding:11px 14px;border-bottom:1px solid var(--rule);cursor:pointer;transition:background .12s}
+.cap:hover{background:#22303c}
+.cap.on{background:#22303c;box-shadow:inset 3px 0 0 var(--brass)}
+.cap b{display:block;font-size:14px;color:#e6edf4;font-weight:600}
+.cap span{display:block;font-size:11.5px;color:var(--dim);margin-top:3px}
+label{display:block;font:600 10.5px/1 system-ui;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dim);margin:13px 0 5px}
+input,select,textarea{width:100%;background:#0f161d;color:var(--ink);border:1px solid #35424f;
+  padding:7px 9px;font:13px/1.4 "IBM Plex Sans",sans-serif;border-radius:2px}
+textarea{min-height:58px;resize:vertical}
+button{font:600 12px/1 system-ui;background:#25507e;color:#fff;border:1px solid #356a9e;
+  padding:9px 18px;cursor:pointer;border-radius:2px;margin-top:14px}
+button:hover{filter:brightness(1.15)}
+button:disabled{opacity:.5;cursor:wait}
+button.ghost{background:#232f3a;border-color:#3a4753}
+:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
+.hint{font-size:12px;color:var(--dim)}
+.contract{font-size:12px;margin:0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px}
+.contract dt{color:var(--dim)}
+.contract dd{margin:0;font-family:"IBM Plex Mono",monospace;font-size:11.5px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font:600 10px/1.8 system-ui;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);border-bottom:1px solid var(--rule);padding:7px 10px}
+td{border-bottom:1px solid #222d38;padding:7px 10px;vertical-align:top}
+td.mono{font-family:"IBM Plex Mono",monospace;font-size:11.5px}
+.tag{font:500 10px/1.7 "IBM Plex Mono",monospace;padding:1px 7px;border:1px solid;border-radius:2px}
+.t-SUCCESS{color:var(--ok);border-color:#2f6b4f}
+.t-BUSINESS_OUTCOME{color:var(--biz);border-color:#3d637f}
+.t-RECOVERABLE{color:var(--rec);border-color:#7a5a1e}
+.t-HARD_FAILURE{color:var(--bad);border-color:#7a3b30}
+pre{background:#0f161d;border:1px solid var(--rule);padding:12px;overflow:auto;max-height:280px;
+  font-size:11.5px;margin:0;border-radius:2px}
+.chat{display:flex;gap:8px;margin-top:6px}
+.chat input{flex:1}
+.chat button{margin-top:0}
+.msg{padding:9px 12px;border-left:2px solid var(--rule);margin:9px 0;font-size:13px}
+.msg.you{border-color:#356a9e;color:#b6c9da}
+.msg.bot{border-color:var(--brass)}
+.spin{display:inline-block;width:9px;height:9px;border:2px solid var(--brass);
+  border-top-color:transparent;border-radius:50%;animation:s .7s linear infinite;
+  vertical-align:middle;margin-right:7px}
+@keyframes s{to{transform:rotate(360deg)}}
+@media (max-width:1000px){main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <b>Sableau</b>
+  <span>capability console</span>
+  <div class="spacer"></div>
+  <span class="pill" id="health">checking…</span>
+</header>
+
+<main>
+  <!-- left: catalogue -->
+  <div>
+    <div class="panel">
+      <h2>Capabilities</h2>
+      <div id="caps"><div class="body hint">Loading…</div></div>
+    </div>
+
+    <div class="panel" style="margin-top:18px">
+      <h2>Chat</h2>
+      <div class="body">
+        <p class="hint" style="margin:0 0 8px">
+          Thin keyword front door. Try “approve claim CLM-004211”.
+        </p>
+        <div class="chat">
+          <input id="chatIn" placeholder="approve claim CLM-004211" autocomplete="off">
+          <button id="chatGo">Send</button>
+        </div>
+        <div id="chatLog"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- right: invoke + runs -->
+  <div>
+    <div class="panel">
+      <h2 id="invokeTitle">Invoke</h2>
+      <div class="body" id="invoke">
+        <p class="hint">Select a capability on the left.</p>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px">
+      <h2>Result</h2>
+      <div class="body" id="result"><p class="hint">No invocation yet.</p></div>
+    </div>
+
+    <div class="panel" style="margin-top:18px">
+      <h2>Recent runs</h2>
+      <div class="body" style="padding:0">
+        <table>
+          <thead><tr><th>Run</th><th>Outcome</th><th>Outputs</th><th>Drift</th><th>AI calls</th></tr></thead>
+          <tbody id="runs"><tr><td colspan="5" style="padding:14px" class="hint">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let caps = [], selected = null;
+
+async function jget(url){ const r = await fetch(url); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+async function jpost(url, body){
+  const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  const data = await r.json();
+  if(!r.ok) throw new Error(data.detail || 'request failed');
+  return data;
+}
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+async function loadHealth(){
+  try{
+    const h = await jget('/api/health');
+    $('health').textContent = `${h.capabilities} capabilit${h.capabilities===1?'y':'ies'} · api up`;
+  }catch{ $('health').textContent = 'api unreachable'; }
+}
+
+async function loadCaps(){
+  caps = await jget('/api/capabilities');
+  if(!caps.length){ $('caps').innerHTML = '<div class="body hint">No capabilities found.</div>'; return; }
+  $('caps').innerHTML = caps.map((c,i) => `
+    <div class="cap${i===0?' on':''}" data-i="${i}">
+      <b>${esc(c.title)}</b>
+      <span>${esc(c.capability_id)} · v${esc(c.version)} · ${c.step_count} steps · risk ${esc(c.risk_level)}</span>
+    </div>`).join('');
+  document.querySelectorAll('.cap').forEach(el => el.onclick = () => {
+    document.querySelectorAll('.cap').forEach(x => x.classList.remove('on'));
+    el.classList.add('on');
+    select(caps[+el.dataset.i]);
+  });
+  select(caps[0]);
+}
+
+function select(cap){
+  selected = cap;
+  $('invokeTitle').textContent = 'Invoke · ' + cap.capability_id;
+  const fields = cap.inputs.map(i => {
+    const req = i.required ? ' *' : '';
+    if(i.enum){
+      return `<label for="p_${i.name}">${esc(i.name)}${req}</label>
+        <select id="p_${i.name}">${i.enum.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`;
+    }
+    if(i.name === 'note'){
+      return `<label for="p_${i.name}">${esc(i.name)}${req}</label>
+        <textarea id="p_${i.name}">${esc(i.example || 'Reviewed against the plan schedule, provider in network.')}</textarea>`;
+    }
+    return `<label for="p_${i.name}">${esc(i.name)}${req}${i.pattern?` · <span class="mono">${esc(i.pattern)}</span>`:''}</label>
+      <input id="p_${i.name}" value="${esc(i.example || '')}">`;
+  }).join('');
+
+  const tenantSel = cap.tenants.length
+    ? `<label for="tenant">tenant</label><select id="tenant">
+         <option value="">reference instance</option>
+         ${cap.tenants.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+       </select>` : '';
+
+  $('invoke').innerHTML = `
+    <p class="hint" style="margin:0 0 4px">${esc(cap.description)}</p>
+    <dl class="contract">
+      <dt>returns</dt><dd>${cap.outputs.map(o=>esc(o.name)+':'+esc(o.type)).join(', ')||'—'}</dd>
+      <dt>outcomes</dt><dd>${cap.known_outcomes.length} declared</dd>
+      <dt>checkpoints</dt><dd>${cap.checkpoint_count}</dd>
+    </dl>
+    ${fields}${tenantSel}
+    <button id="go">Invoke</button>
+    <button id="curl" class="ghost" style="margin-left:8px">Show as curl</button>`;
+  $('go').onclick = invoke;
+  $('curl').onclick = showCurl;
+}
+
+function collect(){
+  const params = {};
+  selected.inputs.forEach(i => { const el = $('p_'+i.name); if(el && el.value !== '') params[i.name] = el.value; });
+  const t = $('tenant');
+  return { params, tenant: t && t.value ? t.value : null, confirm_risky: true };
+}
+
+function showCurl(){
+  const body = collect();
+  $('result').innerHTML = `<p class="hint">The same call, from anything that speaks HTTP:</p>
+    <pre>curl -X POST http://127.0.0.1:8800/api/capabilities/${esc(selected.capability_id)}/invoke \\
+  -H 'Content-Type: application/json' \\
+  -d '${esc(JSON.stringify(body))}'</pre>`;
+}
+
+async function invoke(){
+  const btn = $('go'); btn.disabled = true; btn.textContent = 'Running…';
+  $('result').innerHTML = '<p class="hint"><span class="spin"></span>Driving the browser…</p>';
+  try{
+    const r = await jpost(`/api/capabilities/${selected.capability_id}/invoke`, collect());
+    renderResult(r);
+  }catch(e){
+    $('result').innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`;
+  }finally{
+    btn.disabled = false; btn.textContent = 'Invoke'; loadRuns();
+  }
+}
+
+function renderResult(r){
+  const outputs = Object.entries(r.outputs || {});
+  const drift = r.drift && r.drift.steps_resolved
+      ? (r.drift.first_choice / r.drift.steps_resolved) : null;
+  const degraded = (r.drift && r.drift.degraded) || [];
+  $('result').innerHTML = `
+    <p style="margin:0 0 10px">
+      <span class="tag t-${esc(r.category)}">${esc(r.category)}</span>
+      <span class="mono" style="margin-left:8px;color:var(--dim)">${esc(r.code)}</span>
+      <span class="mono" style="float:right;color:var(--dim)">llm_calls=${r.llm_calls}</span>
+    </p>
+    ${outputs.length ? `<dl class="contract">${outputs.map(([k,v])=>
+        `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
+    ${r.business_outcome ? `<p class="hint">${esc(r.business_outcome.description)}</p>` : ''}
+    ${r.error ? `<p style="color:var(--bad)">${esc(r.error.message)}</p>` : ''}
+    ${drift !== null ? `<p class="hint" style="margin-top:10px">
+        drift ${drift.toFixed(2)} — ${r.drift.first_choice}/${r.drift.steps_resolved}
+        controls found by their preferred locator
+        ${degraded.length ? '<br>' + degraded.map(d =>
+          `<span class="mono">${esc(d.step_id)} → candidate ${d.candidate_index} (${esc(d.resolved_via)})</span>`
+        ).join('<br>') : ''}</p>` : ''}
+    <p class="hint" style="margin-top:10px">${r.steps.length} steps · ${r.duration_ms}ms · run ${esc(r.run_id)}</p>`;
+}
+
+async function loadRuns(){
+  try{
+    const runs = await jget('/api/runs?limit=12');
+    $('runs').innerHTML = runs.length ? runs.map(r => `
+      <tr>
+        <td class="mono">${esc(r.run_id.slice(0,26))}</td>
+        <td><span class="tag t-${esc(r.category)}">${esc(r.category)}</span>
+            <span class="mono" style="color:var(--dim)"> ${esc(r.code)}</span></td>
+        <td class="mono">${esc(Object.entries(r.outputs||{}).map(([k,v])=>k+'='+v).join(', ')) || '—'}</td>
+        <td class="mono">${r.drift_score===null||r.drift_score===undefined?'—':r.drift_score.toFixed(2)}</td>
+        <td class="mono">${r.llm_calls ?? '—'}</td>
+      </tr>`).join('')
+      : '<tr><td colspan="5" style="padding:14px" class="hint">No runs yet.</td></tr>';
+  }catch{ /* leave as-is */ }
+}
+
+async function sendChat(){
+  const input = $('chatIn'); const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  $('chatLog').insertAdjacentHTML('beforeend', `<div class="msg you">${esc(text)}</div>`);
+  const id = 'm'+Date.now();
+  $('chatLog').insertAdjacentHTML('beforeend',
+    `<div class="msg bot" id="${id}"><span class="spin"></span>working…</div>`);
+  try{
+    const r = await jpost('/api/chat', {message: text});
+    $(id).innerHTML = esc(r.reply);
+    if(r.result){ renderResult(r.result); loadRuns(); }
+  }catch(e){ $(id).innerHTML = `<span style="color:var(--bad)">${esc(e.message)}</span>`; }
+}
+$('chatGo').onclick = sendChat;
+$('chatIn').addEventListener('keydown', e => { if(e.key==='Enter') sendChat(); });
+
+loadHealth(); loadCaps(); loadRuns();
+setInterval(loadRuns, 8000);
+</script>
+</body>
+</html>

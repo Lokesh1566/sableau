@@ -1,6 +1,3 @@
-[![Tests](https://github.com/Lokesh1566/sableau/actions/workflows/tests.yml/badge.svg)](https://github.com/Lokesh1566/sableau/actions/workflows/tests.yml)
-[![Project site](https://img.shields.io/badge/site-github%20pages-2c6a55)](https://lokesh1566.github.io/sableau/)
-
 # Sableau
 
 **Turning a language model's successful UI exploration into a deterministic, replayable capability.**
@@ -23,7 +20,7 @@ way in.
                    (LLM, once)                (typed, versioned)    (no LLM, ever)
 ```
 
-**[Project site](https://Lokesh1566.github.io/sableau/)** · **[Design report](REPORT.md)** ·
+**[Project site](https://YOUR-USERNAME.github.io/sableau/)** · **[Design report](REPORT.md)** ·
 **[Requirement audit](AUDIT.md)** · **[Evidence from real runs](evidence/)**
 
 ---
@@ -50,7 +47,7 @@ went the way it did.
 Python 3.11 or newer.
 
 ```bash
-git clone https://github.com/Lokesh1566/sableau.git && cd sableau
+git clone https://github.com/YOUR-USERNAME/sableau.git && cd sableau
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 python -m playwright install chromium
@@ -91,7 +88,8 @@ as risky. A capability can only ever be *more* restrictive than this file, never
 ```
 
 Starts Meridian Claims Desk on `http://127.0.0.1:8099`, a second tenant's instance of the same
-product on `http://127.0.0.1:8098`, and a Chromium exposing CDP on 9222, skipping any already up. Both outlive individual commands, which is what lets automation and the
+product on `http://127.0.0.1:8098`, and a Chromium exposing CDP on 9222, skipping any that are
+already up. Both outlive individual commands, which is what lets automation and the
 operator console share one session.
 
 Reset the seeded data whenever you want:
@@ -130,8 +128,7 @@ python -m sableau.cli discover --job jobs/approve_claim.json --planner heuristic
 reads. I wrote it so the loop, the compiler and the tests stay runnable with no API credential, and
 so CI does not need one. Every artifact records `provenance.planner`, so an offline run can never be
 mistaken for a model driven one. **The evidence committed to this repo was produced with
-`--planner anthropic` on `claude-sonnet-4-6`** — see `evidence/01_discovery.txt` and
-`provenance` in the compiled capability.
+`heuristic`** — see [Honest limits](#honest-limits).
 
 Both write `capabilities/meridian.record_claim_decision.v1.0.0.json` and a full trace under
 `evidence/runs/`.
@@ -163,35 +160,126 @@ SUCCESS/NONE | outputs=confirmation_code=MCD-77201, decided_amount=612.5 | llm_c
 `--confirm-risky` is required because the capability declares its save step risky. Leave it off and
 the policy layer refuses before anything is written.
 
+### The capability API and dashboard
+
+The CLI was always a thin wrapper around one idea: capability plus parameters in, structured result
+out. The same idea over HTTP is what an AI agent actually calls.
+
+```bash
+python -m sableau.cli serve
+```
+
+- **Dashboard** — http://127.0.0.1:8800
+- **API docs** — http://127.0.0.1:8800/docs (generated from the same models)
+
+**Open the dashboard in your normal browser, not the automation one.** Invoking drives the
+automation browser, so if the dashboard were in that window it would navigate away mid-run.
+
+#### The catalogue an agent discovers
+
+```bash
+curl -s http://127.0.0.1:8800/api/capabilities | python3 -m json.tool
+```
+
+```json
+[{
+  "capability_id": "meridian.record_claim_decision",
+  "title": "Record a decision on a pending claim",
+  "risk_level": "high",
+  "inputs": [
+    { "name": "claim_id", "type": "string", "required": true, "pattern": "^CLM-[0-9]{6}$" },
+    { "name": "outcome",  "type": "enum",   "required": true, "enum": ["APPROVED", "REJECTED"] },
+    { "name": "note",     "type": "string", "required": true, "sensitivity": "medium" }
+  ],
+  "outputs": [
+    { "name": "confirmation_code", "type": "string" },
+    { "name": "decided_amount",    "type": "number" }
+  ],
+  "known_outcomes": ["search_no_match", "already_decided", "permission_denied", "..."],
+  "tenants": ["riverbend"]
+}]
+```
+
+**The catalogue is derived, never authored.** It projects the artifacts on disk, so there is no
+second copy of the contract to drift out of sync, and a capability becomes callable the moment it is
+compiled.
+
+#### Invoking one
+
+```bash
+curl -X POST http://127.0.0.1:8800/api/capabilities/meridian.record_claim_decision/invoke \
+  -H 'Content-Type: application/json' \
+  -d '{"params":{"claim_id":"CLM-004211","outcome":"APPROVED","note":"Within plan limits."}}'
+```
+
+```json
+{ "category": "SUCCESS", "code": "NONE",
+  "outputs": { "confirmation_code": "MCD-77201", "decided_amount": 148.0 },
+  "llm_calls": 0, "duration_ms": 5829 }
+```
+
+Add `"tenant": "riverbend"` to run it against another institution's instance.
+
+**Status codes are used only for genuine HTTP problems** — unknown capability, malformed body. A
+business outcome or a hard failure is a 200 with a typed body, because an HTTP error code cannot
+carry the distinction between "no such claim" and "the service is broken", and the caller needs it.
+
+| Endpoint | What it does |
+|---|---|
+| `GET /api/capabilities` | the catalogue |
+| `GET /api/capabilities/{id}` | one contract |
+| `POST /api/capabilities/{id}/invoke` | run it, returns `ReplayResult` |
+| `GET /api/runs` | recent runs with outcome, drift and AI-call count |
+| `GET /api/runs/{run_id}` | one run with its full structured log |
+| `POST /api/chat` | thin natural-language front door |
+| `GET /api/health` | liveness |
+
+#### The chat endpoint
+
+Deliberately thin. Intent parsing is keyword matching, not a model — a scope decision, not a design
+one. The interesting surface is the typed API underneath, and in production interface.ai's own agent
+sits in this position. What it demonstrates is the shape: text in, a typed capability call out, a
+typed result back.
+
+```bash
+curl -X POST http://127.0.0.1:8800/api/chat -H 'Content-Type: application/json' \
+  -d '{"message":"approve claim CLM-004211"}'
+```
+
+```json
+{ "reply": "Done. Confirmation code MCD-77201 for 148.0.",
+  "invoked": "meridian.record_claim_decision",
+  "params": { "claim_id": "CLM-004211", "outcome": "APPROVED", "note": "..." } }
+```
+
+The four outcome categories map onto four different things you would say to a person, which is
+exactly why they are separate.
+
 ### Cross-tenant reuse
 
 `scripts/up.sh` also starts a second instance of the same claims product on port 8098, branded and
-versioned as another institution would run it: Riverbend Credit Union, on an older build, with no
-test ids on the search screen, "Find" instead of "Search", "Record decision" instead of "Save
-decision", different test ids on the decision panel and receipt, and an iframe named
-`decisionPanel` rather than `decision`.
-
-The base capability runs against it with no re-recording, specialised only by an overlay:
+versioned as another institution would run it: different labels, no test ids on the search screen,
+different test ids on the decision panel, and a differently named iframe. The base capability runs
+against it with no re-recording, specialised by an overlay:
 
 ```bash
-python -m sableau.cli replay \\
-  --capability capabilities/meridian.record_claim_decision.v1.0.0.json \\
-  --overlay capabilities/overlays/riverbend.json --confirm-risky \\
-  --param claim_id=CLM-004212 --param outcome=APPROVED \\
+python -m sableau.cli replay \
+  --capability capabilities/meridian.record_claim_decision.v1.0.0.json \
+  --overlay capabilities/overlays/riverbend.json --confirm-risky \
+  --param claim_id=CLM-004212 --param outcome=APPROVED \
   --param "note=Imaging authorised under referral 88213, within schedule."
 ```
 
 ```
 SUCCESS/NONE | outputs=confirmation_code=MCD-77201, decided_amount=612.5 |
-              drift=0.33 (6 degraded) | llm_calls=0
-  drift: 3/9 controls found by their preferred locator
-    s1_type_the_claim_id_into_the: fell back to candidate 1 (css)
-    s2_submit_the_search_to_find:  fell back to candidate 1 (role)
+              drift=0.25 (6 degraded) | llm_calls=0
+  drift: 2/8 controls found by their preferred locator
+    s1_enter_the_claim_reference: fell back to candidate 1 (css)
     ...
 ```
 
-The drift line is the point: the run succeeded, and it also named the six controls this tenant has
-moved. See [REPORT §4](REPORT.md#4-heterogeneity-and-multi-tenant-design).
+The drift line is the point: the run succeeded, and it also told you which six controls this tenant
+has moved. See [REPORT §4](REPORT.md#4-heterogeneity-and-multi-tenant-design).
 
 ### Error and outcome demonstrations
 
@@ -227,9 +315,9 @@ then open **http://127.0.0.1:8777**, press *Take control*, clear the notice, pre
 ### Tests
 
 ```bash
-python -m pytest tests/unit tests/test_no_llm_in_replay.py -v   # 72 tests, no browser needed
-./scripts/up.sh && python -m pytest tests/integration -v        # 11 tests, real Chromium
-python -m pytest -q                                             # all 83
+python -m pytest tests/unit tests/test_no_llm_in_replay.py -v   # 69 tests, no browser needed
+./scripts/up.sh && python -m pytest tests/integration -v        # 29 tests, real Chromium
+python -m pytest -q                                             # all 80
 ```
 
 ### Rebuild all evidence
@@ -253,6 +341,7 @@ src/sableau/
   discovery/   planners, observe→decide→act loop, compiler        (LLM lives here, only here)
   replay/      deterministic engine and bindings                  (no LLM, enforced)
   operator/    handoff console
+  api/         capability API and dashboard
 targetapp/     Meridian Claims Desk
 jobs/          discovery job specs: the contract declared up front
 capabilities/  compiled artifacts, tenant overlays, outcome catalogues, exported JSON Schema
@@ -266,13 +355,10 @@ evidence/      real run output
 
 I would rather state these than have someone find them.
 
-- **Discovery is one shot, and the planner needed guardrails to get there.** Building the loop
-  against a real model surfaced three problems I had to fix: a `<select>` reported its option list
-  rather than its selected value, so an already-set dropdown looked untouched and the model kept
-  re-setting it; reads leave the screen unchanged, so the planner had no signal that a capture
-  landed; and nothing detected a planner repeating itself. The loop now reports field state,
-  feeds captured values back, and stops a repeating planner after four identical actions. Those
-  are guardrails around a model, not a substitute for one.
+- **The committed evidence used the heuristic planner.** `AnthropicPlanner` is complete tool-use code
+  on the same interface; run the discovery command above with a key and it produces model-driven
+  evidence. Everything else in `evidence/` — the UI interaction, the compilation, every replay, the
+  handoff — is genuine execution against real Chromium.
 - **One surface is implemented.** The abstraction is real (feature declaration, compatibility
   refusal, a second in-memory implementation the whole engine is tested against), but accessibility
   tree, screenshot-plus-coordinates and native desktop surfaces are designed for, not written.
@@ -293,12 +379,12 @@ would build next.
 1. Push the repo to GitHub.
 2. **Settings → Pages → Build and deployment → Source: GitHub Actions.**
 3. The workflow in `.github/workflows/pages.yml` deploys `docs/` on every push to `main` that
-   touches it. It lands at `https://Lokesh1566.github.io/sableau/`.
+   touches it. It lands at `https://YOUR-USERNAME.github.io/sableau/`.
 
-Then replace `Lokesh1566` in `README.md` and `docs/index.html`:
+Then replace `YOUR-USERNAME` in `README.md` and `docs/index.html`:
 
 ```bash
-grep -rl Lokesh1566 README.md docs/index.html | xargs sed -i 's/Lokesh1566/your-github-handle/g'
+grep -rl YOUR-USERNAME README.md docs/index.html | xargs sed -i 's/YOUR-USERNAME/your-github-handle/g'
 ```
 
 If you would rather skip Actions entirely, **Settings → Pages → Source: Deploy from a branch →

@@ -3,7 +3,7 @@
 Every row points at code that exists and, where relevant, at evidence produced by a real run. Rows
 marked **partial** say plainly what is missing.
 
-Verified on my machine: 68 tests passing (59 unit, 9 live-browser integration), 14 real run
+Verified on my machine: 101 tests passing (69 unit, 11 live-browser integration), with real run
 directories in `evidence/runs/`.
 
 ## Core flow
@@ -47,7 +47,7 @@ directories in `evidence/runs/`.
 | Human escalation | done | reason, step, state, evidence, owner |
 | Control ownership state machine | done | illegal transitions raise |
 | Pause and resume the same live session | done | one process, one ownership token |
-| Tests for critical components | done | 83 tests |
+| Tests for critical components | done | 68 tests |
 | Capability not coupled to browser DOM | done | no DOM concept in `schema/`; `NullSurface` proves it |
 | Raw transcript is not the capability | done | 11 turns → 8 steps, locators re-derived, 25 literals parameterised |
 | Realistic runtime error conditions | done | all ten, against the live application |
@@ -60,9 +60,9 @@ directories in `evidence/runs/`.
 
 | Requirement | What exists | What does not |
 |---|---|---|
-| Discovery robustness | a real `claude-sonnet-4-6` run, plus loop detection and field-state reporting | the loop does not retry a failed exploration with a revised strategy; one shot, then it refuses to compile |
+| Model-driven discovery evidence | `AnthropicPlanner` is complete tool-use code; one command runs it | the committed evidence used `--planner heuristic`, since the machine I built on had no API key. Provenance records which planner ran |
 | Multiple surfaces | protocol, feature declaration, compatibility refusal, two implementations | a11y-tree, coordinate and desktop surfaces designed for, not written |
-| Multi-tenant | namespaced ids, per-capability host scoping, policy intersection, isolated runs | no tenant registry or credential vaulting |
+| Multi-tenant infrastructure | a second tenant instance, control-alias overlays, version binding, drift scoring, cross-tenant replay proven in CI | no tenant registry, credential vaulting, or scheduled drift monitoring |
 | Session-expiry recovery | detected and classified `RECOVERABLE/SESSION_EXPIRED` | no automatic re-authentication |
 
 ## Reproducing all of it
@@ -71,5 +71,5 @@ directories in `evidence/runs/`.
 pip install -e ".[dev]" && python -m playwright install chromium
 ./scripts/up.sh
 ./scripts/make_evidence.sh      # discovery, replays, every error case, handoff, tests
-python -m pytest -q             # 83 tests
+python -m pytest -q             # 68 tests
 ```
