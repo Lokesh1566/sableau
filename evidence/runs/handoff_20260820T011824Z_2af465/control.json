@@ -1,0 +1,63 @@
+{
+  "run_id": "handoff_20260820T011824Z_2af465",
+  "state": "DONE",
+  "owner": "nobody",
+  "active_escalation": {
+    "escalation_id": "esc_1fb830cb",
+    "reason_code": "UNEXPECTED_DIALOG",
+    "reason": "A compliance notice is covering the decision panel and must be cleared by a person.",
+    "step_id": "s3_open_the_clm_004211_claim",
+    "state_url": "http://127.0.0.1:8099/claims/CLM-004214",
+    "screenshot_ref": "evidence/runs/handoff_20260820T011824Z_2af465/screenshots/escalation_compliance_dialog.png",
+    "created_at": "2026-08-20T01:18:27.566949+00:00",
+    "resolved_at": "2026-08-20T01:18:27.882507+00:00",
+    "decision": "CONTINUE_FROM_CURRENT_STEP",
+    "operator": "scripted-operator",
+    "human_actions": [
+      {
+        "at": "2026-08-20T01:18:27.861517+00:00",
+        "kind": "click",
+        "detail": {
+          "target": "ack-compliance",
+          "frame": "main",
+          "value": "",
+          "via": "testid"
+        }
+      }
+    ]
+  },
+  "transitions": [
+    {
+      "at": "2026-08-20T01:18:27.566967+00:00",
+      "from": "AUTOMATION_RUNNING",
+      "to": "PAUSED",
+      "owner": "nobody",
+      "actor": "automation",
+      "note": "UNEXPECTED_DIALOG"
+    },
+    {
+      "at": "2026-08-20T01:18:27.743360+00:00",
+      "from": "PAUSED",
+      "to": "HUMAN_CONTROL",
+      "owner": "human",
+      "actor": "scripted-operator",
+      "note": "operator took control"
+    },
+    {
+      "at": "2026-08-20T01:18:27.882518+00:00",
+      "from": "HUMAN_CONTROL",
+      "to": "AUTOMATION_RUNNING",
+      "owner": "automation",
+      "actor": "scripted-operator",
+      "note": "CONTINUE_FROM_CURRENT_STEP"
+    },
+    {
+      "at": "2026-08-20T01:18:31.310964+00:00",
+      "from": "AUTOMATION_RUNNING",
+      "to": "DONE",
+      "owner": "nobody",
+      "actor": "automation",
+      "note": "run complete"
+    }
+  ]
+}

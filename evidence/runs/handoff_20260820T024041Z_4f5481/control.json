@@ -1,0 +1,16 @@
+{
+  "run_id": "handoff_20260820T024041Z_4f5481",
+  "state": "DONE",
+  "owner": "nobody",
+  "active_escalation": null,
+  "transitions": [
+    {
+      "at": "2026-08-20T02:40:44.148816+00:00",
+      "from": "AUTOMATION_RUNNING",
+      "to": "DONE",
+      "owner": "nobody",
+      "actor": "automation",
+      "note": "run complete"
+    }
+  ]
+}

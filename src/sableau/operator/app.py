@@ -106,6 +106,19 @@ ACTFORM = """<form method="post" action="/act">
 <ol>{actions}</ol>"""
 
 
+def _render(template: str, **values: Any) -> str:
+    """Fill ``{name}`` placeholders without touching CSS braces.
+
+    ``str.format`` cannot be used here: the page carries a stylesheet, and every
+    ``{margin:0}`` in it looks like a format field. Plain replacement is both
+    correct and impossible to get wrong later.
+    """
+    out = template
+    for key, value in values.items():
+        out = out.replace("{" + key + "}", str(value))
+    return out
+
+
 def build_console(control: SessionControl, surface: Surface, recorder: RunRecorder) -> FastAPI:
     app = FastAPI(title="Sableau operator console", docs_url=None, redoc_url=None)
     lock = asyncio.Lock()
@@ -128,13 +141,13 @@ def build_console(control: SessionControl, surface: Surface, recorder: RunRecord
     async def index() -> HTMLResponse:
         snap = control.snapshot()
         if control.state is ControlState.PAUSED:
-            controls = TAKE.format(operator="operator.demo")
+            controls = _render(TAKE, operator="operator.demo")
         elif control.state is ControlState.HUMAN_CONTROL:
             done = "".join(
                 f"<li>{a['kind']}: {a['detail'].get('target', a['detail'].get('url', ''))}</li>"
                 for a in (control.active.human_actions if control.active else [])
             )
-            controls = ACTFORM.format(actions=done or "<li>No actions yet.</li>")
+            controls = _render(ACTFORM, actions=done or "<li>No actions yet.</li>")
         else:
             controls = "<p class='hint'>Automation owns the session. Nothing to do here.</p>"
         try:
@@ -142,7 +155,8 @@ def build_console(control: SessionControl, surface: Surface, recorder: RunRecord
         except Exception:  # noqa: BLE001
             url = "(unavailable)"
         return HTMLResponse(
-            PAGE.format(
+            _render(
+                PAGE,
                 state=snap["state"], owner=snap["owner"], run_id=control.run_id, url=url,
                 escalation=_escalation_html(), controls=controls,
                 nonce=len(control.history),

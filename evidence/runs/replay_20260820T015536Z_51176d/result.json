@@ -1,0 +1,40 @@
+{
+  "run_id": "replay_20260820T015536Z_51176d",
+  "capability_id": "meridian.record_claim_decision",
+  "capability_version": "1.0.0",
+  "started_at": "2026-08-20T01:55:36.492819+00:00",
+  "duration_ms": 8637,
+  "category": "RECOVERABLE",
+  "code": "SESSION_EXPIRED",
+  "outputs": {},
+  "business_outcome": null,
+  "error": {
+    "code": "SESSION_EXPIRED",
+    "category": "RECOVERABLE",
+    "message": "The session expired. Re-authenticate and invoke the capability again.",
+    "step_id": "s1_type_the_claim_id_into_the",
+    "retryable": true,
+    "attempts": 1,
+    "evidence": {
+      "screenshot": "evidence/runs/replay_20260820T015536Z_51176d/screenshots/outcome_session_expired.png",
+      "dom_snapshot": "evidence/runs/replay_20260820T015536Z_51176d/outcome_session_expired.dom.html",
+      "url": "http://127.0.0.1:8099/login",
+      "log_ref": "evidence/runs/replay_20260820T015536Z_51176d/log.jsonl"
+    }
+  },
+  "control": {
+    "final_owner": "nobody",
+    "escalated": false,
+    "escalation_id": null,
+    "escalation_reason": null,
+    "human_actions": 0,
+    "resume_decision": null
+  },
+  "steps": [],
+  "llm_calls": 0,
+  "drift": {
+    "steps_resolved": 0,
+    "first_choice": 0,
+    "degraded": []
+  }
+}

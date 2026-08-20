@@ -5,13 +5,13 @@
   "title": "Record a decision on a pending claim",
   "description": "Find a claim by its reference in Meridian Claims Desk, record an approve or reject decision with an audit note, and return the confirmation code.",
   "provenance": {
-    "discovered_at": "2026-08-20T02:32:17.415508+00:00",
+    "discovered_at": "2026-08-20T01:51:26.673495+00:00",
     "goal": "Record the supplied decision outcome on the supplied claim reference in Meridian Claims Desk, entering the supplied decision note, and capture the confirmation code and decided amount from the receipt screen.",
     "planner": "anthropic",
     "model": "claude-sonnet-4-6",
-    "trace_ref": "evidence/runs/discovery_20260820T023044Z_f59eae/trace.json",
+    "trace_ref": "evidence/runs/discovery_20260820T015020Z_c79f96/trace.json",
     "compiler_version": "1.0.0",
-    "notes": "Successfully recorded the APPROVED decision on claim CLM-004211 in Meridian Claims Desk. The decision note \"Within plan limits, provider in network, no duplicate found.\" was entered, and the decision was saved. The receipt screen confirmed:\n- **Confirmation code:** MCD-77201\n- **Decided amount:** 148.00"
+    "notes": "The decision outcome for claim CLM-004211 has been successfully recorded in Meridian Claims Desk:\n- **Outcome**: APPROVED\n- **Note**: \"Within plan limits, provider in network, no duplicate found.\"\n- **Confirmation Code**: MCD-77201\n- **Decided Amount**: $148.00\n\nBoth declared outputs have been captured from the receipt screen."
   },
   "surface": {
     "kind": "dom",
@@ -39,9 +39,9 @@
     ],
     "risk_level": "high",
     "confirm_steps": [
-      "s2_submit_the_search_for_clai",
+      "s2_submit_the_search_to_find",
       "s4_select_approve_as_the_deci",
-      "s9_submit_the_decision_by_cli"
+      "s6_submit_the_decision_by_cli"
     ],
     "redact_paths": [
       "input.note"
@@ -97,7 +97,7 @@
       "type": "string",
       "required": true,
       "source": {
-        "step": "s10_read_the_confirmation_code",
+        "step": "s7_read_the_confirmation_code",
         "binding": "text",
         "attr": null,
         "extract_regex": "MCD-[0-9]+"
@@ -110,7 +110,7 @@
       "type": "number",
       "required": true,
       "source": {
-        "step": "s11_read_the_decided_amount_fr",
+        "step": "s8_read_the_decided_amount_fr",
         "binding": "text",
         "attr": null,
         "extract_regex": null
@@ -121,8 +121,8 @@
   ],
   "steps": [
     {
-      "id": "s1_search_for_claim_clm_00421",
-      "intent": "Search for claim CLM-004211",
+      "id": "s1_type_the_claim_id_into_the",
+      "intent": "Type the claim ID into the search box",
       "action": {
         "type": "type",
         "text": "{{input.claim_id}}",
@@ -155,7 +155,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Search for claim CLM-004211"
+        "description": "Type the claim ID into the search box"
       },
       "risk": "safe",
       "preconditions": [],
@@ -171,8 +171,8 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s2_submit_the_search_for_clai",
-      "intent": "Submit the search for claim CLM-004211",
+      "id": "s2_submit_the_search_to_find",
+      "intent": "Submit the search to find claim CLM-004211",
       "action": {
         "type": "click"
       },
@@ -206,7 +206,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Submit the search for claim CLM-004211"
+        "description": "Submit the search to find claim CLM-004211"
       },
       "risk": "risky",
       "preconditions": [],
@@ -224,8 +224,8 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s3_open_the_clm_004211_claim",
-      "intent": "Open the CLM-004211 claim record",
+      "id": "s3_open_the_claim_record_for",
+      "intent": "Open the claim record for CLM-004211",
       "action": {
         "type": "click"
       },
@@ -258,7 +258,7 @@
           "attr": "href",
           "value": "/claims/{{input.claim_id}}"
         },
-        "description": "Open the CLM-004211 claim record"
+        "description": "Open the claim record for CLM-004211"
       },
       "risk": "safe",
       "preconditions": [],
@@ -277,7 +277,7 @@
     },
     {
       "id": "s4_select_approve_as_the_deci",
-      "intent": "Select \"Approve\" as the decision outcome",
+      "intent": "Select \"Approve\" as the decision outcome for the claim",
       "action": {
         "type": "select",
         "value": "Approve"
@@ -300,13 +300,11 @@
         ],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Select \"Approve\" as the decision outcome"
+        "description": "Select \"Approve\" as the decision outcome for the claim"
       },
       "risk": "risky",
       "preconditions": [],
-      "postconditions": [
-        "cp_outcome_approved_selected"
-      ],
+      "postconditions": [],
       "on_error": {
         "retry": {
           "max_attempts": 2,
@@ -320,129 +318,6 @@
     {
       "id": "s5_enter_the_decision_note_in",
       "intent": "Enter the decision note in the textarea",
-      "action": {
-        "type": "click"
-      },
-      "target": {
-        "candidates": [
-          {
-            "strategy": "text",
-            "text": "DECISION NOTE",
-            "within_css": null,
-            "exact": false,
-            "confidence": 0.6
-          },
-          {
-            "strategy": "css",
-            "value": "html > body > form > label:nth-of-type(2)",
-            "confidence": 0.3
-          }
-        ],
-        "frame_path": [
-          "decision"
-        ],
-        "ambiguity_policy": "fail_if_multiple",
-        "verify": null,
-        "description": "Enter the decision note in the textarea"
-      },
-      "risk": "safe",
-      "preconditions": [],
-      "postconditions": [],
-      "on_error": {
-        "retry": {
-          "max_attempts": 2,
-          "backoff_ms": 400
-        },
-        "classify_as": "MISSING_CONTROL",
-        "escalate": false
-      },
-      "timeout_ms": 8000
-    },
-    {
-      "id": "s6_enter_the_decision_note_in",
-      "intent": "Enter the decision note in the textarea",
-      "action": {
-        "type": "click"
-      },
-      "target": {
-        "candidates": [
-          {
-            "strategy": "text",
-            "text": "DECISION NOTE",
-            "within_css": null,
-            "exact": false,
-            "confidence": 0.6
-          },
-          {
-            "strategy": "css",
-            "value": "html > body > form > label:nth-of-type(2)",
-            "confidence": 0.3
-          }
-        ],
-        "frame_path": [
-          "decision"
-        ],
-        "ambiguity_policy": "fail_if_multiple",
-        "verify": null,
-        "description": "Enter the decision note in the textarea"
-      },
-      "risk": "safe",
-      "preconditions": [],
-      "postconditions": [],
-      "on_error": {
-        "retry": {
-          "max_attempts": 2,
-          "backoff_ms": 400
-        },
-        "classify_as": "MISSING_CONTROL",
-        "escalate": false
-      },
-      "timeout_ms": 8000
-    },
-    {
-      "id": "s7_click_on_the_decision_note",
-      "intent": "Click on the decision note textarea to focus it before typing",
-      "action": {
-        "type": "click"
-      },
-      "target": {
-        "candidates": [
-          {
-            "strategy": "text",
-            "text": "DECISION NOTE",
-            "within_css": null,
-            "exact": false,
-            "confidence": 0.6
-          },
-          {
-            "strategy": "css",
-            "value": "html > body > form > label:nth-of-type(2)",
-            "confidence": 0.3
-          }
-        ],
-        "frame_path": [
-          "decision"
-        ],
-        "ambiguity_policy": "fail_if_multiple",
-        "verify": null,
-        "description": "Click on the decision note textarea to focus it before typing"
-      },
-      "risk": "safe",
-      "preconditions": [],
-      "postconditions": [],
-      "on_error": {
-        "retry": {
-          "max_attempts": 2,
-          "backoff_ms": 400
-        },
-        "classify_as": "MISSING_CONTROL",
-        "escalate": false
-      },
-      "timeout_ms": 8000
-    },
-    {
-      "id": "s8_type_the_decision_note_in",
-      "intent": "Type the decision note in the textarea in the decision frame",
       "action": {
         "type": "type",
         "text": "{{input.note}}",
@@ -468,7 +343,7 @@
         ],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Type the decision note in the textarea in the decision frame"
+        "description": "Enter the decision note in the textarea"
       },
       "risk": "safe",
       "preconditions": [],
@@ -484,7 +359,7 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s9_submit_the_decision_by_cli",
+      "id": "s6_submit_the_decision_by_cli",
       "intent": "Submit the decision by clicking the Save decision button",
       "action": {
         "type": "click"
@@ -539,7 +414,7 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s10_read_the_confirmation_code",
+      "id": "s7_read_the_confirmation_code",
       "intent": "Read the confirmation code from the receipt screen",
       "action": {
         "type": "read",
@@ -578,7 +453,7 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s11_read_the_decided_amount_fr",
+      "id": "s8_read_the_decided_amount_fr",
       "intent": "Read the decided amount from the receipt screen",
       "action": {
         "type": "read",
@@ -620,7 +495,7 @@
   "checkpoints": [
     {
       "id": "cp_search_results_visible",
-      "description": "Search results show CLM-004211 with PENDING status for Priya Nadar",
+      "description": "Search results show CLM-004211 for Priya Nadar with PENDING status",
       "condition": {
         "kind": "text_present",
         "target": null,
@@ -633,7 +508,7 @@
     },
     {
       "id": "cp_claim_record_open",
-      "description": "Claim CLM-004211 record is open showing PENDING status for Priya Nadar with the decision form visible",
+      "description": "Claim CLM-004211 record is open showing member Priya Nadar, PENDING status, with the decision form visible",
       "condition": {
         "kind": "text_present",
         "target": null,
@@ -645,37 +520,8 @@
       "on_fail_code": "CHECKPOINT_MISMATCH"
     },
     {
-      "id": "cp_outcome_approved_selected",
-      "description": "Claim CLM-004211 is open with \"Approve\" already selected as the outcome and the decision note field is empty",
-      "condition": {
-        "kind": "element_visible",
-        "target": {
-          "candidates": [
-            {
-              "strategy": "text",
-              "text": "",
-              "within_css": null,
-              "exact": false,
-              "confidence": 0.6
-            }
-          ],
-          "frame_path": [],
-          "ambiguity_policy": "first",
-          "verify": null,
-          "description": null
-        },
-        "value": null,
-        "count": null,
-        "frame_path": [
-          "decision"
-        ]
-      },
-      "timeout_ms": 8000,
-      "on_fail_code": "CHECKPOINT_MISMATCH"
-    },
-    {
       "id": "cp_receipt_screen_visible",
-      "description": "The decision receipt screen is shown for CLM-004211 with APPROVED status, confirmation code MCD-77201, and amount 148.00",
+      "description": "Decision receipt screen is shown for CLM-004211 with APPROVED status, confirmation code MCD-77201, and amount 148.00",
       "condition": {
         "kind": "text_present",
         "target": null,
