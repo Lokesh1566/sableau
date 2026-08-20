@@ -1,0 +1,747 @@
+{
+  "goal": "Sign on to MERIDIAN CORE using the supplied Operator ID, Password and Branch. Open Member Inquiry / Selection. Set Search by to the supplied search_by value ('number' means Member Number; 'name' means Last Name), type the supplied query in the Value field, and press Search. Select the first matching result. On the MEMBER RECORD screen read the Member No. value as member_number and the Name value as member_name. Change nothing.",
+  "planner": "anthropic",
+  "model": "claude-sonnet-4-6",
+  "entry_url": "https://web-sample.interface-hiring.com/signon",
+  "params": {
+    "operator": "teller1",
+    "password": "[REDACTED]",
+    "branch": "WEST-014",
+    "search_by": "name",
+    "query": "Lovelace"
+  },
+  "status": "success",
+  "summary": "Successfully signed into Meridian Core as teller1 on branch WEST-014, opened Member Inquiry, searched by Last Name for \"Lovelace\", selected the first result, and read the member record. Captured: member_number = '100234' and member_name = 'Lovelace, Ada'.",
+  "entries": [
+    {
+      "seq": 1,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the Operator ID",
+        "action": "type",
+        "target_name_attr": "operator",
+        "frame": "main",
+        "text": "teller1"
+      },
+      "rationale": "I'll sign on with the supplied credentials. Let me fill in the form fields.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "operator",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "operator",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 2,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the [REDACTED]",
+        "action": "type",
+        "target_name_attr": "[REDACTED]",
+        "frame": "main",
+        "text": "[REDACTED]"
+      },
+      "rationale": "I'll sign on to the system. The Operator ID is already filled with \"teller1\". I need to enter the [REDACTED], select the branch, and submit.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "[REDACTED]",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "[REDACTED]",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "[REDACTED]",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 3,
+      "tool": "act",
+      "args": {
+        "action": "select",
+        "target_name_attr": "branch",
+        "frame": "main",
+        "value": "WEST-014",
+        "intent": "Select the WEST-014 branch as specified in the parameters"
+      },
+      "rationale": "I can see the operator ID and [REDACTED] are already filled in. I need to select the correct branch (WEST-014) and then sign on.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "select",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "MAIN-001 - Main Office\nWEST-014 - Westside\nEAST-022 - Eastgate",
+        "value": "MAIN-001",
+        "testid": "",
+        "name_attr": "branch",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "branch",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "combobox",
+            "name_equals": "MAIN-001 - Main Office\nWEST-014 - Westside\nEAST-022 - Eastgate",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 4,
+      "tool": "act",
+      "args": {
+        "intent": "Submit the sign-on form with the pre-filled credentials",
+        "action": "click",
+        "target_role": "button",
+        "target_name": "Sign On",
+        "frame": "main"
+      },
+      "rationale": "I can see the sign-on form is already filled with the correct values (operator: teller1, [REDACTED]: set, branch: WEST-014). I'll click Sign On to proceed.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "submit",
+        "aria_label": "",
+        "text": "",
+        "value": "Sign On",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 5,
+      "tool": "act",
+      "args": {
+        "intent": "Navigate to Member Inquiry / Selection",
+        "action": "click",
+        "target_name": "Member Inquiry / Selection",
+        "frame": "main"
+      },
+      "rationale": "I'm on the Main Menu. I need to open Member Inquiry / Selection.",
+      "url_before": "https://web-sample.interface-hiring.com/menu",
+      "url_after": "https://web-sample.interface-hiring.com/members",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "a",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Member Inquiry / Selection",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "/members",
+        "css_path": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > a"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Member Inquiry / Selection",
+            "confidence": 0.9
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Member Inquiry / Selection",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > a",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 6,
+      "tool": "assert_state",
+      "args": {
+        "id": "member_inquiry_open",
+        "description": "Member Inquiry / Selection screen is open",
+        "kind": "text_present",
+        "value": "MEMBER INQUIRY / SELECTION",
+        "frame": "main"
+      },
+      "rationale": "I'll assert the current state first, then proceed with the search.",
+      "url_before": "https://web-sample.interface-hiring.com/members",
+      "url_after": "https://web-sample.interface-hiring.com/members",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 7,
+      "tool": "act",
+      "args": {
+        "intent": "Set Search by to Last Name since search_by is 'name'",
+        "action": "select",
+        "target_name_attr": "by",
+        "frame": "main",
+        "value": "name"
+      },
+      "rationale": "I can see the Member Inquiry screen is open. The search_by is \"name\" so I need to select \"Last Name\" in the dropdown, then type \"Lovelace\" in the Value field.",
+      "url_before": "https://web-sample.interface-hiring.com/members",
+      "url_after": "https://web-sample.interface-hiring.com/members",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "select",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Member Number\nLast Name",
+        "value": "number",
+        "testid": "",
+        "name_attr": "by",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > select.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "by",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "combobox",
+            "name_equals": "Member Number\nLast Name",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Member Number\nLast Name",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 8,
+      "tool": "act",
+      "args": {
+        "intent": "Type the search query \"Lovelace\" in the Value field",
+        "action": "type",
+        "target_name_attr": "q",
+        "frame": "main",
+        "text": "Lovelace"
+      },
+      "rationale": "I can see the Member Inquiry screen is open and \"Last Name\" is already selected in the Search by dropdown. Now I need to type the query \"Lovelace\" in the Value field and press Search.",
+      "url_before": "https://web-sample.interface-hiring.com/members",
+      "url_after": "https://web-sample.interface-hiring.com/members",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "q",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld:nth-of-type(1)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "q",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld:nth-of-type(1)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 9,
+      "tool": "act",
+      "args": {
+        "intent": "Submit the search form to find members with last name Lovelace",
+        "action": "click",
+        "target_role": "button",
+        "target_name": "Search",
+        "frame": "main"
+      },
+      "rationale": "I can see the form is already set up correctly - Search by is \"Last Name\" and the Value field contains \"Lovelace\". Now I need to press Search.",
+      "url_before": "https://web-sample.interface-hiring.com/members",
+      "url_after": "https://web-sample.interface-hiring.com/members?by=name&q=Lovelace",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "submit",
+        "aria_label": "",
+        "text": "",
+        "value": "Search",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.btn:nth-of-type(2)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.btn:nth-of-type(2)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 10,
+      "tool": "assert_state",
+      "args": {
+        "id": "search_results_visible",
+        "description": "Search results are displayed showing Lovelace, Ada with Member No. 100234",
+        "kind": "text_present",
+        "value": "Lovelace, Ada",
+        "frame": "main"
+      },
+      "rationale": "I can see the search results showing one match: Member No. 100234, Lovelace, Ada. Let me assert the current state and then select the first result.",
+      "url_before": "https://web-sample.interface-hiring.com/members?by=name&q=Lovelace",
+      "url_after": "https://web-sample.interface-hiring.com/members?by=name&q=Lovelace",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 11,
+      "tool": "act",
+      "args": {
+        "intent": "Select the first matching result to open the member record",
+        "action": "click",
+        "target_name": "Select",
+        "target_role": "link",
+        "frame": "main"
+      },
+      "rationale": "I can see the search results showing Lovelace, Ada with Member No. 100234. Now I need to click \"Select\" to open the member record.",
+      "url_before": "https://web-sample.interface-hiring.com/members?by=name&q=Lovelace",
+      "url_after": "https://web-sample.interface-hiring.com/members/100234",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "a",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Select",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "/members/100234",
+        "css_path": "table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > a"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Select",
+            "confidence": 0.9
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Select",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "AMBIGUOUS_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > a",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 12,
+      "tool": "assert_state",
+      "args": {
+        "id": "member_record_open",
+        "description": "Member Record screen is open for Lovelace, Ada with Member No. 100234",
+        "kind": "url_matches",
+        "value": "https://web-sample.interface-hiring.com/members/100234"
+      },
+      "rationale": "I'll assert the state first, then read the required values.",
+      "url_before": "https://web-sample.interface-hiring.com/members/100234",
+      "url_after": "https://web-sample.interface-hiring.com/members/100234",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 13,
+      "tool": "act",
+      "args": {
+        "intent": "Read the Member No. value from the member record",
+        "action": "read",
+        "target_text": "100234",
+        "frame": "main",
+        "output": "member_number"
+      },
+      "rationale": "I can see the Member Record screen with the required values. Let me read both the Member No. and Name values.",
+      "url_before": "https://web-sample.interface-hiring.com/members/100234",
+      "url_after": "https://web-sample.interface-hiring.com/members/100234",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "td",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "100234",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "td > table:nth-of-type(1) > tbody > tr:nth-of-type(1) > td:nth-of-type(2)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "td",
+            "name_equals": "100234",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "100234",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "AMBIGUOUS_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(1) > tbody > tr:nth-of-type(1) > td:nth-of-type(2)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": "100234",
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 14,
+      "tool": "act",
+      "args": {
+        "intent": "Read the Name value from the member record",
+        "action": "read",
+        "target_text": "Lovelace, Ada",
+        "frame": "main",
+        "output": "member_name"
+      },
+      "rationale": "I can see the Member Record screen with the Name value \"Lovelace, Ada\". I need to read this as the member_name output.",
+      "url_before": "https://web-sample.interface-hiring.com/members/100234",
+      "url_after": "https://web-sample.interface-hiring.com/members/100234",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "td",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Lovelace, Ada",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "td > table:nth-of-type(1) > tbody > tr:nth-of-type(1) > td:nth-of-type(4)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "td",
+            "name_equals": "Lovelace, Ada",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Lovelace, Ada",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(1) > tbody > tr:nth-of-type(1) > td:nth-of-type(4)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": "Lovelace, Ada",
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 15,
+      "tool": "finish",
+      "args": {
+        "status": "success",
+        "summary": "Successfully signed into Meridian Core as teller1 on branch WEST-014, opened Member Inquiry, searched by Last Name for \"Lovelace\", selected the first result, and read the member record. Captured: member_number = '100234' and member_name = 'Lovelace, Ada'."
+      },
+      "rationale": "All declared outputs have already been captured:\n- **member_number**: `100234`\n- **member_name**: `Lovelace, Ada`\n\nThe goal is complete \u2014 no further actions are needed.",
+      "url_before": "https://web-sample.interface-hiring.com/members/100234",
+      "url_after": "https://web-sample.interface-hiring.com/members/100234",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    }
+  ]
+}

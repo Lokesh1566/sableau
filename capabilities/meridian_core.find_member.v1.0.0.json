@@ -1,0 +1,844 @@
+{
+  "schema_version": "1.0.0",
+  "capability_id": "meridian_core.find_member",
+  "version": "1.0.0",
+  "title": "Find and select a member",
+  "description": "Sign on and search for a member by member number or last name, then open the first matching member record.",
+  "provenance": {
+    "discovered_at": "2026-08-20T19:49:49.719125+00:00",
+    "goal": "Sign on to MERIDIAN CORE using the supplied Operator ID, Password and Branch. Open Member Inquiry / Selection. Set Search by to the supplied search_by value ('number' means Member Number; 'name' means Last Name), type the supplied query in the Value field, and press Search. Select the first matching result. On the MEMBER RECORD screen read the Member No. value as member_number and the Name value as member_name. Change nothing.",
+    "planner": "anthropic",
+    "model": "claude-sonnet-4-6",
+    "trace_ref": "evidence/runs/discovery_20260820T194820Z_4f525e/trace.json",
+    "compiler_version": "1.0.0",
+    "notes": "Successfully signed into Meridian Core as teller1 on branch WEST-014, opened Member Inquiry, searched by Last Name for \"Lovelace\", selected the first result, and read the member record. Captured: member_number = '100234' and member_name = 'Lovelace, Ada'."
+  },
+  "surface": {
+    "kind": "dom",
+    "required_features": [
+      "dom_query",
+      "role_query",
+      "text_query"
+    ],
+    "app_id": "meridian-core",
+    "entry_url": "https://web-sample.interface-hiring.com/signon"
+  },
+  "safety": {
+    "allowed_hosts": [
+      "web-sample.interface-hiring.com"
+    ],
+    "allowed_actions": [
+      "click",
+      "read",
+      "select",
+      "type",
+      "wait"
+    ],
+    "risk_level": "low",
+    "confirm_steps": [],
+    "redact_paths": [
+      "input.password"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "operator",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "teller1",
+      "sensitivity": "low",
+      "description": null
+    },
+    {
+      "name": "password",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "[REDACTED]",
+      "sensitivity": "secret",
+      "description": null
+    },
+    {
+      "name": "branch",
+      "type": "enum",
+      "required": true,
+      "pattern": null,
+      "enum": [
+        "MAIN-001",
+        "WEST-014",
+        "EAST-022"
+      ],
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "MAIN-001",
+      "sensitivity": "low",
+      "description": null
+    },
+    {
+      "name": "search_by",
+      "type": "enum",
+      "required": true,
+      "pattern": null,
+      "enum": [
+        "number",
+        "name"
+      ],
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "name",
+      "sensitivity": "low",
+      "description": "Use number for member number, or name for last name."
+    },
+    {
+      "name": "query",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": 1,
+      "max_length": 40,
+      "default": null,
+      "example": "Lovelace",
+      "sensitivity": "low",
+      "description": null
+    }
+  ],
+  "outputs": [
+    {
+      "name": "member_number",
+      "type": "string",
+      "required": true,
+      "source": {
+        "step": "s10_read_the_member_no_value_f",
+        "binding": "text",
+        "attr": null,
+        "extract_regex": null
+      },
+      "sensitivity": "low",
+      "description": null
+    },
+    {
+      "name": "member_name",
+      "type": "string",
+      "required": true,
+      "source": {
+        "step": "s11_read_the_name_value_from_t",
+        "binding": "text",
+        "attr": null,
+        "extract_regex": null
+      },
+      "sensitivity": "low",
+      "description": null
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1_enter_the_operator_id",
+      "intent": "Enter the Operator ID",
+      "action": {
+        "type": "type",
+        "text": "{{input.operator}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "operator",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the Operator ID"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s2_enter_the_password",
+      "intent": "Enter the password",
+      "action": {
+        "type": "type",
+        "text": "{{input.password}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "password",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the password"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s3_select_the_west_014_branch",
+      "intent": "Select the WEST-014 branch as specified in the parameters",
+      "action": {
+        "type": "select",
+        "value": "{{input.branch}}"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "branch",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Select the WEST-014 branch as specified in the parameters"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s4_submit_the_sign_on_form_wi",
+      "intent": "Submit the sign-on form with the pre-filled credentials",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Submit the sign-on form with the pre-filled credentials"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s5_navigate_to_member_inquiry",
+      "intent": "Navigate to Member Inquiry / Selection",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Member Inquiry / Selection",
+            "name_matches": null,
+            "confidence": 0.9
+          },
+          {
+            "strategy": "text",
+            "text": "Member Inquiry / Selection",
+            "within_css": null,
+            "exact": false,
+            "confidence": 0.6
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > a",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": {
+          "kind": "attribute_contains",
+          "attr": "href",
+          "value": "/members"
+        },
+        "description": "Navigate to Member Inquiry / Selection"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_member_inquiry_open"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s6_set_search_by_to_last_name",
+      "intent": "Set Search by to Last Name since search_by is 'name'",
+      "action": {
+        "type": "select",
+        "value": "{{input.search_by}}"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "by",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Set Search by to Last Name since search_by is 'name'"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s7_type_the_search_query_love",
+      "intent": "Type the search query \"Lovelace\" in the Value field",
+      "action": {
+        "type": "type",
+        "text": "{{input.query}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "q",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld:nth-of-type(1)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Type the search query \"Lovelace\" in the Value field"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s8_submit_the_search_form_to",
+      "intent": "Submit the search form to find members with last name Lovelace",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.btn:nth-of-type(2)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Submit the search form to find members with last name Lovelace"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_search_results_visible"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s9_select_the_first_matching",
+      "intent": "Select the first matching result to open the member record",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Select",
+            "name_matches": null,
+            "confidence": 0.9
+          },
+          {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > a",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": {
+          "kind": "attribute_contains",
+          "attr": "href",
+          "value": "/members/"
+        },
+        "description": "Select the first matching result to open the member record"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_member_record_open"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s10_read_the_member_no_value_f",
+      "intent": "Read the Member No. value from the member record",
+      "action": {
+        "type": "read",
+        "binding": "text",
+        "attr": null
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(1) > tbody > tr:nth-of-type(1) > td:nth-of-type(2)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Read the Member No. value from the member record"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s11_read_the_name_value_from_t",
+      "intent": "Read the Name value from the member record",
+      "action": {
+        "type": "read",
+        "binding": "text",
+        "attr": null
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(1) > tbody > tr:nth-of-type(1) > td:nth-of-type(4)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Read the Name value from the member record"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp_member_inquiry_open",
+      "description": "Member Inquiry / Selection screen is open",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "MEMBER INQUIRY / SELECTION",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_search_results_visible",
+      "description": "At least one selectable member search result is displayed",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "Select",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_member_record_open",
+      "description": "The selected member record is open",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "MEMBER RECORD",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    }
+  ],
+  "known_outcomes": [
+    {
+      "id": "session_timed_out",
+      "description": "The operator session ended and the console asked for a fresh sign on.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "YOUR SESSION HAS TIMED OUT",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "RECOVERABLE",
+        "code": "SESSION_EXPIRED",
+        "terminal": true,
+        "message": "The operator session timed out. Re-authenticate and invoke again.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "signon_rejected",
+      "description": "The console refused the operator id or password.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "Invalid operator",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "PERMISSION_DENIED",
+        "terminal": true,
+        "message": "The console rejected those sign on credentials.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "source_share_on_hold",
+      "description": "The share being debited is on HOLD, so the transfer cannot proceed.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "is HOLD and cannot be debited",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "ACCOUNT_ON_HOLD",
+        "terminal": true,
+        "message": "The source share is on hold and cannot be debited. Nothing was posted.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "transaction_not_validated",
+      "description": "The console rejected the transaction at the review screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "The transaction could not be validated",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "VALIDATION_ERROR",
+        "terminal": true,
+        "message": "The console rejected the transaction at the review screen.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "injected_validation_rejection",
+      "description": "The console rejected an injected or field-level validation request.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "TRANSACTION REJECTED",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "VALIDATION_ERROR",
+        "terminal": true,
+        "message": "The console rejected the submitted field or transaction values.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "supervisor_override_required",
+      "description": "A restricted action was attempted by an operator who is not a supervisor.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "A supervisor must sign on to complete this request.",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "PERMISSION_DENIED",
+        "terminal": true,
+        "message": "This action requires a supervisor. A human operator must decide how to proceed.",
+        "capture": null,
+        "recovery": "escalate"
+      }
+    },
+    {
+      "id": "member_not_found",
+      "description": "No member matched the search.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "No member",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "RECORD_NOT_FOUND",
+        "terminal": true,
+        "message": "No member matched that search.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "insufficient_funds",
+      "description": "The share does not hold enough to cover the amount.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "Insufficient",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "INSUFFICIENT_FUNDS",
+        "terminal": true,
+        "message": "The from-share does not have sufficient funds. Nothing was posted.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "injected_record_not_found",
+      "description": "The host returned its explicit RECORD NOT FOUND exceptional screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "RECORD NOT FOUND",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "RECORD_NOT_FOUND",
+        "terminal": true,
+        "message": "The requested member record could not be located.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "maintenance_interstitial",
+      "description": "Nightly posting put the host into its known maintenance interstitial.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "SCHEDULED MAINTENANCE IN PROGRESS",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "RECOVERABLE",
+        "code": "TRANSIENT_FAILURE",
+        "terminal": true,
+        "message": "MERIDIAN CORE is temporarily in scheduled maintenance; retry later.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "application_error",
+      "description": "The host returned its explicit hard application-error screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "APPLICATION ERROR",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "APPLICATION_ERROR",
+        "terminal": true,
+        "message": "MERIDIAN CORE reported a hard application error.",
+        "capture": null,
+        "recovery": "none"
+      }
+    }
+  ],
+  "recovery": {
+    "global_max_retries": 3,
+    "escalate_on": [
+      "MISSING_CONTROL",
+      "AMBIGUOUS_CONTROL",
+      "UNEXPECTED_DIALOG",
+      "PERMISSION_DENIED"
+    ],
+    "escalation_mode": "human_handoff"
+  }
+}

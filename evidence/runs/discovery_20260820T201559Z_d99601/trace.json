@@ -1,0 +1,935 @@
+{
+  "goal": "Sign on to MERIDIAN CORE using the Operator ID, Password and Branch supplied. From the main menu choose Member Inquiry / Selection, set 'Search by' to Member Number, enter the member number and press Search. On the MEMBER RECORD screen use the Update Member Information action. Set the e-mail, phone and address to the supplied values, save the change, and read the confirmation message.",
+  "planner": "heuristic",
+  "model": null,
+  "entry_url": "https://web-sample.interface-hiring.com/signon",
+  "params": {
+    "operator": "teller1",
+    "password": "[REDACTED]",
+    "branch": "WEST-014",
+    "member_number": "101555",
+    "email": "[REDACTED]",
+    "phone": "555-0188",
+    "address": "85 Compiler Way, Arlington"
+  },
+  "status": "success",
+  "summary": "Updated member contact information",
+  "entries": [
+    {
+      "seq": 1,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the supplied Operator ID",
+        "action": "type",
+        "frame": "main",
+        "text": "teller1",
+        "target_name_attr": "operator"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "operator",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "operator",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 2,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the supplied [REDACTED]",
+        "action": "type",
+        "frame": "main",
+        "text": "[REDACTED]",
+        "target_name_attr": "[REDACTED]"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "[REDACTED]",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "[REDACTED]",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "[REDACTED]",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 3,
+      "tool": "act",
+      "args": {
+        "intent": "Select the supplied branch",
+        "action": "select",
+        "frame": "main",
+        "value": "WEST-014",
+        "target_name_attr": "branch"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "select",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "MAIN-001 - Main Office\nWEST-014 - Westside\nEAST-022 - Eastgate",
+        "value": "MAIN-001",
+        "testid": "",
+        "name_attr": "branch",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "branch",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "combobox",
+            "name_equals": "MAIN-001 - Main Office\nWEST-014 - Westside\nEAST-022 - Eastgate",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 4,
+      "tool": "act",
+      "args": {
+        "intent": "Submit the sign-on form",
+        "action": "click",
+        "frame": "main",
+        "target_role": "button",
+        "target_name": "Sign On"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/menu",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "submit",
+        "aria_label": "",
+        "text": "",
+        "value": "Sign On",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 5,
+      "tool": "assert_state",
+      "args": {
+        "id": "main_menu_loaded",
+        "description": "An authenticated MAIN MENU is displayed",
+        "kind": "text_present",
+        "value": "MAIN MENU"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/menu",
+      "url_after": "https://web-sample.interface-hiring.com/menu",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 6,
+      "tool": "act",
+      "args": {
+        "intent": "Open Member Inquiry / Selection",
+        "action": "click",
+        "frame": "main",
+        "target_role": "link",
+        "target_name": "Member Inquiry / Selection"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/menu",
+      "url_after": "https://web-sample.interface-hiring.com/members",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "a",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Member Inquiry / Selection",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "/members",
+        "css_path": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > a"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Member Inquiry / Selection",
+            "confidence": 0.9
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Member Inquiry / Selection",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > a",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 7,
+      "tool": "assert_state",
+      "args": {
+        "id": "member_inquiry_loaded",
+        "description": "Member Inquiry / Selection is displayed",
+        "kind": "text_present",
+        "value": "MEMBER INQUIRY / SELECTION"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members",
+      "url_after": "https://web-sample.interface-hiring.com/members",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 8,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the supplied member search value",
+        "action": "type",
+        "frame": "main",
+        "text": "101555",
+        "target_name_attr": "q"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members",
+      "url_after": "https://web-sample.interface-hiring.com/members",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "q",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld:nth-of-type(1)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "q",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld:nth-of-type(1)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 9,
+      "tool": "act",
+      "args": {
+        "intent": "Search for the member",
+        "action": "click",
+        "frame": "main",
+        "target_role": "button",
+        "target_name": "Search"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members",
+      "url_after": "https://web-sample.interface-hiring.com/members?by=number&q=101555",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "submit",
+        "aria_label": "",
+        "text": "",
+        "value": "Search",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.btn:nth-of-type(2)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.btn:nth-of-type(2)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 10,
+      "tool": "assert_state",
+      "args": {
+        "id": "search_results_loaded",
+        "description": "A selectable member result is displayed",
+        "kind": "text_present",
+        "value": "Select"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members?by=number&q=101555",
+      "url_after": "https://web-sample.interface-hiring.com/members?by=number&q=101555",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 11,
+      "tool": "act",
+      "args": {
+        "intent": "Open the first matching member record",
+        "action": "click",
+        "frame": "main",
+        "target_role": "link",
+        "target_name": "Select"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members?by=number&q=101555",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "a",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Select",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "/members/101555",
+        "css_path": "table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > a"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Select",
+            "confidence": 0.9
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Select",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "AMBIGUOUS_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > a",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 12,
+      "tool": "assert_state",
+      "args": {
+        "id": "member_record_loaded",
+        "description": "The requested MEMBER RECORD is displayed",
+        "kind": "text_present",
+        "value": "MEMBER RECORD"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 13,
+      "tool": "act",
+      "args": {
+        "intent": "Open Update Member Information",
+        "action": "click",
+        "frame": "main",
+        "target_role": "link",
+        "target_name": "Update Member Information"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/update",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "a",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Update Member Information",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "/members/101555/update",
+        "css_path": "table > tbody > tr:nth-of-type(3) > td > a:nth-of-type(3)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Update Member Information",
+            "confidence": 0.9
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Update Member Information",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(3) > td > a:nth-of-type(3)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 14,
+      "tool": "assert_state",
+      "args": {
+        "id": "update_form_loaded",
+        "description": "The Update Member Information form is displayed",
+        "kind": "text_present",
+        "value": "UPDATE MEMBER INFORMATION"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/update",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/update",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 15,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the supplied e-mail address",
+        "action": "type",
+        "frame": "main",
+        "text": "[REDACTED]",
+        "target_name_attr": "email"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/update",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/update",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "[REDACTED]",
+        "testid": "",
+        "name_attr": "email",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "email",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 16,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the supplied phone number",
+        "action": "type",
+        "frame": "main",
+        "text": "555-0188",
+        "target_name_attr": "phone"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/update",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/update",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "555-0142",
+        "testid": "",
+        "name_attr": "phone",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "phone",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 17,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the supplied mailing address",
+        "action": "type",
+        "frame": "main",
+        "text": "85 Compiler Way, Arlington",
+        "target_name_attr": "address"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/update",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/update",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "19 Analytical Way, Springfield",
+        "testid": "",
+        "name_attr": "address",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "address",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 18,
+      "tool": "act",
+      "args": {
+        "intent": "Save the member information changes",
+        "action": "click",
+        "frame": "main",
+        "target_role": "button",
+        "target_name": "Save Changes"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/update",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/update",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "submit",
+        "aria_label": "",
+        "text": "",
+        "value": "Save Changes",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 19,
+      "tool": "assert_state",
+      "args": {
+        "id": "member_information_updated",
+        "description": "The console confirms the member update",
+        "kind": "text_present",
+        "value": "MEMBER INFORMATION UPDATED"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/update",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/update",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 20,
+      "tool": "act",
+      "args": {
+        "intent": "Read the member update confirmation",
+        "action": "read",
+        "frame": "main",
+        "output": "confirmation_message",
+        "target_text": "MEMBER INFORMATION UPDATED"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/update",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/update",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "h1",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "MEMBER INFORMATION UPDATED",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table > tbody > tr:nth-of-type(3) > td > h1"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "heading",
+            "name_equals": "MEMBER INFORMATION UPDATED",
+            "confidence": 0.9
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "MEMBER INFORMATION UPDATED",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(3) > td > h1",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": "MEMBER INFORMATION UPDATED",
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 21,
+      "tool": "finish",
+      "args": {
+        "status": "success",
+        "summary": "Updated member contact information"
+      },
+      "rationale": "",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/update",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/update",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    }
+  ]
+}

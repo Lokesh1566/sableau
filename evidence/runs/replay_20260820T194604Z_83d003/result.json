@@ -1,0 +1,75 @@
+{
+  "run_id": "replay_20260820T194604Z_83d003",
+  "capability_id": "meridian_core.sign_on",
+  "capability_version": "1.0.0",
+  "started_at": "2026-08-20T19:46:05.038833+00:00",
+  "duration_ms": 3114,
+  "category": "SUCCESS",
+  "code": "NONE",
+  "outputs": {
+    "session_status": "Main Menu"
+  },
+  "business_outcome": null,
+  "error": null,
+  "control": {
+    "final_owner": "nobody",
+    "escalated": false,
+    "escalation_id": null,
+    "escalation_reason": null,
+    "human_actions": 0,
+    "resume_decision": null
+  },
+  "steps": [
+    {
+      "step_id": "s1_enter_the_operator_id_into",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 119,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s2_enter_the_[REDACTED]_into_th",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 55,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s3_select_the_west_014_branch",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 30,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s4_click_the_sign_on_button_t",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2870,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s5_read_the_main_menu_heading",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 36,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    }
+  ],
+  "llm_calls": 0,
+  "drift": {
+    "steps_resolved": 5,
+    "first_choice": 5,
+    "degraded": []
+  }
+}

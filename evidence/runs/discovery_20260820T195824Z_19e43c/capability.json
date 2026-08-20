@@ -1,0 +1,1237 @@
+{
+  "schema_version": "1.0.0",
+  "capability_id": "meridian_core.transfer_funds",
+  "version": "1.0.0",
+  "title": "Transfer funds between a member's shares",
+  "description": "Sign on, open a member record, move an amount between two shares with a memo, review and post.",
+  "provenance": {
+    "discovered_at": "2026-08-20T20:01:17.419877+00:00",
+    "goal": "Sign on to MERIDIAN CORE using the Operator ID, Password and Branch supplied. From the main menu choose Member Inquiry / Selection, set 'Search by' to Member Number, enter the member number and press Search, then select the result. On the MEMBER RECORD screen use the Funds Transfer action. Choose the from-share and the to-share, enter the amount and the memo, continue to the review screen, verify the review details, and post the transfer. The hidden _token belongs to each live form: never copy or persist it; submit the live form normally so the browser carries the current token. Read the confirmation reference and posted amount from the result screen.",
+    "planner": "anthropic",
+    "model": "claude-sonnet-4-6",
+    "trace_ref": "evidence/runs/discovery_20260820T195824Z_19e43c/trace.json",
+    "compiler_version": "1.0.0",
+    "notes": "The funds transfer workflow completed successfully. Logged in as teller1 / WEST-014, searched for member 101555, initiated a Funds Transfer from 101555-CERT to 101555-MMKT-3 for $1.00 with memo \"Member requested transfer at branch.\", reviewed the transfer details, and posted the transaction. Confirmation reference: CN480083, Posted amount: $1.00."
+  },
+  "surface": {
+    "kind": "dom",
+    "required_features": [
+      "dom_query",
+      "role_query",
+      "text_query"
+    ],
+    "app_id": "meridian-core",
+    "entry_url": "https://web-sample.interface-hiring.com/signon"
+  },
+  "safety": {
+    "allowed_hosts": [
+      "web-sample.interface-hiring.com"
+    ],
+    "allowed_actions": [
+      "click",
+      "read",
+      "select",
+      "type",
+      "wait"
+    ],
+    "risk_level": "high",
+    "confirm_steps": [
+      "s10_click_the_funds_transfer_a",
+      "s13_enter_the_transfer_amount",
+      "s15_submit_the_transfer_form_t",
+      "s16_post_the_transfer_by_submi"
+    ],
+    "redact_paths": [
+      "input.password",
+      "input.memo"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "operator",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "teller1",
+      "sensitivity": "low",
+      "description": null
+    },
+    {
+      "name": "password",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "[REDACTED]",
+      "sensitivity": "secret",
+      "description": null
+    },
+    {
+      "name": "branch",
+      "type": "enum",
+      "required": true,
+      "pattern": null,
+      "enum": [
+        "MAIN-001",
+        "WEST-014",
+        "EAST-022"
+      ],
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "MAIN-001",
+      "sensitivity": "low",
+      "description": null
+    },
+    {
+      "name": "member_number",
+      "type": "string",
+      "required": true,
+      "pattern": "^[0-9]{6}$",
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "101555",
+      "sensitivity": "low",
+      "description": null
+    },
+    {
+      "name": "from_share",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "101555-CERT",
+      "sensitivity": "low",
+      "description": "Share ID to debit, exactly as printed in the SHARES / BALANCES table. A share on HOLD cannot be debited."
+    },
+    {
+      "name": "to_share",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "101555-MMKT-3",
+      "sensitivity": "low",
+      "description": "Share ID to credit."
+    },
+    {
+      "name": "amount",
+      "type": "string",
+      "required": true,
+      "pattern": "^[0-9]+(\\.[0-9]{1,2})?$",
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "1.00",
+      "sensitivity": "low",
+      "description": null
+    },
+    {
+      "name": "memo",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": 3,
+      "max_length": 120,
+      "default": null,
+      "example": "Member requested transfer at branch.",
+      "sensitivity": "medium",
+      "description": null
+    }
+  ],
+  "outputs": [
+    {
+      "name": "confirmation_reference",
+      "type": "string",
+      "required": true,
+      "source": {
+        "step": "s17_read_the_confirmation_refe",
+        "binding": "text",
+        "attr": null,
+        "extract_regex": null
+      },
+      "sensitivity": "low",
+      "description": "Reference the console issues once the transfer is posted."
+    },
+    {
+      "name": "posted_amount",
+      "type": "string",
+      "required": false,
+      "source": {
+        "step": "s18_read_the_posted_amount_fro",
+        "binding": "text",
+        "attr": null,
+        "extract_regex": null
+      },
+      "sensitivity": "low",
+      "description": null
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1_enter_the_operator_id",
+      "intent": "Enter the Operator ID",
+      "action": {
+        "type": "type",
+        "text": "{{input.operator}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "operator",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the Operator ID"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s2_enter_the_password",
+      "intent": "Enter the password",
+      "action": {
+        "type": "type",
+        "text": "{{input.password}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "password",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the password"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s3_select_the_west_014_branch",
+      "intent": "Select the WEST-014 branch from the dropdown",
+      "action": {
+        "type": "select",
+        "value": "{{input.branch}}"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "branch",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Select the WEST-014 branch from the dropdown"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s4_submit_the_sign_on_form_wi",
+      "intent": "Submit the sign-on form with the pre-filled credentials",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "role",
+            "role": "heading",
+            "name_equals": "OPERATOR SIGN ON",
+            "name_matches": null,
+            "confidence": 0.9
+          },
+          {
+            "strategy": "text",
+            "text": "OPERATOR SIGN ON",
+            "within_css": null,
+            "exact": false,
+            "confidence": 0.6
+          },
+          {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(2) > td > h1",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Submit the sign-on form with the pre-filled credentials"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s5_submit_the_sign_on_form_wi",
+      "intent": "Submit the sign-on form with the pre-filled credentials",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Submit the sign-on form with the pre-filled credentials"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_main_menu_loaded"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s6_navigate_to_member_inquiry",
+      "intent": "Navigate to Member Inquiry / Selection from the main menu",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Member Inquiry / Selection",
+            "name_matches": null,
+            "confidence": 0.9
+          },
+          {
+            "strategy": "text",
+            "text": "Member Inquiry / Selection",
+            "within_css": null,
+            "exact": false,
+            "confidence": 0.6
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > a",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": {
+          "kind": "attribute_contains",
+          "attr": "href",
+          "value": "/members"
+        },
+        "description": "Navigate to Member Inquiry / Selection from the main menu"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_member_inquiry_loaded"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s7_enter_the_member_number_in",
+      "intent": "Enter the member number in the search field",
+      "action": {
+        "type": "type",
+        "text": "{{input.member_number}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "q",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld:nth-of-type(1)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the member number in the search field"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s8_click_the_search_button_to",
+      "intent": "Click the Search button to search for member 101555",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.btn:nth-of-type(2)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Click the Search button to search for member 101555"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_search_results_loaded"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s9_select_member_101555_hoppe",
+      "intent": "Select member 101555 Hopper, Grace from the search results",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Select",
+            "name_matches": null,
+            "confidence": 0.9
+          },
+          {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > a",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": {
+          "kind": "attribute_contains",
+          "attr": "href",
+          "value": "/members/{{input.member_number}}"
+        },
+        "description": "Select member 101555 Hopper, Grace from the search results"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_member_record_loaded"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s10_click_the_funds_transfer_a",
+      "intent": "Click the Funds Transfer action link to open the transfer form",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Funds Transfer",
+            "name_matches": null,
+            "confidence": 0.9
+          },
+          {
+            "strategy": "text",
+            "text": "Funds Transfer",
+            "within_css": null,
+            "exact": false,
+            "confidence": 0.6
+          },
+          {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(3) > td > a:nth-of-type(1)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": {
+          "kind": "attribute_contains",
+          "attr": "href",
+          "value": "/members/{{input.member_number}}/transfer"
+        },
+        "description": "Click the Funds Transfer action link to open the transfer form"
+      },
+      "risk": "risky",
+      "preconditions": [],
+      "postconditions": [
+        "cp_funds_transfer_form_loaded"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": true
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s11_select_101555_cert_as_the",
+      "intent": "Select 101555-CERT as the From Share",
+      "action": {
+        "type": "select",
+        "value": "{{input.from_share}}"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "from",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Select 101555-CERT as the From Share"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s12_select_101555_mmkt_3_as_th",
+      "intent": "Select 101555-MMKT-3 as the To Share",
+      "action": {
+        "type": "select",
+        "value": "{{input.to_share}}"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "to",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Select 101555-MMKT-3 as the To Share"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s13_enter_the_transfer_amount",
+      "intent": "Enter the transfer amount of 1.00",
+      "action": {
+        "type": "type",
+        "text": "{{input.amount}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "amount",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the transfer amount of 1.00"
+      },
+      "risk": "risky",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": true
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s14_enter_the_memo_text_in_the",
+      "intent": "Enter the memo text in the memo field",
+      "action": {
+        "type": "type",
+        "text": "{{input.memo}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "memo",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the memo text in the memo field"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_transfer_form_filled"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s15_submit_the_transfer_form_t",
+      "intent": "Submit the transfer form to proceed to the review screen",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(5) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Submit the transfer form to proceed to the review screen"
+      },
+      "risk": "risky",
+      "preconditions": [],
+      "postconditions": [
+        "cp_confirm_transfer_screen"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": true
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s16_post_the_transfer_by_submi",
+      "intent": "Post the transfer by submitting the review form",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "tbody > tr:nth-of-type(3) > td > form > input.btn:nth-of-type(6)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Post the transfer by submitting the review form"
+      },
+      "risk": "risky",
+      "preconditions": [],
+      "postconditions": [
+        "cp_transfer_posted"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": true
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s17_read_the_confirmation_refe",
+      "intent": "Read the confirmation reference number from the result screen",
+      "action": {
+        "type": "read",
+        "binding": "text",
+        "attr": null
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > b",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Read the confirmation reference number from the result screen"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s18_read_the_posted_amount_fro",
+      "intent": "Read the posted amount from the confirmation screen",
+      "action": {
+        "type": "read",
+        "binding": "text",
+        "attr": null
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "div.box > table > tbody > tr:nth-of-type(3) > td:nth-of-type(2)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Read the posted amount from the confirmation screen"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp_main_menu_loaded",
+      "description": "Successfully signed on and reached the Main Menu screen as TELLER1 on branch WEST-014",
+      "condition": {
+        "kind": "url_matches",
+        "target": null,
+        "value": "/menu",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_member_inquiry_loaded",
+      "description": "Member Inquiry / Selection screen is loaded and ready for input",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "MEMBER INQUIRY / SELECTION",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_search_results_loaded",
+      "description": "Member search results show member 101555 Hopper, Grace with a Select link",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "Hopper, Grace",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_member_record_loaded",
+      "description": "Member Record screen is loaded for member 101555 Hopper, Grace with Funds Transfer action available",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "MEMBER RECORD",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_funds_transfer_form_loaded",
+      "description": "Funds Transfer form is loaded for member 101555 Hopper, Grace with From Share, To Share, Amount, and Memo fields",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "FUNDS TRANSFER",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_transfer_form_filled",
+      "description": "Funds Transfer form is fully filled: From=101555-CERT, To=101555-MMKT-3, Amount=1.00, Memo set",
+      "condition": {
+        "kind": "url_matches",
+        "target": null,
+        "value": "members/{{input.member_number}}/transfer",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_confirm_transfer_screen",
+      "description": "Confirm Transfer review screen is loaded with correct details: Member 101555-Hopper Grace, From 101555-CERT, To 101555-MMKT-3, Amount $1.00, Memo matches",
+      "condition": {
+        "kind": "url_matches",
+        "target": null,
+        "value": "/members/{{input.member_number}}/transfer/review",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_transfer_posted",
+      "description": "Transfer Posted confirmation screen is displayed with confirmation CN480083 and amount $1.00",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "TRANSFER POSTED",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    }
+  ],
+  "known_outcomes": [
+    {
+      "id": "session_timed_out",
+      "description": "The operator session ended and the console asked for a fresh sign on.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "YOUR SESSION HAS TIMED OUT",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "RECOVERABLE",
+        "code": "SESSION_EXPIRED",
+        "terminal": true,
+        "message": "The operator session timed out. Re-authenticate and invoke again.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "signon_rejected",
+      "description": "The console refused the operator id or password.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "Invalid operator",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "PERMISSION_DENIED",
+        "terminal": true,
+        "message": "The console rejected those sign on credentials.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "source_share_on_hold",
+      "description": "The share being debited is on HOLD, so the transfer cannot proceed.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "is HOLD and cannot be debited",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "ACCOUNT_ON_HOLD",
+        "terminal": true,
+        "message": "The source share is on hold and cannot be debited. Nothing was posted.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "transaction_not_validated",
+      "description": "The console rejected the transaction at the review screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "The transaction could not be validated",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "VALIDATION_ERROR",
+        "terminal": true,
+        "message": "The console rejected the transaction at the review screen.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "injected_validation_rejection",
+      "description": "The console rejected an injected or field-level validation request.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "TRANSACTION REJECTED",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "VALIDATION_ERROR",
+        "terminal": true,
+        "message": "The console rejected the submitted field or transaction values.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "supervisor_override_required",
+      "description": "A restricted action was attempted by an operator who is not a supervisor.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "SUPERVISOR OVERRIDE REQUIRED",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "PERMISSION_DENIED",
+        "terminal": true,
+        "message": "This action requires a supervisor. A human operator must decide how to proceed.",
+        "capture": null,
+        "recovery": "escalate"
+      }
+    },
+    {
+      "id": "member_not_found",
+      "description": "No member matched the search.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "No member",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "RECORD_NOT_FOUND",
+        "terminal": true,
+        "message": "No member matched that search.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "insufficient_funds",
+      "description": "The share does not hold enough to cover the amount.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "Insufficient",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "INSUFFICIENT_FUNDS",
+        "terminal": true,
+        "message": "The from-share does not have sufficient funds. Nothing was posted.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "injected_record_not_found",
+      "description": "The host returned its explicit RECORD NOT FOUND exceptional screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "RECORD NOT FOUND",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "RECORD_NOT_FOUND",
+        "terminal": true,
+        "message": "The requested member record could not be located.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "maintenance_interstitial",
+      "description": "Nightly posting put the host into its known maintenance interstitial.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "SCHEDULED MAINTENANCE IN PROGRESS",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "RECOVERABLE",
+        "code": "TRANSIENT_FAILURE",
+        "terminal": true,
+        "message": "MERIDIAN CORE is temporarily in scheduled maintenance; retry later.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "application_error",
+      "description": "The host returned its explicit hard application-error screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "APPLICATION ERROR",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "APPLICATION_ERROR",
+        "terminal": true,
+        "message": "MERIDIAN CORE reported a hard application error.",
+        "capture": null,
+        "recovery": "none"
+      }
+    }
+  ],
+  "recovery": {
+    "global_max_retries": 3,
+    "escalate_on": [
+      "MISSING_CONTROL",
+      "AMBIGUOUS_CONTROL",
+      "UNEXPECTED_DIALOG",
+      "PERMISSION_DENIED"
+    ],
+    "escalation_mode": "human_handoff"
+  }
+}

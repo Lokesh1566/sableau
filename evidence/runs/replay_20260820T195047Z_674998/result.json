@@ -1,0 +1,130 @@
+{
+  "run_id": "replay_20260820T195047Z_674998",
+  "capability_id": "meridian_core.find_member",
+  "capability_version": "1.0.0",
+  "started_at": "2026-08-20T19:50:49.299969+00:00",
+  "duration_ms": 11739,
+  "category": "SUCCESS",
+  "code": "NONE",
+  "outputs": {
+    "member_number": "101555",
+    "member_name": "Hopper, Grace"
+  },
+  "business_outcome": null,
+  "error": null,
+  "control": {
+    "final_owner": "nobody",
+    "escalated": false,
+    "escalation_id": null,
+    "escalation_reason": null,
+    "human_actions": 0,
+    "resume_decision": null
+  },
+  "steps": [
+    {
+      "step_id": "s1_enter_the_operator_id",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 116,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s2_enter_the_[REDACTED]",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 132,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s3_select_the_west_014_branch",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 44,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s4_submit_the_sign_on_form_wi",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2774,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s5_navigate_to_member_inquiry",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2844,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s6_set_search_by_to_last_name",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 52,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s7_type_the_search_query_love",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 49,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s8_submit_the_search_form_to",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2854,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s9_select_the_first_matching",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2787,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s10_read_the_member_no_value_f",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 42,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s11_read_the_name_value_from_t",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 36,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    }
+  ],
+  "llm_calls": 0,
+  "drift": {
+    "steps_resolved": 11,
+    "first_choice": 11,
+    "degraded": []
+  }
+}

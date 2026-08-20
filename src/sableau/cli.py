@@ -23,7 +23,7 @@ from .browser import cdp_url, open_surface
 from .discovery import CompilationError, DiscoveryLoop, compile_capability, load_job, make_planner
 from .kernel import Policy, RunRecorder, new_run_id
 from .kernel.control import SessionControl
-from .kernel.redaction import redactor_for
+from .kernel.redaction import MASK, redactor_for
 from .replay import ReplayEngine
 from .schema import Capability
 from .tenancy import TenantOverlay, apply_overlay, unused_aliases
@@ -95,15 +95,33 @@ async def cmd_discover(args) -> int:
 
     out = Path(args.out or f"capabilities/{cap.capability_id}.v{cap.version}.json")
     out.parent.mkdir(parents=True, exist_ok=True)
-    red = redactor_for(cap, params)
-    out.write_text(json.dumps(red.value(cap.model_dump(mode="json")), indent=2))
-    recorder.write_json("capability.json", red.value(cap.model_dump(mode="json")))
+    safe_capability = _safe_capability_dump(cap, params)
+    out.write_text(json.dumps(safe_capability, indent=2))
+    # ``RunRecorder.write_json`` correctly applies free-text redaction to logs
+    # and traces. A capability is structured contract data, however: applying a
+    # secret as a global string replacement can rename the input or a selector.
+    # The dump above redacts only credential-bearing fields, so persist it as-is.
+    (recorder.dir / "capability.json").write_text(json.dumps(safe_capability, indent=2))
 
     print(f"\ncapability written: {out}")
     print(f"  steps={len(cap.steps)} checkpoints={len(cap.checkpoints)} "
           f"outputs={len(cap.outputs)} known_outcomes={len(cap.known_outcomes)}")
     print(f"  evidence: {recorder.dir}")
     return 0
+
+
+def _safe_capability_dump(cap: Capability, params: dict) -> dict:
+    """Serialize an artifact without corrupting identifiers during redaction."""
+    data = cap.model_dump(mode="json")
+    redactor = redactor_for(cap, params)
+    secret_names = {spec.name for spec in cap.inputs if spec.sensitivity == "secret"}
+    for spec in data.get("inputs", []):
+        if spec.get("name") in secret_names:
+            spec["example"] = MASK
+    provenance = data.get("provenance") or {}
+    if provenance.get("notes"):
+        provenance["notes"] = redactor.text(provenance["notes"])
+    return data
 
 
 # ------------------------------------------------------------------- replay
@@ -222,6 +240,17 @@ async def cmd_serve(args) -> int:
 
     from .api import build_api
 
+    # The shipped console is the live MERIDIAN adaptation. Keep the original
+    # local claims policy available for its opt-in fixture, but make the normal
+    # dashboard command work against MERIDIAN without extra environment setup.
+    os.environ.setdefault("SABLEAU_POLICY", "policy-core.json")
+    # Dashboard demonstrations are meant to be watched. Replay/discovery keep
+    # their headless default unless the caller opts out explicitly.
+    os.environ.setdefault("SABLEAU_HEADLESS", "0")
+    # Keep dashboard mode away from the conventional 9222 port, where a prior
+    # headless replay browser may still be alive after its server was stopped.
+    if "SABLEAU_CDP_URL" not in os.environ:
+        os.environ.setdefault("SABLEAU_CDP_PORT", "9334")
     app = build_api()
     print(f"dashboard: http://127.0.0.1:{args.port}", file=sys.stderr)
     print(f"api docs : http://127.0.0.1:{args.port}/docs", file=sys.stderr)
@@ -304,7 +333,10 @@ def main(argv: list[str] | None = None) -> int:
     _load_dotenv()
     args = build_parser().parse_args(argv)
     if args.is_async:
-        return asyncio.run(args.func(args))
+        try:
+            return asyncio.run(args.func(args))
+        except KeyboardInterrupt:
+            return 130
     return args.func(args)
 
 

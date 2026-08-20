@@ -35,12 +35,15 @@ label{display:block;font:600 10.5px/1 system-ui;letter-spacing:.12em;text-transf
   color:var(--dim);margin:13px 0 5px}
 input,select,textarea{width:100%;background:#0f161d;color:var(--ink);border:1px solid #35424f;
   padding:7px 9px;font:13px/1.4 "IBM Plex Sans",sans-serif;border-radius:2px}
+input[type=checkbox]{width:auto;margin:0 7px 0 0;vertical-align:middle}
 textarea{min-height:58px;resize:vertical}
 button{font:600 12px/1 system-ui;background:#25507e;color:#fff;border:1px solid #356a9e;
   padding:9px 18px;cursor:pointer;border-radius:2px;margin-top:14px}
 button:hover{filter:brightness(1.15)}
 button:disabled{opacity:.5;cursor:wait}
 button.ghost{background:#232f3a;border-color:#3a4753}
+button.example{margin:3px 3px 0 0;padding:5px 8px;background:#232f3a;border-color:#3a4753;
+  color:var(--ink);font-size:10.5px;font-weight:500}
 :focus-visible{outline:2px solid var(--brass);outline-offset:1px}
 .hint{font-size:12px;color:var(--dim)}
 .contract{font-size:12px;margin:0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px}
@@ -50,6 +53,7 @@ table{width:100%;border-collapse:collapse;font-size:12.5px}
 th{text-align:left;font:600 10px/1.8 system-ui;letter-spacing:.14em;text-transform:uppercase;
   color:var(--dim);border-bottom:1px solid var(--rule);padding:7px 10px}
 td{border-bottom:1px solid #222d38;padding:7px 10px;vertical-align:top}
+tr.run{cursor:pointer} tr.run:hover{background:#22303c}
 td.mono{font-family:"IBM Plex Mono",monospace;font-size:11.5px}
 .tag{font:500 10px/1.7 "IBM Plex Mono",monospace;padding:1px 7px;border:1px solid;border-radius:2px}
 .t-SUCCESS{color:var(--ok);border-color:#2f6b4f}
@@ -67,6 +71,16 @@ pre{background:#0f161d;border:1px solid var(--rule);padding:12px;overflow:auto;m
 .spin{display:inline-block;width:9px;height:9px;border:2px solid var(--brass);
   border-top-color:transparent;border-radius:50%;animation:s .7s linear infinite;
   vertical-align:middle;margin-right:7px}
+.progress{height:7px;background:#0f161d;border:1px solid var(--rule);margin:9px 0 12px}
+.progress span{display:block;height:100%;background:#356a9e;transition:width .25s}
+.live-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:5px}
+.live-head .mono{color:var(--dim);font-size:11px}
+.step-list{display:grid;gap:5px;margin-top:10px}
+.step{display:grid;grid-template-columns:30px 1fr auto;gap:8px;padding:7px 9px;
+  background:#151e27;border-left:2px solid var(--rule);font-size:11.5px}
+.step.running{border-color:var(--brass)} .step.done{border-color:#2f6b4f}
+.step.failed{border-color:#7a3b30}.step .intent{color:#dce5ed}.step .meta{color:var(--dim)}
+.escalated{border:1px solid #7a5a1e;background:#322817;color:#f0bd64;padding:8px 10px;margin:10px 0}
 @keyframes s{to{transform:rotate(360deg)}}
 @media (max-width:1000px){main{grid-template-columns:1fr}}
 </style>
@@ -92,10 +106,19 @@ pre{background:#0f161d;border:1px solid var(--rule);padding:12px;overflow:auto;m
       <h2>Chat</h2>
       <div class="body">
         <p class="hint" style="margin:0 0 8px">
-          Thin keyword front door. Try “approve claim CLM-004211”.
+          Run every MERIDIAN workflow here. Write operations require the word “confirm”.
         </p>
+        <div id="examples">
+          <button class="example" data-example="sign on">Sign on</button>
+          <button class="example" data-example="find member Lovelace">Find member</button>
+          <button class="example" data-example="check balance for member 101555">Balance</button>
+          <button class="example" data-example="transfer member 101555 from 101555-CERT to 101555-MMKT-3 amount 1.00 memo dashboard demo confirm">Transfer</button>
+          <button class="example" data-example="open share for member 103001 MMKT deposit 5.00 confirm">Open share</button>
+          <button class="example" data-example="update member 101555 email grace.hopper@example.com phone 555-0188 address 85 Compiler Way, Arlington confirm">Update member</button>
+          <button class="example" data-example="place hold for member 101555 share 101555-MMKT-4 LEGAL notes dashboard demo confirm as supervisor">Place hold</button>
+        </div>
         <div class="chat">
-          <input id="chatIn" placeholder="approve claim CLM-004211" autocomplete="off">
+          <input id="chatIn" placeholder="check balance for member 101555" autocomplete="off">
           <button id="chatGo">Send</button>
         </div>
         <div id="chatLog"></div>
@@ -113,6 +136,13 @@ pre{background:#0f161d;border:1px solid var(--rule);padding:12px;overflow:auto;m
     </div>
 
     <div class="panel" style="margin-top:18px">
+      <h2>Live processing</h2>
+      <div class="body" id="live">
+        <p class="hint">Start a form or chat request. A visible controlled browser opens automatically and each replay step appears here.</p>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px">
       <h2>Result</h2>
       <div class="body" id="result"><p class="hint">No invocation yet.</p></div>
     </div>
@@ -121,10 +151,15 @@ pre{background:#0f161d;border:1px solid var(--rule);padding:12px;overflow:auto;m
       <h2>Recent runs</h2>
       <div class="body" style="padding:0">
         <table>
-          <thead><tr><th>Run</th><th>Outcome</th><th>Outputs</th><th>Drift</th><th>AI calls</th></tr></thead>
-          <tbody id="runs"><tr><td colspan="5" style="padding:14px" class="hint">Loading…</td></tr></tbody>
+          <thead><tr><th>Run</th><th>Outcome</th><th>Outputs</th><th>Time</th><th>Drift</th><th>Escalation</th><th>AI</th></tr></thead>
+          <tbody id="runs"><tr><td colspan="7" style="padding:14px" class="hint">Loading…</td></tr></tbody>
         </table>
       </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px">
+      <h2>Run evidence</h2>
+      <div class="body" id="runDetail"><p class="hint">Select a recent run to inspect its redacted inputs, outputs, log, and evidence files.</p></div>
     </div>
   </div>
 </main>
@@ -132,6 +167,7 @@ pre{background:#0f161d;border:1px solid var(--rule);padding:12px;overflow:auto;m
 <script>
 const $ = (id) => document.getElementById(id);
 let caps = [], selected = null;
+let liveToken = 0;
 
 async function jget(url){ const r = await fetch(url); if(!r.ok) throw new Error(await r.text()); return r.json(); }
 async function jpost(url, body){
@@ -152,8 +188,10 @@ async function loadHealth(){
 async function loadCaps(){
   caps = await jget('/api/capabilities');
   if(!caps.length){ $('caps').innerHTML = '<div class="body hint">No capabilities found.</div>'; return; }
+  const preferred = caps.findIndex(c => c.capability_id === 'meridian_core.check_member_balance');
+  const initial = preferred >= 0 ? preferred : 0;
   $('caps').innerHTML = caps.map((c,i) => `
-    <div class="cap${i===0?' on':''}" data-i="${i}">
+    <div class="cap${i===initial?' on':''}" data-i="${i}">
       <b>${esc(c.title)}</b>
       <span>${esc(c.capability_id)} · v${esc(c.version)} · ${c.step_count} steps · risk ${esc(c.risk_level)}</span>
     </div>`).join('');
@@ -162,7 +200,7 @@ async function loadCaps(){
     el.classList.add('on');
     select(caps[+el.dataset.i]);
   });
-  select(caps[0]);
+  select(caps[initial]);
 }
 
 function select(cap){
@@ -172,14 +210,16 @@ function select(cap){
     const req = i.required ? ' *' : '';
     if(i.enum){
       return `<label for="p_${i.name}">${esc(i.name)}${req}</label>
-        <select id="p_${i.name}">${i.enum.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`;
+        <select id="p_${i.name}">${i.enum.map(o=>`<option${o===i.example?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
     }
-    if(i.name === 'note'){
+    if(['note','memo','notes','address'].includes(i.name)){
       return `<label for="p_${i.name}">${esc(i.name)}${req}</label>
-        <textarea id="p_${i.name}">${esc(i.example || 'Reviewed against the plan schedule, provider in network.')}</textarea>`;
+        <textarea id="p_${i.name}">${esc(i.example || '')}</textarea>`;
     }
+    const secret = i.sensitivity === 'secret';
     return `<label for="p_${i.name}">${esc(i.name)}${req}${i.pattern?` · <span class="mono">${esc(i.pattern)}</span>`:''}</label>
-      <input id="p_${i.name}" value="${esc(i.example || '')}">`;
+      <input id="p_${i.name}" type="${secret?'password':'text'}" value="${secret?'':esc(i.example || '')}"
+             placeholder="${secret?'required; never stored':''}">`;
   }).join('');
 
   const tenantSel = cap.tenants.length
@@ -196,6 +236,9 @@ function select(cap){
       <dt>checkpoints</dt><dd>${cap.checkpoint_count}</dd>
     </dl>
     ${fields}${tenantSel}
+    ${cap.risk_level === 'high' ? `<label style="text-transform:none;letter-spacing:0;font-size:12px;color:var(--rec)">
+      <input id="confirmRisk" type="checkbox">I confirm this live, state-changing operation
+    </label>` : ''}
     <button id="go">Invoke</button>
     <button id="curl" class="ghost" style="margin-left:8px">Show as curl</button>`;
   $('go').onclick = invoke;
@@ -206,23 +249,28 @@ function collect(){
   const params = {};
   selected.inputs.forEach(i => { const el = $('p_'+i.name); if(el && el.value !== '') params[i.name] = el.value; });
   const t = $('tenant');
-  return { params, tenant: t && t.value ? t.value : null, confirm_risky: true };
+  const confirm = $('confirmRisk');
+  return { params, tenant: t && t.value ? t.value : null, confirm_risky: confirm ? confirm.checked : false };
 }
 
 function showCurl(){
   const body = collect();
+  const safeBody = JSON.parse(JSON.stringify(body));
+  selected.inputs.filter(i => i.sensitivity === 'secret').forEach(i => {
+    if(safeBody.params[i.name] !== undefined) safeBody.params[i.name] = '<REQUIRED_SECRET>';
+  });
   $('result').innerHTML = `<p class="hint">The same call, from anything that speaks HTTP:</p>
     <pre>curl -X POST http://127.0.0.1:8800/api/capabilities/${esc(selected.capability_id)}/invoke \\
   -H 'Content-Type: application/json' \\
-  -d '${esc(JSON.stringify(body))}'</pre>`;
+  -d '${esc(JSON.stringify(safeBody))}'</pre>`;
 }
 
 async function invoke(){
   const btn = $('go'); btn.disabled = true; btn.textContent = 'Running…';
   $('result').innerHTML = '<p class="hint"><span class="spin"></span>Driving the browser…</p>';
   try{
-    const r = await jpost(`/api/capabilities/${selected.capability_id}/invoke`, collect());
-    renderResult(r);
+    const started = await jpost(`/api/capabilities/${selected.capability_id}/start`, collect());
+    await watchRun(started.run_id);
   }catch(e){
     $('result').innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`;
   }finally{
@@ -230,11 +278,84 @@ async function invoke(){
   }
 }
 
+const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+async function watchRun(runId, chatMessageId=null){
+  const token = ++liveToken;
+  while(token === liveToken){
+    const state = await jget('/api/live-runs/' + encodeURIComponent(runId));
+    renderLive(state);
+    if(state.status === 'complete' && state.result){
+      renderResult(state.result);
+      if(chatMessageId) $(chatMessageId).textContent = explainResult(state.result);
+      loadRuns();
+      return state.result;
+    }
+    if(state.status === 'failed'){
+      const message = state.error || 'The run failed before producing a result.';
+      $('result').innerHTML = `<p style="color:var(--bad)">${esc(message)}</p>`;
+      if(chatMessageId) $(chatMessageId).innerHTML = `<span style="color:var(--bad)">${esc(message)}</span>`;
+      loadRuns();
+      return null;
+    }
+    await pause(400);
+  }
+  return null;
+}
+
+function renderLive(state){
+  const events = state.events || [];
+  const starts = events.filter(e => e.event === 'step.start');
+  const complete = events.filter(e => e.event === 'step.complete');
+  const errors = events.filter(e => e.event === 'step.error');
+  const total = state.total_steps || 0;
+  const count = Math.min(state.completed_steps || 0, total || Number.MAX_SAFE_INTEGER);
+  const percent = total ? Math.round(count * 100 / total) : 0;
+  const terminal = state.status === 'complete' || state.status === 'failed';
+  const rows = starts.map((step, index) => {
+    const nextSeq = starts[index + 1] ? starts[index + 1].seq : Number.MAX_SAFE_INTEGER;
+    const done = complete.find(e => e.step === step.step && e.seq > step.seq && e.seq < nextSeq);
+    const failed = errors.find(e => e.step === step.step && e.seq > step.seq && e.seq < nextSeq);
+    const status = failed ? 'failed' : done ? 'done' : terminal ? 'failed' : 'running';
+    const detail = failed ? failed.code : done ? `${done.duration_ms}ms` : 'running';
+    return `<div class="step ${status}">
+      <span class="mono">${index+1}</span>
+      <span><span class="intent">${esc(step.intent || step.step)}</span><br>
+        <span class="meta">${esc(step.action)} · ${esc(step.step)}</span></span>
+      <span class="mono">${esc(detail)}</span>
+    </div>`;
+  }).join('');
+  const result = state.result;
+  const escalated = result && result.control && result.control.escalated;
+  $('live').innerHTML = `
+    <div class="live-head">
+      ${state.status === 'running' || state.status === 'queued' ? '<span class="spin"></span>' : ''}
+      <span class="tag ${result ? 't-'+esc(result.category) : ''}">${esc(result ? result.category : state.status.toUpperCase())}</span>
+      <span class="mono">${esc(state.title || state.capability_id)} · ${esc(state.run_id)}</span>
+    </div>
+    <div class="progress"><span style="width:${percent}%"></span></div>
+    <p class="hint">${count}/${total} steps complete${state.status==='queued'?' · waiting for the shared browser':''}</p>
+    ${escalated ? `<div class="escalated"><b>ESCALATED</b> — ${esc(result.control.escalation_reason || 'Automation paused for an operator.')}</div>` : ''}
+    <div class="step-list">${rows || '<p class="hint">Preparing the browser…</p>'}</div>`;
+}
+
+function explainResult(r){
+  if(r.category === 'SUCCESS'){
+    const values = Object.entries(r.outputs || {}).map(([k,v]) => `${k}=${v}`).join(', ');
+    return values ? `Done. ${values}.` : 'Done. The capability completed successfully.';
+  }
+  if(r.category === 'BUSINESS_OUTCOME') return `Business outcome: ${(r.business_outcome||{}).description || r.code}`;
+  if(r.category === 'RECOVERABLE') return `The run stopped in a recoverable state (${r.code}).`;
+  return `The run failed: ${(r.error||{}).message || r.code}`;
+}
+
 function renderResult(r){
   const outputs = Object.entries(r.outputs || {});
   const drift = r.drift && r.drift.steps_resolved
       ? (r.drift.first_choice / r.drift.steps_resolved) : null;
   const degraded = (r.drift && r.drift.degraded) || [];
+  const escalated = r.control && r.control.escalated;
+  const steps = r.steps || [];
   $('result').innerHTML = `
     <p style="margin:0 0 10px">
       <span class="tag t-${esc(r.category)}">${esc(r.category)}</span>
@@ -245,47 +366,90 @@ function renderResult(r){
         `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
     ${r.business_outcome ? `<p class="hint">${esc(r.business_outcome.description)}</p>` : ''}
     ${r.error ? `<p style="color:var(--bad)">${esc(r.error.message)}</p>` : ''}
+    ${escalated ? `<div class="escalated"><b>ESCALATED</b> — ${esc(r.control.escalation_reason || 'Automation paused for an operator.')}</div>` : ''}
     ${drift !== null ? `<p class="hint" style="margin-top:10px">
         drift ${drift.toFixed(2)} — ${r.drift.first_choice}/${r.drift.steps_resolved}
         controls found by their preferred locator
         ${degraded.length ? '<br>' + degraded.map(d =>
           `<span class="mono">${esc(d.step_id)} → candidate ${d.candidate_index} (${esc(d.resolved_via)})</span>`
         ).join('<br>') : ''}</p>` : ''}
-    <p class="hint" style="margin-top:10px">${r.steps.length} steps · ${r.duration_ms}ms · run ${esc(r.run_id)}</p>`;
+    <p class="hint" style="margin-top:10px">${steps.length} steps · ${r.duration_ms}ms · run ${esc(r.run_id)}</p>
+    ${steps.length ? `<details><summary class="hint">Completed step timings</summary>
+      <pre>${esc(JSON.stringify(steps, null, 2))}</pre></details>` : ''}`;
 }
 
 async function loadRuns(){
   try{
     const runs = await jget('/api/runs?limit=12');
     $('runs').innerHTML = runs.length ? runs.map(r => `
-      <tr>
-        <td class="mono">${esc(r.run_id.slice(0,26))}</td>
+      <tr class="run" data-run="${esc(r.run_id)}" title="Open run evidence">
+        <td class="mono">${esc(r.run_id.slice(0,26))}<br><span class="hint">${esc(r.kind)}</span></td>
         <td><span class="tag t-${esc(r.category)}">${esc(r.category)}</span>
             <span class="mono" style="color:var(--dim)"> ${esc(r.code)}</span></td>
         <td class="mono">${esc(Object.entries(r.outputs||{}).map(([k,v])=>k+'='+v).join(', ')) || '—'}</td>
+        <td class="mono">${r.duration_ms===null||r.duration_ms===undefined?'—':r.duration_ms+'ms'}</td>
         <td class="mono">${r.drift_score===null||r.drift_score===undefined?'—':r.drift_score.toFixed(2)}</td>
+        <td>${r.escalated?'<span class="tag t-RECOVERABLE">ESCALATED</span>':'—'}</td>
         <td class="mono">${r.llm_calls ?? '—'}</td>
       </tr>`).join('')
-      : '<tr><td colspan="5" style="padding:14px" class="hint">No runs yet.</td></tr>';
+      : '<tr><td colspan="7" style="padding:14px" class="hint">No runs yet.</td></tr>';
+    document.querySelectorAll('tr.run').forEach(row => row.onclick = () => loadRun(row.dataset.run));
   }catch{ /* leave as-is */ }
+}
+
+async function loadRun(runId){
+  $('runDetail').innerHTML = '<p class="hint"><span class="spin"></span>Loading evidence…</p>';
+  try{
+    const d = await jget('/api/runs/' + encodeURIComponent(runId));
+    const start = (d.log || []).find(e => e.event === 'replay.start');
+    const params = start ? start.params : ((d.trace || {}).params || {});
+    const result = d.result || {};
+    const outputs = result.outputs || {};
+    const evidence = (d.evidence || []).map(path => {
+      const encoded = path.split('/').map(encodeURIComponent).join('/');
+      return `<a href="/api/runs/${encodeURIComponent(runId)}/evidence/${encoded}" target="_blank" rel="noopener">${esc(path)}</a>`;
+    }).join('<br>');
+    const tail = (d.log || []).slice(-16);
+    $('runDetail').innerHTML = `
+      <dl class="contract">
+        <dt>run</dt><dd>${esc(runId)}</dd>
+        <dt>status</dt><dd>${esc(result.category || (d.trace||{}).status || '—')} / ${esc(result.code || '—')}</dd>
+        <dt>duration</dt><dd>${result.duration_ms===undefined?'—':esc(result.duration_ms)+'ms'}</dd>
+        <dt>escalated</dt><dd>${result.control && result.control.escalated ? 'YES — '+esc(result.control.escalation_reason || '') : 'no'}</dd>
+        <dt>inputs</dt><dd>${esc(JSON.stringify(params))}</dd>
+        <dt>outputs</dt><dd>${esc(JSON.stringify(outputs))}</dd>
+        <dt>steps</dt><dd>${esc(JSON.stringify(result.steps || []))}</dd>
+        <dt>evidence</dt><dd>${evidence || '—'}</dd>
+      </dl>
+      <label>Event log · final ${tail.length}</label>
+      <pre>${esc(JSON.stringify(tail, null, 2))}</pre>`;
+  }catch(e){ $('runDetail').innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`; }
 }
 
 async function sendChat(){
   const input = $('chatIn'); const text = input.value.trim();
   if(!text) return;
+  const button = $('chatGo'); button.disabled = true;
   input.value = '';
   $('chatLog').insertAdjacentHTML('beforeend', `<div class="msg you">${esc(text)}</div>`);
   const id = 'm'+Date.now();
   $('chatLog').insertAdjacentHTML('beforeend',
     `<div class="msg bot" id="${id}"><span class="spin"></span>working…</div>`);
   try{
-    const r = await jpost('/api/chat', {message: text});
+    const r = await jpost('/api/chat/start', {message: text});
     $(id).innerHTML = esc(r.reply);
-    if(r.result){ renderResult(r.result); loadRuns(); }
-  }catch(e){ $(id).innerHTML = `<span style="color:var(--bad)">${esc(e.message)}</span>`; }
+    if(r.run_id) await watchRun(r.run_id, id);
+  }catch(e){
+    $(id).innerHTML = `<span style="color:var(--bad)">${esc(e.message)}</span>`;
+  }finally{
+    button.disabled = false;
+  }
 }
 $('chatGo').onclick = sendChat;
 $('chatIn').addEventListener('keydown', e => { if(e.key==='Enter') sendChat(); });
+document.querySelectorAll('[data-example]').forEach(button => {
+  button.onclick = () => { $('chatIn').value = button.dataset.example; $('chatIn').focus(); };
+});
 
 loadHealth(); loadCaps(); loadRuns();
 setInterval(loadRuns, 8000);

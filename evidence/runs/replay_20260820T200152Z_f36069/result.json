@@ -1,0 +1,184 @@
+{
+  "run_id": "replay_20260820T200152Z_f36069",
+  "capability_id": "meridian_core.transfer_funds",
+  "capability_version": "1.0.0",
+  "started_at": "2026-08-20T20:01:53.289389+00:00",
+  "duration_ms": 21401,
+  "category": "SUCCESS",
+  "code": "NONE",
+  "outputs": {
+    "confirmation_reference": "CN480086",
+    "posted_amount": "$1.00"
+  },
+  "business_outcome": null,
+  "error": null,
+  "control": {
+    "final_owner": "nobody",
+    "escalated": false,
+    "escalation_id": null,
+    "escalation_reason": null,
+    "human_actions": 0,
+    "resume_decision": null
+  },
+  "steps": [
+    {
+      "step_id": "s1_enter_the_operator_id",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 156,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s2_enter_the_[REDACTED]",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 79,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s3_select_the_west_014_branch",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 46,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s5_submit_the_sign_on_form_wi",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 3271,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s6_navigate_to_member_inquiry",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2980,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s7_enter_the_member_number_in",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 78,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s8_click_the_search_button_to",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 3014,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s9_select_member_101555_hoppe",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2854,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s10_click_the_funds_transfer_a",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 3066,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s11_select_101555_cert_as_the",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 63,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s12_select_101555_mmkt_3_as_th",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 35,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s13_enter_the_transfer_amount",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 49,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s14_enter_the_memo_text_in_the",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 32,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s15_submit_the_transfer_form_t",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2837,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s16_post_the_transfer_by_submi",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2773,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s17_read_the_confirmation_refe",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 32,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s18_read_the_posted_amount_fro",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 24,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    }
+  ],
+  "llm_calls": 0,
+  "drift": {
+    "steps_resolved": 17,
+    "first_choice": 17,
+    "degraded": []
+  }
+}

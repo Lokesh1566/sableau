@@ -26,12 +26,14 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
 
 from ..browser import open_surface
@@ -88,7 +90,9 @@ class CapabilitySummary(BaseModel):
 class InvokeRequest(BaseModel):
     params: dict[str, Any]
     tenant: str | None = None
-    confirm_risky: bool = True
+    # Risky steps are opt-in across every front door. The dashboard and chat
+    # must not silently weaken the replay engine's confirmation guardrail.
+    confirm_risky: bool = False
 
 
 class RunSummary(BaseModel):
@@ -167,28 +171,64 @@ def _summarise(cap: Capability) -> CapabilitySummary:
 
 def _run_summary(run_dir: Path) -> RunSummary | None:
     result = run_dir / "result.json"
-    if not result.exists():
+    if result.exists():
+        try:
+            d = json.loads(result.read_text())
+        except Exception:  # noqa: BLE001
+            return None
+        drift = d.get("drift") or {}
+        resolved = drift.get("steps_resolved") or 0
+        score = (drift.get("first_choice", 0) / resolved) if resolved else None
+        return RunSummary(
+            run_id=d.get("run_id", run_dir.name),
+            capability_id=d.get("capability_id"),
+            category=d.get("category"),
+            code=d.get("code"),
+            outputs=d.get("outputs") or {},
+            duration_ms=d.get("duration_ms"),
+            llm_calls=d.get("llm_calls"),
+            drift_score=score,
+            escalated=(d.get("control") or {}).get("escalated", False),
+            started_at=d.get("started_at"),
+            kind=run_dir.name.split("_")[0],
+        )
+
+    trace_path = run_dir / "trace.json"
+    if not trace_path.exists():
         return None
     try:
-        d = json.loads(result.read_text())
+        trace = json.loads(trace_path.read_text())
+        artifact_path = run_dir / "capability.json"
+        artifact = json.loads(artifact_path.read_text()) if artifact_path.exists() else {}
     except Exception:  # noqa: BLE001
         return None
-    drift = d.get("drift") or {}
-    resolved = drift.get("steps_resolved") or 0
-    score = (drift.get("first_choice", 0) / resolved) if resolved else None
+    entries = trace.get("entries") or []
+    first_log = _read_log(run_dir)[:1]
+    ok = trace.get("status") == "success"
     return RunSummary(
-        run_id=d.get("run_id", run_dir.name),
-        capability_id=d.get("capability_id"),
-        category=d.get("category"),
-        code=d.get("code"),
-        outputs=d.get("outputs") or {},
-        duration_ms=d.get("duration_ms"),
-        llm_calls=d.get("llm_calls"),
-        drift_score=score,
-        escalated=(d.get("control") or {}).get("escalated", False),
-        started_at=d.get("started_at"),
-        kind=run_dir.name.split("_")[0],
+        run_id=run_dir.name,
+        capability_id=artifact.get("capability_id"),
+        category="SUCCESS" if ok else "HARD_FAILURE",
+        code="NONE" if ok else str(trace.get("status", "INCOMPLETE")).upper(),
+        outputs={},
+        llm_calls=(sum(1 for e in entries if e.get("tool") in {"act", "assert_state", "finish"})
+                   if trace.get("planner") not in {None, "heuristic"} else 0),
+        started_at=(first_log[0].get("ts") if first_log else None),
+        kind="discovery",
     )
+
+
+def _read_log(run_dir: Path) -> list[dict[str, Any]]:
+    log: list[dict[str, Any]] = []
+    path = run_dir / "log.jsonl"
+    if not path.exists():
+        return log
+    for line in path.read_text().splitlines():
+        try:
+            log.append(json.loads(line))
+        except Exception:  # noqa: BLE001
+            continue
+    return log
 
 
 # ---------------------------------------------------------------- the app
@@ -203,6 +243,66 @@ def build_api() -> FastAPI:
     #: one browser, so one run at a time. In production this becomes a pool of
     #: surfaces keyed by tenant.
     lock = asyncio.Lock()
+    live_runs: dict[str, dict[str, Any]] = {}
+    background_tasks: set[asyncio.Task] = set()
+
+    def prepare_capability(capability_id: str, body: InvokeRequest) -> Capability:
+        cap, _ = _load_capability(capability_id)
+        if not body.tenant:
+            return cap
+        overlay_path = OVERLAY_DIR / f"{body.tenant}.json"
+        if not overlay_path.exists():
+            raise HTTPException(404, f"no overlay for tenant '{body.tenant}'")
+        try:
+            return apply_overlay(cap, TenantOverlay.load(overlay_path))
+        except PolicyViolation as exc:
+            raise HTTPException(409, exc.message) from exc
+
+    async def execute_capability(
+        cap: Capability,
+        body: InvokeRequest,
+        run_id: str,
+    ) -> dict[str, Any]:
+        async with lock:
+            if run_id in live_runs:
+                live_runs[run_id]["status"] = "running"
+                live_runs[run_id]["started_at"] = datetime.now(timezone.utc).isoformat()
+            recorder = RunRecorder(run_id, root=str(EVIDENCE_DIR), echo=False)
+            surface = await open_surface()
+            try:
+                if cap.surface.entry_url:
+                    await surface.navigate(cap.surface.entry_url)
+                engine = ReplayEngine(
+                    surface, recorder, Policy.load(),
+                    confirm_risky=body.confirm_risky, escalation_timeout_s=30,
+                )
+                result = await engine.run(cap, body.params)
+            finally:
+                await surface.close()
+        return result.model_dump(mode="json")
+
+    async def run_in_background(
+        cap: Capability,
+        body: InvokeRequest,
+        run_id: str,
+    ) -> None:
+        try:
+            result = await execute_capability(cap, body, run_id)
+            live_runs[run_id].update({
+                "status": "complete",
+                "finished_at": datetime.now(timezone.utc).isoformat(),
+                "result": result,
+            })
+        except HTTPException as exc:
+            live_runs[run_id].update({
+                "status": "failed", "error": str(exc.detail), "http_status": exc.status_code,
+            })
+        except SableauError as exc:
+            live_runs[run_id].update({
+                "status": "failed", "error": f"{exc.code.value}: {exc.message}",
+            })
+        except Exception as exc:  # noqa: BLE001 - background boundary must become data
+            live_runs[run_id].update({"status": "failed", "error": str(exc)})
 
     @app.get("/api/capabilities", response_model=list[CapabilitySummary])
     async def list_capabilities() -> list[CapabilitySummary]:
@@ -229,40 +329,83 @@ def build_api() -> FastAPI:
         tell "no such claim" apart from "the service is broken", and an HTTP
         error code cannot carry that distinction.
         """
-        cap, _ = _load_capability(capability_id)
+        cap = prepare_capability(capability_id, body)
+        try:
+            return await execute_capability(cap, body, new_run_id("api"))
+        except SableauError as exc:
+            raise HTTPException(500, f"{exc.code.value}: {exc.message}") from exc
 
-        if body.tenant:
-            overlay_path = OVERLAY_DIR / f"{body.tenant}.json"
-            if not overlay_path.exists():
-                raise HTTPException(404, f"no overlay for tenant '{body.tenant}'")
-            try:
-                cap = apply_overlay(cap, TenantOverlay.load(overlay_path))
-            except PolicyViolation as exc:
-                raise HTTPException(409, exc.message) from exc
+    @app.post("/api/capabilities/{capability_id}/start")
+    async def start_run(capability_id: str, body: InvokeRequest) -> dict[str, Any]:
+        """Start a dashboard run and return immediately so its steps can be watched."""
+        cap = prepare_capability(capability_id, body)
+        run_id = new_run_id("api")
+        live_runs[run_id] = {
+            "run_id": run_id,
+            "capability_id": cap.capability_id,
+            "title": cap.title,
+            "status": "queued",
+            "total_steps": len(cap.steps),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "result": None,
+            "error": None,
+        }
+        task = asyncio.create_task(run_in_background(cap, body, run_id))
+        background_tasks.add(task)
+        task.add_done_callback(background_tasks.discard)
+        return live_runs[run_id]
 
-        async with lock:
-            run_id = new_run_id("api")
-            recorder = RunRecorder(run_id, root=str(EVIDENCE_DIR), echo=False)
-            surface = await open_surface()
-            try:
-                if cap.surface.entry_url:
-                    await surface.navigate(cap.surface.entry_url)
-                engine = ReplayEngine(
-                    surface, recorder, Policy.load(),
-                    confirm_risky=body.confirm_risky, escalation_timeout_s=30,
-                )
-                result = await engine.run(cap, body.params)
-            except SableauError as exc:
-                raise HTTPException(500, f"{exc.code.value}: {exc.message}") from exc
-            finally:
-                await surface.close()
-
-        return result.model_dump(mode="json")
+    @app.get("/api/live-runs/{run_id}")
+    async def live_run(run_id: str) -> dict[str, Any]:
+        state = live_runs.get(run_id)
+        run_dir = EVIDENCE_DIR / run_id
+        result_path = run_dir / "result.json"
+        if state is None and not result_path.exists():
+            raise HTTPException(404, f"no live run '{run_id}'")
+        if state is None:
+            result = json.loads(result_path.read_text())
+            cap, _ = _load_capability(result["capability_id"])
+            state = {
+                "run_id": run_id,
+                "capability_id": cap.capability_id,
+                "title": cap.title,
+                "status": "complete",
+                "total_steps": len(cap.steps),
+                "result": result,
+                "error": None,
+            }
+        events = _read_log(run_dir)
+        result = state.get("result")
+        if result is None and result_path.exists():
+            result = json.loads(result_path.read_text())
+        completed = [event for event in events if event.get("event") == "step.complete"]
+        if result is not None and not completed:
+            completed_count = len(result.get("steps") or [])
+        else:
+            completed_count = len(completed)
+        current = next(
+            (event for event in reversed(events) if event.get("event") == "step.start"),
+            None,
+        )
+        return {
+            **state,
+            "result": result,
+            "events": events,
+            "completed_steps": completed_count,
+            "current_step": current,
+        }
 
     @app.get("/api/runs", response_model=list[RunSummary])
     async def list_runs(limit: int = 25) -> list[RunSummary]:
         if not EVIDENCE_DIR.exists():
             return []
+        # The repository retains legacy fixture evidence for regression and
+        # handoff tests, but the production console should describe only the
+        # capabilities currently present in the live catalog.
+        catalog_ids = {
+            Capability.model_validate_json(path.read_text()).capability_id
+            for path in _capability_files()
+        }
         runs = []
         # Sort by modification time, not name: run ids are prefixed by kind
         # ("api_", "replay_", "handoff_") so an alphabetical sort would group by
@@ -276,7 +419,7 @@ def build_api() -> FastAPI:
             if not run_dir.is_dir():
                 continue
             summary = _run_summary(run_dir)
-            if summary:
+            if summary and summary.capability_id in catalog_ids:
                 runs.append(summary)
             if len(runs) >= limit:
                 break
@@ -286,17 +429,32 @@ def build_api() -> FastAPI:
     async def get_run(run_id: str) -> dict[str, Any]:
         run_dir = EVIDENCE_DIR / run_id
         result = run_dir / "result.json"
-        if not result.exists():
+        trace = run_dir / "trace.json"
+        if not result.exists() and not trace.exists():
             raise HTTPException(404, f"no run '{run_id}'")
-        log = []
-        log_path = run_dir / "log.jsonl"
-        if log_path.exists():
-            for line in log_path.read_text().splitlines():
-                try:
-                    log.append(json.loads(line))
-                except Exception:  # noqa: BLE001
-                    continue
-        return {"result": json.loads(result.read_text()), "log": log}
+        evidence = [
+            str(path.relative_to(run_dir))
+            for path in sorted(run_dir.rglob("*"))
+            if path.is_file()
+        ]
+        return {
+            "result": json.loads(result.read_text()) if result.exists() else None,
+            "trace": json.loads(trace.read_text()) if trace.exists() else None,
+            "capability": (
+                json.loads((run_dir / "capability.json").read_text())
+                if (run_dir / "capability.json").exists() else None
+            ),
+            "log": _read_log(run_dir),
+            "evidence": evidence,
+        }
+
+    @app.get("/api/runs/{run_id}/evidence/{evidence_path:path}")
+    async def get_evidence(run_id: str, evidence_path: str) -> FileResponse:
+        run_dir = (EVIDENCE_DIR / run_id).resolve()
+        path = (run_dir / evidence_path).resolve()
+        if run_dir not in path.parents or not path.is_file():
+            raise HTTPException(404, "evidence file not found")
+        return FileResponse(path)
 
     @app.get("/api/health")
     async def health() -> dict[str, Any]:
@@ -323,17 +481,31 @@ def build_api() -> FastAPI:
         if parsed is None:
             return {
                 "reply": (
-                    "I can approve or reject a claim. Try: "
-                    "\"approve claim CLM-004211\" or \"reject CLM-004212 at riverbend\"."
+                    "I can run MERIDIAN member workflows. Try: "
+                    "\"check balance for member 101555\" or \"find member Lovelace\"."
                 ),
                 "invoked": None,
             }
 
         capability_id, params, tenant = parsed
+        cap, _ = _load_capability(capability_id)
+        confirmed = bool(re.search(r"\bconfirm(?:ed)?\b", text, re.IGNORECASE))
+        public_params = _public_params(cap, params)
+        if cap.safety.risk_level == "high" and not confirmed:
+            return {
+                "reply": (
+                    f"{cap.title} changes live member data. Add the word “confirm” "
+                    "to authorize its risky steps."
+                ),
+                "invoked": capability_id,
+                "params": public_params,
+                "tenant": tenant,
+                "requires_confirmation": True,
+            }
         try:
             result = await invoke(
                 capability_id,
-                InvokeRequest(params=params, tenant=tenant, confirm_risky=True),
+                InvokeRequest(params=params, tenant=tenant, confirm_risky=confirmed),
             )
         except HTTPException as exc:
             return {"reply": f"I could not do that: {exc.detail}", "invoked": capability_id}
@@ -341,9 +513,49 @@ def build_api() -> FastAPI:
         return {
             "reply": _explain(result),
             "invoked": capability_id,
-            "params": params,
+            "params": public_params,
             "tenant": tenant,
             "result": result,
+        }
+
+    @app.post("/api/chat/start")
+    async def start_chat(body: dict[str, Any]) -> dict[str, Any]:
+        """Parse chat intent, then start a watchable dashboard replay."""
+        text = str(body.get("message", ""))
+        parsed = _parse_intent(text)
+        if parsed is None:
+            return {
+                "reply": (
+                    "I could not map that request. Use one of the examples shown above "
+                    "the chat box, or select a capability form."
+                ),
+                "invoked": None,
+            }
+        capability_id, params, tenant = parsed
+        cap, _ = _load_capability(capability_id)
+        confirmed = bool(re.search(r"\bconfirm(?:ed)?\b", text, re.IGNORECASE))
+        public_params = _public_params(cap, params)
+        if cap.safety.risk_level == "high" and not confirmed:
+            return {
+                "reply": (
+                    f"{cap.title} changes live member data. Add the word “confirm” "
+                    "to authorize its risky steps."
+                ),
+                "invoked": capability_id,
+                "params": public_params,
+                "tenant": tenant,
+                "requires_confirmation": True,
+            }
+        started = await start_run(
+            capability_id,
+            InvokeRequest(params=params, tenant=tenant, confirm_risky=confirmed),
+        )
+        return {
+            **started,
+            "reply": f"Started {cap.title}. Follow its steps in Live processing.",
+            "invoked": capability_id,
+            "params": public_params,
+            "tenant": tenant,
         }
 
     # ------------------------------------------------------------ dashboard
@@ -360,40 +572,108 @@ def build_api() -> FastAPI:
 
 # ---------------------------------------------------------------- chat bits
 
-CLAIM_RE = r"(CLM-\d{6})"
-
-
 def _parse_intent(text: str) -> tuple[str, dict[str, Any], str | None] | None:
-    """Map plain text onto a capability call. Keyword matching, deliberately."""
-    import re
-
+    """Map a small, transparent banking grammar onto typed capability calls."""
     low = text.lower()
-    match = re.search(CLAIM_RE, text, re.IGNORECASE)
-    if not match:
-        return None
+    member_match = re.search(r"\b(?:member\s*)?(\d{6})\b", text, re.IGNORECASE)
+    member = member_match.group(1) if member_match else None
+    base = _demo_credentials(supervisor=False)
 
-    if "reject" in low or "deny" in low or "decline" in low:
-        outcome = "REJECTED"
-    elif "approve" in low or "accept" in low or "pay" in low:
-        outcome = "APPROVED"
-    else:
-        return None
+    if "balance" in low and member:
+        return "meridian_core.check_member_balance", {**base, "member_number": member}, None
 
-    tenant = None
-    for candidate in _known_tenants():
-        if candidate.lower() in low:
-            tenant = candidate
-            break
+    if any(word in low for word in ("find member", "member inquiry", "look up member")):
+        if member:
+            query, search_by = member, "number"
+        else:
+            match = re.search(r"(?:find member|member inquiry|look up member)\s+([a-z][a-z'-]+)",
+                              text, re.IGNORECASE)
+            if not match:
+                return None
+            query, search_by = match.group(1), "name"
+        return "meridian_core.find_member", {
+            **base, "search_by": search_by, "query": query,
+        }, None
 
-    return (
-        "meridian.record_claim_decision",
-        {
-            "claim_id": match.group(1).upper(),
-            "outcome": outcome,
-            "note": f"Recorded via the capability API. Requested: {text.strip()[:120]}",
-        },
-        tenant,
-    )
+    if "sign on" in low or "sign in" in low:
+        return "meridian_core.sign_on", base, None
+
+    if "transfer" in low and member:
+        shares = re.findall(r"\b\d{6}-[A-Z0-9-]+\b", text.upper())
+        amount = re.search(r"(?:\$|amount\s+)(\d+(?:\.\d{1,2})?)", text, re.IGNORECASE)
+        if len(shares) < 2 or not amount:
+            return None
+        memo = _after_keyword(text, "memo") or "Requested through the capability chat."
+        memo = re.sub(r"\s+confirm(?:ed)?\s*$", "", memo, flags=re.IGNORECASE)
+        return "meridian_core.transfer_funds", {
+            **base, "member_number": member, "from_share": shares[0], "to_share": shares[1],
+            "amount": amount.group(1), "memo": memo[:120],
+        }, None
+
+    if ("open" in low and "share" in low) and member:
+        share_type = next((kind for kind in ("S0001", "S0070", "MMKT", "CERT")
+                           if re.search(rf"\b{kind}\b", text, re.IGNORECASE)), None)
+        deposit = re.search(r"(?:deposit\s+|\$)(\d+(?:\.\d{1,2})?)", text, re.IGNORECASE)
+        if not share_type or not deposit:
+            return None
+        return "meridian_core.open_new_share", {
+            **base, "member_number": member, "share_type": share_type,
+            "initial_deposit": deposit.group(1),
+        }, None
+
+    if "update" in low and member:
+        email = re.search(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", text)
+        phone = re.search(r"\b\d{3}-\d{4}\b", text)
+        address = _after_keyword(text, "address")
+        if not email or not phone or not address:
+            return None
+        # Confirmation is a chat control word, not member data.
+        address = re.sub(r"\s+confirm(?:ed)?\s*$", "", address, flags=re.IGNORECASE)
+        return "meridian_core.update_member_information", {
+            **base, "member_number": member, "email": email.group(0),
+            "phone": phone.group(0), "address": address,
+        }, None
+
+    if "hold" in low and member:
+        share = re.search(r"\b\d{6}-[A-Z0-9-]+\b", text.upper())
+        reason = next((code for code in ("FRAUD", "LEGAL", "DECEASED")
+                       if re.search(rf"\b{code}\b", text, re.IGNORECASE)), None)
+        if not share or not reason:
+            return None
+        notes = _after_keyword(text, "notes") or "Requested through the capability chat."
+        notes = re.sub(r"\s+confirm(?:ed)?(?:\s+as supervisor)?\s*$", "", notes,
+                       flags=re.IGNORECASE)
+        credentials = _demo_credentials(supervisor="supervisor" in low)
+        return "meridian_core.place_account_hold", {
+            **credentials, "member_number": member, "share": share.group(0),
+            "reason_code": reason, "notes": notes[:200],
+        }, None
+
+    return None
+
+
+def _demo_credentials(supervisor: bool = False) -> dict[str, str]:
+    return {
+        "operator": os.environ.get(
+            "SABLEAU_SUPERVISOR_OPERATOR" if supervisor else "SABLEAU_OPERATOR",
+            "super1" if supervisor else "teller1",
+        ),
+        "password": os.environ.get("SABLEAU_OPERATOR_PASSWORD", "password"),
+        "branch": os.environ.get("SABLEAU_BRANCH", "MAIN-001"),
+    }
+
+
+def _after_keyword(text: str, keyword: str) -> str | None:
+    match = re.search(rf"\b{re.escape(keyword)}\b\s*[:=]?\s*(.+)$", text, re.IGNORECASE)
+    return match.group(1).strip() if match else None
+
+
+def _public_params(cap: Capability, params: dict[str, Any]) -> dict[str, Any]:
+    sensitivities = {item.name: item.sensitivity for item in cap.inputs}
+    return {
+        key: ("[REDACTED]" if sensitivities.get(key) in {"secret", "medium", "high"} else value)
+        for key, value in params.items()
+    }
 
 
 def _known_tenants() -> list[str]:
@@ -411,10 +691,8 @@ def _explain(result: dict[str, Any]) -> str:
     outputs = result.get("outputs") or {}
 
     if category == "SUCCESS":
-        code_str = outputs.get("confirmation_code", "recorded")
-        amount = outputs.get("decided_amount")
-        extra = f" for {amount}" if amount is not None else ""
-        return f"Done. Confirmation code {code_str}{extra}."
+        rendered = ", ".join(f"{key}={value}" for key, value in outputs.items())
+        return f"Done. {rendered}." if rendered else "Done. The capability completed successfully."
     if category == "BUSINESS_OUTCOME":
         detail = (result.get("business_outcome") or {}).get("description", code)
         return f"I could not complete that: {detail}"

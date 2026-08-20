@@ -1,0 +1,1090 @@
+{
+  "schema_version": "1.0.0",
+  "capability_id": "meridian_core.open_new_share",
+  "version": "1.0.0",
+  "title": "Open a new share for a member",
+  "description": "Sign on, open a member record, open a new share of the given type with an initial deposit, review and post.",
+  "provenance": {
+    "discovered_at": "2026-08-20T20:05:38.649308+00:00",
+    "goal": "Sign on to MERIDIAN CORE using the Operator ID, Password and Branch supplied. From the main menu choose Member Inquiry / Selection, set 'Search by' to Member Number, enter the member number and press Search, then select the result. On the MEMBER RECORD screen use the Open New Share action. Choose the share type, enter the initial deposit, continue to the review screen, verify the review details, and post it. The hidden _token belongs to each live form: never copy or persist it; submit the live form normally so the browser carries the current token. Read the new share identifier and confirmation reference from the result screen.",
+    "planner": "anthropic",
+    "model": "claude-sonnet-4-6",
+    "trace_ref": "evidence/runs/discovery_20260820T200314Z_a6e611/trace.json",
+    "compiler_version": "1.0.0",
+    "notes": "Successfully completed all steps. Logged in as teller1/WEST-014, navigated to Member Inquiry, searched for and selected member 103001 (Vaughan, Dorothy), opened a new MMKT (Money Market) share with an initial deposit of $5.00, reviewed and posted the share. The confirmation screen shows: New Share ID = 103001-MMKT-5, Confirmation Reference = CN480090."
+  },
+  "surface": {
+    "kind": "dom",
+    "required_features": [
+      "dom_query",
+      "role_query",
+      "text_query"
+    ],
+    "app_id": "meridian-core",
+    "entry_url": "https://web-sample.interface-hiring.com/signon"
+  },
+  "safety": {
+    "allowed_hosts": [
+      "web-sample.interface-hiring.com"
+    ],
+    "allowed_actions": [
+      "click",
+      "read",
+      "select",
+      "type",
+      "wait"
+    ],
+    "risk_level": "high",
+    "confirm_steps": [
+      "s9_click_the_open_new_share_a",
+      "s13_click_open_share_to_post_t"
+    ],
+    "redact_paths": [
+      "input.password"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "operator",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "teller1",
+      "sensitivity": "low",
+      "description": null
+    },
+    {
+      "name": "password",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "[REDACTED]",
+      "sensitivity": "secret",
+      "description": null
+    },
+    {
+      "name": "branch",
+      "type": "enum",
+      "required": true,
+      "pattern": null,
+      "enum": [
+        "MAIN-001",
+        "WEST-014",
+        "EAST-022"
+      ],
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "MAIN-001",
+      "sensitivity": "low",
+      "description": null
+    },
+    {
+      "name": "member_number",
+      "type": "string",
+      "required": true,
+      "pattern": "^[0-9]{6}$",
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "103001",
+      "sensitivity": "low",
+      "description": null
+    },
+    {
+      "name": "share_type",
+      "type": "enum",
+      "required": true,
+      "pattern": null,
+      "enum": [
+        "S0001",
+        "S0070",
+        "MMKT",
+        "CERT"
+      ],
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "MMKT",
+      "sensitivity": "low",
+      "description": "MERIDIAN share-type code."
+    },
+    {
+      "name": "initial_deposit",
+      "type": "string",
+      "required": true,
+      "pattern": "^[0-9]+(\\.[0-9]{1,2})?$",
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "5.00",
+      "sensitivity": "low",
+      "description": null
+    }
+  ],
+  "outputs": [
+    {
+      "name": "new_share_id",
+      "type": "string",
+      "required": true,
+      "source": {
+        "step": "s14_read_the_new_share_id_from",
+        "binding": "text",
+        "attr": null,
+        "extract_regex": null
+      },
+      "sensitivity": "low",
+      "description": "Share ID of the share that was opened."
+    },
+    {
+      "name": "confirmation_reference",
+      "type": "string",
+      "required": false,
+      "source": {
+        "step": "s15_read_the_confirmation_refe",
+        "binding": "text",
+        "attr": null,
+        "extract_regex": null
+      },
+      "sensitivity": "low",
+      "description": null
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1_enter_the_operator_id",
+      "intent": "Enter the Operator ID",
+      "action": {
+        "type": "type",
+        "text": "{{input.operator}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "operator",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the Operator ID"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s2_enter_the_password",
+      "intent": "Enter the password",
+      "action": {
+        "type": "type",
+        "text": "{{input.password}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "password",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the password"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s3_select_the_west_014_branch",
+      "intent": "Select the WEST-014 branch",
+      "action": {
+        "type": "select",
+        "value": "{{input.branch}}"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "branch",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Select the WEST-014 branch"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s4_submit_the_sign_on_form_wi",
+      "intent": "Submit the sign-on form with the pre-filled credentials",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Submit the sign-on form with the pre-filled credentials"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_main_menu_loaded"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s5_navigate_to_member_inquiry",
+      "intent": "Navigate to Member Inquiry / Selection from the main menu",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Member Inquiry / Selection",
+            "name_matches": null,
+            "confidence": 0.9
+          },
+          {
+            "strategy": "text",
+            "text": "Member Inquiry / Selection",
+            "within_css": null,
+            "exact": false,
+            "confidence": 0.6
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > a",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": {
+          "kind": "attribute_contains",
+          "attr": "href",
+          "value": "/members"
+        },
+        "description": "Navigate to Member Inquiry / Selection from the main menu"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_member_inquiry_loaded"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s6_enter_the_member_number_in",
+      "intent": "Enter the member number in the search field",
+      "action": {
+        "type": "type",
+        "text": "{{input.member_number}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "q",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld:nth-of-type(1)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the member number in the search field"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s7_submit_the_search_with_mem",
+      "intent": "Submit the search with member number 103001 already entered",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.btn:nth-of-type(2)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Submit the search with member number 103001 already entered"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_search_results_displayed"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s8_select_member_103001_vaugh",
+      "intent": "Select member 103001 Vaughan, Dorothy to open the member record",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Select",
+            "name_matches": null,
+            "confidence": 0.9
+          },
+          {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > a",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": {
+          "kind": "attribute_contains",
+          "attr": "href",
+          "value": "/members/{{input.member_number}}"
+        },
+        "description": "Select member 103001 Vaughan, Dorothy to open the member record"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_member_record_loaded"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s9_click_the_open_new_share_a",
+      "intent": "Click the Open New Share action link to open a new share for this member",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Open New Share",
+            "name_matches": null,
+            "confidence": 0.9
+          },
+          {
+            "strategy": "text",
+            "text": "Open New Share",
+            "within_css": null,
+            "exact": false,
+            "confidence": 0.6
+          },
+          {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(3) > td > a:nth-of-type(2)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": {
+          "kind": "attribute_contains",
+          "attr": "href",
+          "value": "/members/{{input.member_number}}/open-share"
+        },
+        "description": "Click the Open New Share action link to open a new share for this member"
+      },
+      "risk": "risky",
+      "preconditions": [],
+      "postconditions": [
+        "cp_open_new_share_loaded"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": true
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s10_select_mmkt_money_market_a",
+      "intent": "Select MMKT - Money Market as the share type",
+      "action": {
+        "type": "select",
+        "value": "{{input.share_type}}"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "type",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Select MMKT - Money Market as the share type"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s11_enter_the_initial_deposit",
+      "intent": "Enter the initial deposit amount of 5.00",
+      "action": {
+        "type": "type",
+        "text": "{{input.initial_deposit}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "deposit",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the initial deposit amount of 5.00"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_open_share_form_ready"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s12_click_continue_to_proceed",
+      "intent": "Click Continue to proceed to the review screen",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Click Continue to proceed to the review screen"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_review_screen_loaded"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s13_click_open_share_to_post_t",
+      "intent": "Click Open Share to post the new share account",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "tbody > tr:nth-of-type(3) > td > form > input.btn:nth-of-type(4)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Click Open Share to post the new share account"
+      },
+      "risk": "risky",
+      "preconditions": [],
+      "postconditions": [
+        "cp_share_opened_confirmation"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": true
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s14_read_the_new_share_id_from",
+      "intent": "Read the new share ID from the confirmation screen",
+      "action": {
+        "type": "read",
+        "binding": "text",
+        "attr": null
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "div.box > table > tbody > tr:nth-of-type(2) > td:nth-of-type(2)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Read the new share ID from the confirmation screen"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s15_read_the_confirmation_refe",
+      "intent": "Read the confirmation reference from the confirmation screen",
+      "action": {
+        "type": "read",
+        "binding": "text",
+        "attr": null
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > b",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Read the confirmation reference from the confirmation screen"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp_main_menu_loaded",
+      "description": "Main Menu is displayed after successful sign-on as TELLER1 on branch WEST-014",
+      "condition": {
+        "kind": "url_matches",
+        "target": null,
+        "value": "/menu",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_member_inquiry_loaded",
+      "description": "Member Inquiry / Selection screen is displayed with Search by set to Member Number",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "MEMBER INQUIRY / SELECTION",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_search_results_displayed",
+      "description": "Member Inquiry search results show member 103001 Vaughan, Dorothy with a Select link",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "{{input.member_number}}",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_member_record_loaded",
+      "description": "Member Record screen is displayed for member 103001 Vaughan, Dorothy with Open New Share action available",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "MEMBER RECORD",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_open_new_share_loaded",
+      "description": "Open New Share screen is displayed for member 103001 Vaughan, Dorothy with Share Type dropdown and Initial Deposit field",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "OPEN NEW SHARE",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_open_share_form_ready",
+      "description": "Open New Share form has MMKT - Money Market selected and initial deposit of 5.00 entered, ready to continue",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "OPEN NEW SHARE",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_review_screen_loaded",
+      "description": "Confirm New Share review screen shows Member 103001 - Vaughan, Dorothy, Share Type MMKT - Money Market, Initial Deposit $5.00",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "CONFIRM NEW SHARE",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_share_opened_confirmation",
+      "description": "Share Opened confirmation screen showing New Share ID 103001-MMKT-5 and Confirmation CN480090",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "SHARE OPENED",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    }
+  ],
+  "known_outcomes": [
+    {
+      "id": "session_timed_out",
+      "description": "The operator session ended and the console asked for a fresh sign on.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "YOUR SESSION HAS TIMED OUT",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "RECOVERABLE",
+        "code": "SESSION_EXPIRED",
+        "terminal": true,
+        "message": "The operator session timed out. Re-authenticate and invoke again.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "signon_rejected",
+      "description": "The console refused the operator id or password.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "Invalid operator",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "PERMISSION_DENIED",
+        "terminal": true,
+        "message": "The console rejected those sign on credentials.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "source_share_on_hold",
+      "description": "The share being debited is on HOLD, so the transfer cannot proceed.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "is HOLD and cannot be debited",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "ACCOUNT_ON_HOLD",
+        "terminal": true,
+        "message": "The source share is on hold and cannot be debited. Nothing was posted.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "transaction_not_validated",
+      "description": "The console rejected the transaction at the review screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "The transaction could not be validated",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "VALIDATION_ERROR",
+        "terminal": true,
+        "message": "The console rejected the transaction at the review screen.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "injected_validation_rejection",
+      "description": "The console rejected an injected or field-level validation request.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "TRANSACTION REJECTED",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "VALIDATION_ERROR",
+        "terminal": true,
+        "message": "The console rejected the submitted field or transaction values.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "supervisor_override_required",
+      "description": "A restricted action was attempted by an operator who is not a supervisor.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "SUPERVISOR OVERRIDE REQUIRED",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "PERMISSION_DENIED",
+        "terminal": true,
+        "message": "This action requires a supervisor. A human operator must decide how to proceed.",
+        "capture": null,
+        "recovery": "escalate"
+      }
+    },
+    {
+      "id": "member_not_found",
+      "description": "No member matched the search.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "No member",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "RECORD_NOT_FOUND",
+        "terminal": true,
+        "message": "No member matched that search.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "insufficient_funds",
+      "description": "The share does not hold enough to cover the amount.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "Insufficient",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "INSUFFICIENT_FUNDS",
+        "terminal": true,
+        "message": "The from-share does not have sufficient funds. Nothing was posted.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "injected_record_not_found",
+      "description": "The host returned its explicit RECORD NOT FOUND exceptional screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "RECORD NOT FOUND",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "RECORD_NOT_FOUND",
+        "terminal": true,
+        "message": "The requested member record could not be located.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "maintenance_interstitial",
+      "description": "Nightly posting put the host into its known maintenance interstitial.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "SCHEDULED MAINTENANCE IN PROGRESS",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "RECOVERABLE",
+        "code": "TRANSIENT_FAILURE",
+        "terminal": true,
+        "message": "MERIDIAN CORE is temporarily in scheduled maintenance; retry later.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "application_error",
+      "description": "The host returned its explicit hard application-error screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "APPLICATION ERROR",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "APPLICATION_ERROR",
+        "terminal": true,
+        "message": "MERIDIAN CORE reported a hard application error.",
+        "capture": null,
+        "recovery": "none"
+      }
+    }
+  ],
+  "recovery": {
+    "global_max_retries": 3,
+    "escalate_on": [
+      "MISSING_CONTROL",
+      "AMBIGUOUS_CONTROL",
+      "UNEXPECTED_DIALOG",
+      "PERMISSION_DENIED"
+    ],
+    "escalation_mode": "human_handoff"
+  }
+}

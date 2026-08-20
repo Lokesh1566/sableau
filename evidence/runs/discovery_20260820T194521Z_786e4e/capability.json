@@ -1,0 +1,534 @@
+{
+  "schema_version": "1.0.0",
+  "capability_id": "meridian_core.sign_on",
+  "version": "1.0.0",
+  "title": "Sign on to an operator session",
+  "description": "Authenticate an operator to MERIDIAN CORE and verify the session reached the main menu.",
+  "provenance": {
+    "discovered_at": "2026-08-20T19:46:00.280145+00:00",
+    "goal": "On the MERIDIAN CORE sign-on screen, enter the supplied Operator ID and Password. Select the supplied Branch value. Press Sign On. Verify that the MAIN MENU is displayed and read the MAIN MENU heading as session_status.",
+    "planner": "anthropic",
+    "model": "claude-sonnet-4-6",
+    "trace_ref": "evidence/runs/discovery_20260820T194521Z_786e4e/trace.json",
+    "compiler_version": "1.0.0",
+    "notes": "Successfully signed on to MERIDIAN CORE with operator TELLER1, [REDACTED], and branch WEST-014. The MAIN MENU is displayed and the session_status output was captured as 'Main Menu'."
+  },
+  "surface": {
+    "kind": "dom",
+    "required_features": [
+      "dom_query"
+    ],
+    "app_id": "meridian-core",
+    "entry_url": "https://web-sample.interface-hiring.com/signon"
+  },
+  "safety": {
+    "allowed_hosts": [
+      "web-sample.interface-hiring.com"
+    ],
+    "allowed_actions": [
+      "click",
+      "read",
+      "select",
+      "type",
+      "wait"
+    ],
+    "risk_level": "low",
+    "confirm_steps": [],
+    "redact_paths": [
+      "input.password"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "operator",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "teller1",
+      "sensitivity": "low",
+      "description": null
+    },
+    {
+      "name": "password",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "[REDACTED]",
+      "sensitivity": "secret",
+      "description": null
+    },
+    {
+      "name": "branch",
+      "type": "enum",
+      "required": true,
+      "pattern": null,
+      "enum": [
+        "MAIN-001",
+        "WEST-014",
+        "EAST-022"
+      ],
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "MAIN-001",
+      "sensitivity": "low",
+      "description": null
+    }
+  ],
+  "outputs": [
+    {
+      "name": "session_status",
+      "type": "string",
+      "required": true,
+      "source": {
+        "step": "s5_read_the_main_menu_heading",
+        "binding": "text",
+        "attr": null,
+        "extract_regex": null
+      },
+      "sensitivity": "low",
+      "description": "MAIN MENU when an authenticated operator session is active."
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1_enter_the_operator_id_into",
+      "intent": "Enter the operator ID into the Operator ID field",
+      "action": {
+        "type": "type",
+        "text": "{{input.operator}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "operator",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the operator ID into the Operator ID field"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s2_enter_the_password_into_th",
+      "intent": "Enter the password into the Password field",
+      "action": {
+        "type": "type",
+        "text": "{{input.password}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "password",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the password into the Password field"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s3_select_the_west_014_branch",
+      "intent": "Select the WEST-014 branch from the Branch dropdown",
+      "action": {
+        "type": "select",
+        "value": "{{input.branch}}"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "branch",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Select the WEST-014 branch from the Branch dropdown"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s4_click_the_sign_on_button_t",
+      "intent": "Click the Sign On button to submit the credentials",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Click the Sign On button to submit the credentials"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_main_menu_displayed"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s5_read_the_main_menu_heading",
+      "intent": "Read the MAIN MENU heading to capture it as session_status",
+      "action": {
+        "type": "read",
+        "binding": "text",
+        "attr": null
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "tr:nth-of-type(2) > td > font > a:nth-of-type(1) > b",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Read the MAIN MENU heading to capture it as session_status"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp_main_menu_displayed",
+      "description": "The MAIN MENU page is displayed after successful sign-on with operator TELLER1 on branch WEST-014",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "MAIN MENU",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    }
+  ],
+  "known_outcomes": [
+    {
+      "id": "session_timed_out",
+      "description": "The operator session ended and the console asked for a fresh sign on.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "YOUR SESSION HAS TIMED OUT",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "RECOVERABLE",
+        "code": "SESSION_EXPIRED",
+        "terminal": true,
+        "message": "The operator session timed out. Re-authenticate and invoke again.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "signon_rejected",
+      "description": "The console refused the operator id or password.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "Invalid operator",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "PERMISSION_DENIED",
+        "terminal": true,
+        "message": "The console rejected those sign on credentials.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "source_share_on_hold",
+      "description": "The share being debited is on HOLD, so the transfer cannot proceed.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "is HOLD and cannot be debited",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "ACCOUNT_ON_HOLD",
+        "terminal": true,
+        "message": "The source share is on hold and cannot be debited. Nothing was posted.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "transaction_not_validated",
+      "description": "The console rejected the transaction at the review screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "The transaction could not be validated",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "VALIDATION_ERROR",
+        "terminal": true,
+        "message": "The console rejected the transaction at the review screen.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "injected_validation_rejection",
+      "description": "The console rejected an injected or field-level validation request.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "TRANSACTION REJECTED",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "VALIDATION_ERROR",
+        "terminal": true,
+        "message": "The console rejected the submitted field or transaction values.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "supervisor_override_required",
+      "description": "A restricted action was attempted by an operator who is not a supervisor.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "SUPERVISOR OVERRIDE REQUIRED",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "PERMISSION_DENIED",
+        "terminal": true,
+        "message": "This action requires a supervisor. A human operator must decide how to proceed.",
+        "capture": null,
+        "recovery": "escalate"
+      }
+    },
+    {
+      "id": "member_not_found",
+      "description": "No member matched the search.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "No member",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "RECORD_NOT_FOUND",
+        "terminal": true,
+        "message": "No member matched that search.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "insufficient_funds",
+      "description": "The share does not hold enough to cover the amount.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "Insufficient",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "INSUFFICIENT_FUNDS",
+        "terminal": true,
+        "message": "The from-share does not have sufficient funds. Nothing was posted.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "injected_record_not_found",
+      "description": "The host returned its explicit RECORD NOT FOUND exceptional screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "RECORD NOT FOUND",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "RECORD_NOT_FOUND",
+        "terminal": true,
+        "message": "The requested member record could not be located.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "maintenance_interstitial",
+      "description": "Nightly posting put the host into its known maintenance interstitial.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "SCHEDULED MAINTENANCE IN PROGRESS",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "RECOVERABLE",
+        "code": "TRANSIENT_FAILURE",
+        "terminal": true,
+        "message": "MERIDIAN CORE is temporarily in scheduled maintenance; retry later.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "application_error",
+      "description": "The host returned its explicit hard application-error screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "APPLICATION ERROR",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "APPLICATION_ERROR",
+        "terminal": true,
+        "message": "MERIDIAN CORE reported a hard application error.",
+        "capture": null,
+        "recovery": "none"
+      }
+    }
+  ],
+  "recovery": {
+    "global_max_retries": 2,
+    "escalate_on": [
+      "MISSING_CONTROL",
+      "AMBIGUOUS_CONTROL",
+      "UNEXPECTED_DIALOG",
+      "PERMISSION_DENIED"
+    ],
+    "escalation_mode": "human_handoff"
+  }
+}

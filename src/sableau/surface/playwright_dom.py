@@ -53,7 +53,14 @@ class PlaywrightDomSurface:
         pw = await async_playwright().start()
         browser = await pw.chromium.connect_over_cdp(cdp_url)
         ctx = browser.contexts[0]
-        page = ctx.pages[0] if ctx.pages else await ctx.new_page()
+        # Chrome can retain a stale startup ``about:blank`` target alongside the
+        # live application tab. Prefer the newest usable HTTP(S) page so repeat
+        # CLI invocations attach to the operator-visible session reliably.
+        pages = [candidate for candidate in ctx.pages if not candidate.is_closed()]
+        page = next(
+            (candidate for candidate in reversed(pages) if candidate.url.startswith(("http://", "https://"))),
+            None,
+        ) or await ctx.new_page()
         page.set_default_timeout(8000)
         return cls(page, browser, pw)
 
@@ -105,6 +112,8 @@ class PlaywrightDomSurface:
             return scope.get_by_role(cand.role, **kw)
         if s == "testid":
             return scope.locator(f'[data-testid="{cand.value}"]')
+        if s == "name":
+            return scope.locator(f'[name="{cand.value}"]')
         if s == "label":
             return scope.get_by_label(cand.text, exact=cand.exact)
         if s == "placeholder":
@@ -192,7 +201,14 @@ class PlaywrightDomSurface:
 
             loc = resolution.handle
             if t == "click":
+                before = await self._page_fingerprint()
                 await loc.click()
+                await self._settle()
+                if await self._page_fingerprint() == before:
+                    note = await self._click_fallback(loc)
+                    if note:
+                        await self._settle()
+                        return ActionResult(ok=True, note=note)
                 return ActionResult(ok=True)
             if t == "type":
                 if action.clear_first:
@@ -201,9 +217,13 @@ class PlaywrightDomSurface:
                 return ActionResult(ok=True)
             if t == "select":
                 await loc.select_option(action.value)
-                return ActionResult(ok=True)
+                # Return the posted option value, not the visible label the
+                # planner may have supplied. The compiler binds this stable
+                # value into the typed input contract.
+                return ActionResult(ok=True, value=await loc.input_value())
             if t == "press":
                 await loc.press(action.key)
+                await self._settle()
                 return ActionResult(ok=True)
             if t == "read":
                 if action.binding == "text":
@@ -221,6 +241,99 @@ class PlaywrightDomSurface:
         except Exception as exc:  # noqa: BLE001
             raise TransientFailure(f"action {t} failed: {type(exc).__name__}: {exc}") from exc
         raise SableauError(f"unsupported action {t}", ErrorCode.SURFACE_INCOMPATIBLE)
+
+    async def _page_fingerprint(self) -> tuple[str, int]:
+        """Cheap 'has the screen changed' check: URL plus body length."""
+        try:
+            length = await self.page.evaluate(
+                "() => document.body ? document.body.innerText.length : 0"
+            )
+        except Exception:  # noqa: BLE001
+            length = -1
+        return (self.page.url, length)
+
+    async def _click_fallback(self, loc) -> str | None:
+        """Activate a legacy link or form control when a real click did nothing.
+
+        MERIDIAN CORE is deliberately period-accurate HTML. In current Chromium,
+        pointer synthesis can focus some of its anchors and submit controls
+        without firing their default activation. DOM ``click()`` still follows
+        those anchors, and ``requestSubmit`` still posts the form.
+
+        This is deliberately narrow: it runs only after an ordinary Playwright
+        click left both the URL and body unchanged, only for anchors and submit
+        controls, and reports its use into the step evidence. It never invents a
+        destination or bypasses the form, so the live per-transaction hidden
+        token remains attached and is posted by the browser.
+        """
+        try:
+            return await loc.evaluate(
+                """(el) => {
+                  const tag = el.tagName.toLowerCase();
+                  if (tag === 'a' && el.getAttribute('href')) {
+                    el.click();
+                    return 'legacy anchor activated via DOM click';
+                  }
+                  const type = (el.getAttribute('type') || '').toLowerCase();
+                  const isSubmit = (tag === 'input' && (type === 'submit' || type === 'image'))
+                                || (tag === 'button' && (type === 'submit' || type === ''));
+                  if (!isSubmit) return null;
+                  // el.form is null when the control sits outside its form
+                  const form = el.form || el.closest('form')
+                            || (document.forms.length === 1 ? document.forms[0] : null);
+                  if (!form) return null;
+                  if (el.form && typeof form.requestSubmit === 'function') {
+                    form.requestSubmit(el);
+                    return 'submitted via requestSubmit';
+                  }
+                  form.submit();
+                  return 'submit control is outside its form; submitted the form directly';
+                }"""
+            )
+        except Exception:  # noqa: BLE001
+            return None
+
+    async def _settle(self, timeout_ms: int = 2500) -> None:
+        """Let a server-rendered navigation land before anyone looks at the page.
+
+        A click on a submit button in a classic form posts and re-renders. If the
+        loop reads the URL and observes the screen the instant the click returns,
+        it sees the *old* page, concludes nothing happened, and clicks again.
+
+        ``wait_for_load_state`` alone is not enough: if the navigation has not
+        started yet, the previous page is still "loaded" and it returns
+        immediately. So watch for the document to actually change, and only then
+        wait for it to finish loading. A click that navigates nothing costs the
+        poll interval and no more.
+        """
+        before_url = self.page.url
+        try:
+            before_marker = await self.page.evaluate(
+                "() => document.body ? document.body.innerText.length : 0"
+            )
+        except Exception:  # noqa: BLE001
+            before_marker = None
+
+        import time
+
+        deadline = time.monotonic() + (timeout_ms / 1000.0)
+        while time.monotonic() < deadline:
+            await self.page.wait_for_timeout(120)
+            try:
+                if self.page.url != before_url:
+                    break
+                if before_marker is not None:
+                    now = await self.page.evaluate(
+                        "() => document.body ? document.body.innerText.length : 0"
+                    )
+                    if now != before_marker:
+                        break
+            except Exception:  # noqa: BLE001
+                break  # mid-navigation; the load wait below handles it
+        try:
+            await self.page.wait_for_load_state("load", timeout=timeout_ms)
+        except Exception:  # noqa: BLE001
+            pass
 
     # -- conditions ------------------------------------------------------
 
@@ -264,7 +377,7 @@ class PlaywrightDomSurface:
 
     _CONTROL_JS = """() => {
               const out = [];
-              const sel = 'a,button,input,select,textarea,[role="button"],[role="link"],[role="dialog"],h1,h2';
+              const sel = 'a,button,input,select,textarea,[role="button"],[role="link"],[role="dialog"],h1,h2,td:not(:has(td))';
               const labelFor = (el) => {
                 if (el.id) {
                   const l = document.querySelector('label[for="' + el.id + '"]');
@@ -275,19 +388,26 @@ class PlaywrightDomSurface:
               };
               document.querySelectorAll(sel).forEach((el) => {
                 const r = el.getBoundingClientRect();
-                if (r.width === 0 && r.height === 0) return;
+                const isHidden = el.tagName.toLowerCase() === 'input' &&
+                  (el.getAttribute('type') || '').toLowerCase() === 'hidden';
+                if (r.width === 0 && r.height === 0 && !isHidden) return;
                 if (out.length > 70) return;
                 const tag = el.tagName.toLowerCase();
                 const isField = tag === 'input' || tag === 'select' || tag === 'textarea';
+                const isSecret = tag === 'input' &&
+                  (el.getAttribute('type') || '').toLowerCase() === 'password';
                 // A field's identity is its label; its *state* is its value. Reporting
                 // a <select>'s innerText would hand back the whole option list and make
                 // an already-set control look untouched.
                 let value = '';
+                let currentLabel = '';
                 if (tag === 'select') {
                   const o = el.options[el.selectedIndex];
-                  value = o ? o.text.trim() : '';
+                  value = o ? o.value : '';
+                  currentLabel = o ? o.text.trim() : '';
                 } else if (isField) {
-                  value = (el.value || '').slice(0, 60);
+                  value = isHidden ? '[opaque]' :
+                    (isSecret ? (el.value ? '[set]' : '') : (el.value || '').slice(0, 60));
                 }
                 out.push({
                   tag,
@@ -298,6 +418,8 @@ class PlaywrightDomSurface:
                        el.getAttribute('placeholder') || el.getAttribute('name') || '')
                     : (el.getAttribute('aria-label') || el.innerText || '').trim().slice(0, 70),
                   current_value: value,
+                  current_label: currentLabel,
+                  name_attr: el.getAttribute('name') || '',
                   label: labelFor(el),
                   testid: el.getAttribute('data-testid') || '',
                   placeholder: el.getAttribute('placeholder') || '',
@@ -380,6 +502,7 @@ class PlaywrightDomSurface:
                 text: (el.innerText || '').trim().slice(0, 120),
                 value: el.value || '',
                 testid: el.getAttribute('data-testid') || '',
+                name_attr: el.getAttribute('name') || '',
                 label: labelFor(el),
                 placeholder: el.getAttribute('placeholder') || '',
                 href: el.getAttribute('href') || '',

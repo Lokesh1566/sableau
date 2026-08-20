@@ -185,7 +185,7 @@ def params() -> dict:
 @pytest.fixture
 def compiled_capability() -> Capability:
     """The artifact produced by the project's own discovery run, if present."""
-    path = Path("capabilities/meridian.record_claim_decision.v1.0.0.json")
+    path = Path("tests/fixtures/legacy_claim_capability.json")
     if not path.exists():
         pytest.skip("no compiled capability on disk; run discovery first")
     return Capability.model_validate(json.loads(path.read_text()))

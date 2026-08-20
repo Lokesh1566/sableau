@@ -1,0 +1,335 @@
+{
+  "goal": "On the MERIDIAN CORE sign-on screen, enter the supplied Operator ID and Password. Select the supplied Branch value. Press Sign On. Verify that the MAIN MENU is displayed and read the MAIN MENU heading as session_status.",
+  "planner": "anthropic",
+  "model": "claude-sonnet-4-6",
+  "entry_url": "https://web-sample.interface-hiring.com/signon",
+  "params": {
+    "operator": "teller1",
+    "password": "[REDACTED]",
+    "branch": "WEST-014"
+  },
+  "status": "success",
+  "summary": "Successfully signed on to MERIDIAN CORE with operator TELLER1, [REDACTED], and branch WEST-014. The MAIN MENU is displayed and the session_status output was captured as 'Main Menu'.",
+  "entries": [
+    {
+      "seq": 1,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the operator ID into the Operator ID field",
+        "action": "type",
+        "target_name_attr": "operator",
+        "frame": "main",
+        "text": "teller1"
+      },
+      "rationale": "I'll fill in the sign-on form step by step. Let me start by entering the Operator ID.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "operator",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "operator",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 2,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the [REDACTED] into the Password field",
+        "action": "type",
+        "target_name_attr": "[REDACTED]",
+        "frame": "main",
+        "text": "[REDACTED]"
+      },
+      "rationale": "I can see the operator field already has \"teller1\" filled in. Now I need to enter the [REDACTED], select the branch, and sign on. Let me proceed step by step.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "[REDACTED]",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "[REDACTED]",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "[REDACTED]",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 3,
+      "tool": "act",
+      "args": {
+        "intent": "Select the WEST-014 branch from the Branch dropdown",
+        "action": "select",
+        "target_name_attr": "branch",
+        "frame": "main",
+        "value": "WEST-014 - Westside"
+      },
+      "rationale": "I can see the form is already filled with the operator ID (\"teller1\") and [REDACTED] (set). Now I need to select the branch \"WEST-014\" and then sign on.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "select",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "MAIN-001 - Main Office\nWEST-014 - Westside\nEAST-022 - Eastgate",
+        "value": "MAIN-001",
+        "testid": "",
+        "name_attr": "branch",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "branch",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "combobox",
+            "name_equals": "MAIN-001 - Main Office\nWEST-014 - Westside\nEAST-022 - Eastgate",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 4,
+      "tool": "act",
+      "args": {
+        "intent": "Click the Sign On button to submit the credentials",
+        "action": "click",
+        "target_role": "button",
+        "target_name": "Sign On",
+        "frame": "main"
+      },
+      "rationale": "Looking at the current screen, I can see:\n- Operator ID field already has \"teller1\" \u2713\n- Password field is already set \u2713\n- Branch dropdown already shows \"WEST-014 - Westside\" \u2713\n\nAll fields are filled correctly. Now I need to press the Sign On button.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "submit",
+        "aria_label": "",
+        "text": "",
+        "value": "Sign On",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 5,
+      "tool": "assert_state",
+      "args": {
+        "id": "main_menu_displayed",
+        "description": "The MAIN MENU page is displayed after successful sign-on with operator TELLER1 on branch WEST-014",
+        "kind": "text_present",
+        "value": "MAIN MENU",
+        "frame": "main"
+      },
+      "rationale": "I can see the MAIN MENU is displayed. Let me assert the state and then read the heading.",
+      "url_before": "https://web-sample.interface-hiring.com/menu",
+      "url_after": "https://web-sample.interface-hiring.com/menu",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 6,
+      "tool": "act",
+      "args": {
+        "intent": "Read the MAIN MENU heading to capture it as session_status",
+        "action": "read",
+        "target_text": "MAIN MENU",
+        "frame": "main",
+        "output": "session_status"
+      },
+      "rationale": "The MAIN MENU is displayed. I need to read the heading and capture it as session_status.",
+      "url_before": "https://web-sample.interface-hiring.com/menu",
+      "url_after": "https://web-sample.interface-hiring.com/menu",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "b",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Main Menu",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "tr:nth-of-type(2) > td > font > a:nth-of-type(1) > b"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "b",
+            "name_equals": "Main Menu",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Main Menu",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "AMBIGUOUS_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "tr:nth-of-type(2) > td > font > a:nth-of-type(1) > b",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": "Main Menu",
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 7,
+      "tool": "finish",
+      "args": {
+        "status": "success",
+        "summary": "Successfully signed on to MERIDIAN CORE with operator TELLER1, [REDACTED], and branch WEST-014. The MAIN MENU is displayed and the session_status output was captured as 'Main Menu'."
+      },
+      "rationale": "The goal has already been fully completed. All steps have been taken, the Main Menu is displayed, and the `session_status` output has already been captured as **'Main Menu'**.",
+      "url_before": "https://web-sample.interface-hiring.com/menu",
+      "url_after": "https://web-sample.interface-hiring.com/menu",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    }
+  ]
+}

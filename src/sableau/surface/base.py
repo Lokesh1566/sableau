@@ -38,6 +38,7 @@ class SurfaceFeature(str, Enum):
 STRATEGY_FEATURE: dict[str, SurfaceFeature] = {
     "role": SurfaceFeature.ROLE_QUERY,
     "testid": SurfaceFeature.TESTID_QUERY,
+    "name": SurfaceFeature.DOM_QUERY,
     "label": SurfaceFeature.LABEL_QUERY,
     "placeholder": SurfaceFeature.LABEL_QUERY,
     "text": SurfaceFeature.TEXT_QUERY,

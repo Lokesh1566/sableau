@@ -1,0 +1,28 @@
+{
+  "capability_id": "meridian_core.place_account_hold",
+  "version": "1.0.0",
+  "title": "Place a hold on a member's share",
+  "description": "Sign on, open a member record, place a hold on a share with a reason code and notes, review and post. Irreversible and restricted to supervisors.",
+  "goal": "Sign on to MERIDIAN CORE using the Operator ID, Password and Branch supplied. From the main menu choose Member Inquiry / Selection, set 'Search by' to Member Number, enter the member number and press Search, then select the result. On the MEMBER RECORD screen use the Place Account Hold action. Choose the share and the reason code, enter the notes, continue to the review screen, verify the review details, and post the hold. The hidden _token belongs to each live form: never copy or persist it; submit the live form normally so the browser carries the current token. Read the confirmation reference and hold status from the result screen.",
+  "app_id": "meridian-core",
+  "entry_url": "https://web-sample.interface-hiring.com/signon",
+  "outcomes_ref": "capabilities/outcomes/meridian_core.json",
+  "max_retries": 2,
+  "redact_paths": ["input.password", "input.notes"],
+  "inputs": [
+    { "name": "operator", "type": "string", "required": true, "example": "super1", "sensitivity": "low",
+      "description": "Must be a supervisor. A teller is refused, which the capability reports as PERMISSION_DENIED." },
+    { "name": "password", "type": "string", "required": true, "example": "password", "sensitivity": "secret" },
+    { "name": "branch", "type": "enum", "required": true, "enum": ["MAIN-001", "WEST-014", "EAST-022"], "example": "MAIN-001", "sensitivity": "low" },
+    { "name": "member_number", "type": "string", "required": true, "pattern": "^[0-9]{6}$", "example": "101555" },
+    { "name": "share", "type": "string", "required": true, "example": "101555-MMKT-4",
+      "description": "Share ID exactly as printed in the SHARES / BALANCES table." },
+    { "name": "reason_code", "type": "enum", "required": true, "enum": ["FRAUD", "LEGAL", "DECEASED"], "example": "LEGAL" },
+    { "name": "notes", "type": "string", "required": true, "min_length": 5, "max_length": 200,
+      "example": "Hold placed pending fraud review.", "sensitivity": "medium" }
+  ],
+  "outputs": [
+    { "name": "confirmation_reference", "type": "string", "required": true },
+    { "name": "hold_status", "type": "string", "required": false }
+  ]
+}

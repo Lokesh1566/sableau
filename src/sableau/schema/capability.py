@@ -80,6 +80,21 @@ class TextLocator(Base):
     confidence: float = 0.6
 
 
+class NameAttrLocator(Base):
+    """The form control's ``name`` attribute.
+
+    Legacy, server-rendered forms are built around ``name``: it is what the
+    server reads on submit, so it is the one identifier the application cannot
+    change casually. Table-based layouts frequently have no ``<label for=>`` and
+    no accessible name at all, which makes every other text based strategy fail.
+    Ranked just below a test id for exactly that reason.
+    """
+
+    strategy: Literal["name"] = "name"
+    value: str
+    confidence: float = 0.88
+
+
 class CssLocator(Base):
     """Last resort. Recorded so replay degrades rather than dies."""
 
@@ -89,7 +104,8 @@ class CssLocator(Base):
 
 
 Locator = Annotated[
-    Union[RoleLocator, TestIdLocator, LabelLocator, PlaceholderLocator, TextLocator, CssLocator],
+    Union[RoleLocator, TestIdLocator, NameAttrLocator, LabelLocator,
+          PlaceholderLocator, TextLocator, CssLocator],
     Field(discriminator="strategy"),
 ]
 

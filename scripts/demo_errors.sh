@@ -5,7 +5,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 . scripts/_env.sh
 
-CAP=${CAP:-capabilities/meridian.record_claim_decision.v1.0.0.json}
+CAP=${CAP:-tests/fixtures/legacy_claim_capability.json}
 APP=http://127.0.0.1:${APP_PORT:-8099}
 GOOD="Reviewed against plan schedule, provider in network, no duplicate."
 

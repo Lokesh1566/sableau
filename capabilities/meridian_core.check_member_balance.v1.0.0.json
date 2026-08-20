@@ -1,0 +1,931 @@
+{
+  "schema_version": "1.0.0",
+  "capability_id": "meridian_core.check_member_balance",
+  "version": "1.0.0",
+  "title": "Read a member's share balances",
+  "description": "Sign on to MERIDIAN CORE, look up a member by number, and read the share balances and status from the member record.",
+  "provenance": {
+    "discovered_at": "2026-08-20T19:52:48.284191+00:00",
+    "goal": "Sign on to MERIDIAN CORE using the Operator ID, Password and Branch supplied. From the main menu choose Member Inquiry / Selection. Set 'Search by' to Member Number, enter the member number in the Value box and press Search, then select the matching result. On the MEMBER RECORD screen, read the member's Name plus the Share ID, Type, Balance, and Status from the first data row of the SHARES / BALANCES table. Change nothing.",
+    "planner": "anthropic",
+    "model": "claude-sonnet-4-6",
+    "trace_ref": "evidence/runs/discovery_20260820T195108Z_5d74f6/trace.json",
+    "compiler_version": "1.0.0",
+    "notes": "All required outputs have been successfully captured from the Member Record screen for member 101555:\n- member_name: \"Hopper, Grace\"\n- share_id: \"101555-S0001\"\n- share_type: \"Regular Shares\"\n- share_balance: \"$17,969.00\"\n- share_status: \"OPEN\"\nNo changes were made to any data."
+  },
+  "surface": {
+    "kind": "dom",
+    "required_features": [
+      "dom_query",
+      "role_query",
+      "text_query"
+    ],
+    "app_id": "meridian-core",
+    "entry_url": "https://web-sample.interface-hiring.com/signon"
+  },
+  "safety": {
+    "allowed_hosts": [
+      "web-sample.interface-hiring.com"
+    ],
+    "allowed_actions": [
+      "click",
+      "read",
+      "select",
+      "type",
+      "wait"
+    ],
+    "risk_level": "low",
+    "confirm_steps": [],
+    "redact_paths": [
+      "input.password"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "operator",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "teller1",
+      "sensitivity": "low",
+      "description": "Operator ID for the sign on screen."
+    },
+    {
+      "name": "password",
+      "type": "string",
+      "required": true,
+      "pattern": null,
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "[REDACTED]",
+      "sensitivity": "secret",
+      "description": "Operator password. Redacted from all logs, evidence and artifacts."
+    },
+    {
+      "name": "branch",
+      "type": "enum",
+      "required": true,
+      "pattern": null,
+      "enum": [
+        "MAIN-001",
+        "WEST-014",
+        "EAST-022"
+      ],
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "MAIN-001",
+      "sensitivity": "low",
+      "description": "Branch option on the sign on screen."
+    },
+    {
+      "name": "member_number",
+      "type": "string",
+      "required": true,
+      "pattern": "^[0-9]{6}$",
+      "enum": null,
+      "min_length": null,
+      "max_length": null,
+      "default": null,
+      "example": "100234",
+      "sensitivity": "low",
+      "description": null
+    }
+  ],
+  "outputs": [
+    {
+      "name": "member_name",
+      "type": "string",
+      "required": true,
+      "source": {
+        "step": "s9_read_the_member_s_name_fro",
+        "binding": "text",
+        "attr": null,
+        "extract_regex": null
+      },
+      "sensitivity": "low",
+      "description": "Name shown on the member record."
+    },
+    {
+      "name": "share_id",
+      "type": "string",
+      "required": true,
+      "source": {
+        "step": "s10_read_the_share_id_from_the",
+        "binding": "text",
+        "attr": null,
+        "extract_regex": null
+      },
+      "sensitivity": "low",
+      "description": null
+    },
+    {
+      "name": "share_type",
+      "type": "string",
+      "required": true,
+      "source": {
+        "step": "s11_read_the_share_type_from_t",
+        "binding": "text",
+        "attr": null,
+        "extract_regex": null
+      },
+      "sensitivity": "low",
+      "description": null
+    },
+    {
+      "name": "share_balance",
+      "type": "string",
+      "required": true,
+      "source": {
+        "step": "s12_read_the_balance_from_the",
+        "binding": "text",
+        "attr": null,
+        "extract_regex": null
+      },
+      "sensitivity": "low",
+      "description": "Balance of the first share in the SHARES / BALANCES table."
+    },
+    {
+      "name": "share_status",
+      "type": "string",
+      "required": true,
+      "source": {
+        "step": "s13_read_the_status_from_the_f",
+        "binding": "text",
+        "attr": null,
+        "extract_regex": null
+      },
+      "sensitivity": "low",
+      "description": null
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1_enter_the_operator_id",
+      "intent": "Enter the Operator ID",
+      "action": {
+        "type": "type",
+        "text": "{{input.operator}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "operator",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the Operator ID"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s2_enter_the_password",
+      "intent": "Enter the password",
+      "action": {
+        "type": "type",
+        "text": "{{input.password}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "password",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the password"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s3_select_the_west_014_branch",
+      "intent": "Select the WEST-014 branch",
+      "action": {
+        "type": "select",
+        "value": "{{input.branch}}"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "branch",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Select the WEST-014 branch"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s4_submit_the_sign_on_form_wi",
+      "intent": "Submit the sign-on form with the pre-filled credentials",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Submit the sign-on form with the pre-filled credentials"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s5_navigate_to_member_inquiry",
+      "intent": "Navigate to Member Inquiry / Selection from the main menu",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Member Inquiry / Selection",
+            "name_matches": null,
+            "confidence": 0.9
+          },
+          {
+            "strategy": "text",
+            "text": "Member Inquiry / Selection",
+            "within_css": null,
+            "exact": false,
+            "confidence": 0.6
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > a",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": {
+          "kind": "attribute_contains",
+          "attr": "href",
+          "value": "/members"
+        },
+        "description": "Navigate to Member Inquiry / Selection from the main menu"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_member_inquiry_open"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s6_enter_the_member_number_in",
+      "intent": "Enter the member number in the Value text box",
+      "action": {
+        "type": "type",
+        "text": "{{input.member_number}}",
+        "clear_first": true
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "name",
+            "value": "q",
+            "confidence": 0.88
+          },
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld:nth-of-type(1)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Enter the member number in the Value text box"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s7_click_the_search_button_to",
+      "intent": "Click the Search button to search for member number 101555",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.btn:nth-of-type(2)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Click the Search button to search for member number 101555"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_search_results_visible"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s8_click_the_select_link_to_o",
+      "intent": "Click the Select link to open the member record for Hopper, Grace (101555)",
+      "action": {
+        "type": "click"
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Select",
+            "name_matches": null,
+            "confidence": 0.9
+          },
+          {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > a",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": {
+          "kind": "attribute_contains",
+          "attr": "href",
+          "value": "/members/{{input.member_number}}"
+        },
+        "description": "Click the Select link to open the member record for Hopper, Grace (101555)"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [
+        "cp_member_record_open"
+      ],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s9_read_the_member_s_name_fro",
+      "intent": "Read the member's name from the Name field",
+      "action": {
+        "type": "read",
+        "binding": "text",
+        "attr": null
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(1) > tbody > tr:nth-of-type(1) > td:nth-of-type(4)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Read the member's name from the Name field"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s10_read_the_share_id_from_the",
+      "intent": "Read the Share ID from the first data row of the SHARES / BALANCES table",
+      "action": {
+        "type": "read",
+        "binding": "text",
+        "attr": null
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(2) > tbody > tr:nth-of-type(2) > td:nth-of-type(1)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Read the Share ID from the first data row of the SHARES / BALANCES table"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s11_read_the_share_type_from_t",
+      "intent": "Read the Share Type from the first data row of the SHARES / BALANCES table",
+      "action": {
+        "type": "read",
+        "binding": "text",
+        "attr": null
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(2) > tbody > tr:nth-of-type(2) > td:nth-of-type(2)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Read the Share Type from the first data row of the SHARES / BALANCES table"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s12_read_the_balance_from_the",
+      "intent": "Read the Balance from the first data row of the SHARES / BALANCES table",
+      "action": {
+        "type": "read",
+        "binding": "text",
+        "attr": null
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(2) > tbody > tr:nth-of-type(2) > td:nth-of-type(3)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Read the Balance from the first data row of the SHARES / BALANCES table"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    },
+    {
+      "id": "s13_read_the_status_from_the_f",
+      "intent": "Read the Status from the first data row of the SHARES / BALANCES table (101555-S0001 row)",
+      "action": {
+        "type": "read",
+        "binding": "text",
+        "attr": null
+      },
+      "target": {
+        "candidates": [
+          {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(2) > tbody > tr:nth-of-type(2) > td:nth-of-type(4)",
+            "confidence": 0.3
+          }
+        ],
+        "frame_path": [],
+        "ambiguity_policy": "fail_if_multiple",
+        "verify": null,
+        "description": "Read the Status from the first data row of the SHARES / BALANCES table (101555-S"
+      },
+      "risk": "safe",
+      "preconditions": [],
+      "postconditions": [],
+      "on_error": {
+        "retry": {
+          "max_attempts": 2,
+          "backoff_ms": 400
+        },
+        "classify_as": "MISSING_CONTROL",
+        "escalate": false
+      },
+      "timeout_ms": 8000
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp_member_inquiry_open",
+      "description": "Member Inquiry / Selection screen is open with Search by set to Member Number",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "MEMBER INQUIRY / SELECTION",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_search_results_visible",
+      "description": "Search results contain the requested member number",
+      "condition": {
+        "kind": "text_present",
+        "target": null,
+        "value": "{{input.member_number}}",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    },
+    {
+      "id": "cp_member_record_open",
+      "description": "Member Record screen is open for member 101555 Hopper, Grace with SHARES / BALANCES table visible",
+      "condition": {
+        "kind": "url_matches",
+        "target": null,
+        "value": "members/{{input.member_number}}",
+        "count": null,
+        "frame_path": []
+      },
+      "timeout_ms": 8000,
+      "on_fail_code": "CHECKPOINT_MISMATCH"
+    }
+  ],
+  "known_outcomes": [
+    {
+      "id": "session_timed_out",
+      "description": "The operator session ended and the console asked for a fresh sign on.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "YOUR SESSION HAS TIMED OUT",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "RECOVERABLE",
+        "code": "SESSION_EXPIRED",
+        "terminal": true,
+        "message": "The operator session timed out. Re-authenticate and invoke again.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "signon_rejected",
+      "description": "The console refused the operator id or password.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "Invalid operator",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "PERMISSION_DENIED",
+        "terminal": true,
+        "message": "The console rejected those sign on credentials.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "source_share_on_hold",
+      "description": "The share being debited is on HOLD, so the transfer cannot proceed.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "is HOLD and cannot be debited",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "ACCOUNT_ON_HOLD",
+        "terminal": true,
+        "message": "The source share is on hold and cannot be debited. Nothing was posted.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "transaction_not_validated",
+      "description": "The console rejected the transaction at the review screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "The transaction could not be validated",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "VALIDATION_ERROR",
+        "terminal": true,
+        "message": "The console rejected the transaction at the review screen.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "injected_validation_rejection",
+      "description": "The console rejected an injected or field-level validation request.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "TRANSACTION REJECTED",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "VALIDATION_ERROR",
+        "terminal": true,
+        "message": "The console rejected the submitted field or transaction values.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "supervisor_override_required",
+      "description": "A restricted action was attempted by an operator who is not a supervisor.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "A supervisor must sign on to complete this request.",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "PERMISSION_DENIED",
+        "terminal": true,
+        "message": "This action requires a supervisor. A human operator must decide how to proceed.",
+        "capture": null,
+        "recovery": "escalate"
+      }
+    },
+    {
+      "id": "member_not_found",
+      "description": "No member matched the search.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "No member",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "RECORD_NOT_FOUND",
+        "terminal": true,
+        "message": "No member matched that search.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "insufficient_funds",
+      "description": "The share does not hold enough to cover the amount.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "Insufficient",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "INSUFFICIENT_FUNDS",
+        "terminal": true,
+        "message": "The from-share does not have sufficient funds. Nothing was posted.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "injected_record_not_found",
+      "description": "The host returned its explicit RECORD NOT FOUND exceptional screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "RECORD NOT FOUND",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "BUSINESS_OUTCOME",
+        "code": "RECORD_NOT_FOUND",
+        "terminal": true,
+        "message": "The requested member record could not be located.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "maintenance_interstitial",
+      "description": "Nightly posting put the host into its known maintenance interstitial.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "SCHEDULED MAINTENANCE IN PROGRESS",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "RECOVERABLE",
+        "code": "TRANSIENT_FAILURE",
+        "terminal": true,
+        "message": "MERIDIAN CORE is temporarily in scheduled maintenance; retry later.",
+        "capture": null,
+        "recovery": "none"
+      }
+    },
+    {
+      "id": "application_error",
+      "description": "The host returned its explicit hard application-error screen.",
+      "detector": {
+        "kind": "text_present",
+        "target": null,
+        "value": "APPLICATION ERROR",
+        "count": null,
+        "frame_path": []
+      },
+      "after_steps": [],
+      "result": {
+        "category": "HARD_FAILURE",
+        "code": "APPLICATION_ERROR",
+        "terminal": true,
+        "message": "MERIDIAN CORE reported a hard application error.",
+        "capture": null,
+        "recovery": "none"
+      }
+    }
+  ],
+  "recovery": {
+    "global_max_retries": 3,
+    "escalate_on": [
+      "MISSING_CONTROL",
+      "AMBIGUOUS_CONTROL",
+      "UNEXPECTED_DIALOG",
+      "PERMISSION_DENIED"
+    ],
+    "escalation_mode": "human_handoff"
+  }
+}

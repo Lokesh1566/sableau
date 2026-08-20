@@ -1,0 +1,23 @@
+{
+  "capability_id": "meridian_core.find_member",
+  "version": "1.0.0",
+  "title": "Find and select a member",
+  "description": "Sign on and search for a member by member number or last name, then open the first matching member record.",
+  "goal": "Sign on to MERIDIAN CORE using the supplied Operator ID, Password and Branch. Open Member Inquiry / Selection. Set Search by to the supplied search_by value ('number' means Member Number; 'name' means Last Name), type the supplied query in the Value field, and press Search. Select the first matching result. On the MEMBER RECORD screen read the Member No. value as member_number and the Name value as member_name. Change nothing.",
+  "app_id": "meridian-core",
+  "entry_url": "https://web-sample.interface-hiring.com/signon",
+  "outcomes_ref": "capabilities/outcomes/meridian_core.json",
+  "max_retries": 3,
+  "redact_paths": ["input.password"],
+  "inputs": [
+    { "name": "operator", "type": "string", "required": true, "example": "teller1", "sensitivity": "low" },
+    { "name": "password", "type": "string", "required": true, "example": "password", "sensitivity": "secret" },
+    { "name": "branch", "type": "enum", "required": true, "enum": ["MAIN-001", "WEST-014", "EAST-022"], "example": "MAIN-001" },
+    { "name": "search_by", "type": "enum", "required": true, "enum": ["number", "name"], "example": "name", "description": "Use number for member number, or name for last name." },
+    { "name": "query", "type": "string", "required": true, "min_length": 1, "max_length": 40, "example": "Lovelace" }
+  ],
+  "outputs": [
+    { "name": "member_number", "type": "string", "required": true },
+    { "name": "member_name", "type": "string", "required": true }
+  ]
+}

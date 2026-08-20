@@ -1,0 +1,31 @@
+{
+  "capability_id": "meridian_core.transfer_funds",
+  "version": "1.0.0",
+  "title": "Transfer funds between a member's shares",
+  "description": "Sign on, open a member record, move an amount between two shares with a memo, review and post.",
+  "goal": "Sign on to MERIDIAN CORE using the Operator ID, Password and Branch supplied. From the main menu choose Member Inquiry / Selection, set 'Search by' to Member Number, enter the member number and press Search, then select the result. On the MEMBER RECORD screen use the Funds Transfer action. Choose the from-share and the to-share, enter the amount and the memo, continue to the review screen, verify the review details, and post the transfer. The hidden _token belongs to each live form: never copy or persist it; submit the live form normally so the browser carries the current token. Read the confirmation reference and posted amount from the result screen.",
+  "app_id": "meridian-core",
+  "entry_url": "https://web-sample.interface-hiring.com/signon",
+  "outcomes_ref": "capabilities/outcomes/meridian_core.json",
+  "max_retries": 3,
+  "redact_paths": ["input.password", "input.memo"],
+  "inputs": [
+    { "name": "operator", "type": "string", "required": true, "example": "teller1", "sensitivity": "low" },
+    { "name": "password", "type": "string", "required": true, "example": "password", "sensitivity": "secret" },
+    { "name": "branch", "type": "enum", "required": true, "enum": ["MAIN-001", "WEST-014", "EAST-022"], "example": "MAIN-001", "sensitivity": "low" },
+    { "name": "member_number", "type": "string", "required": true, "pattern": "^[0-9]{6}$", "example": "101555" },
+    { "name": "from_share", "type": "string", "required": true, "example": "101555-CERT",
+      "description": "Share ID to debit, exactly as printed in the SHARES / BALANCES table. A share on HOLD cannot be debited." },
+    { "name": "to_share", "type": "string", "required": true, "example": "101555-MMKT-3",
+      "description": "Share ID to credit." },
+    { "name": "amount", "type": "string", "required": true, "pattern": "^[0-9]+(\\.[0-9]{1,2})?$",
+      "example": "1.00" },
+    { "name": "memo", "type": "string", "required": true, "min_length": 3, "max_length": 120,
+      "example": "Member requested transfer at branch.", "sensitivity": "medium" }
+  ],
+  "outputs": [
+    { "name": "confirmation_reference", "type": "string", "required": true,
+      "description": "Reference the console issues once the transfer is posted." },
+    { "name": "posted_amount", "type": "string", "required": false }
+  ]
+}

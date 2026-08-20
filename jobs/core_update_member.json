@@ -1,0 +1,26 @@
+{
+  "capability_id": "meridian_core.update_member_information",
+  "version": "1.0.0",
+  "title": "Update a member's contact details",
+  "description": "Sign on, open a member record, update e-mail, phone and address, and save.",
+  "goal": "Sign on to MERIDIAN CORE using the Operator ID, Password and Branch supplied. From the main menu choose Member Inquiry / Selection, set 'Search by' to Member Number, enter the member number and press Search. On the MEMBER RECORD screen use the Update Member Information action. Set the e-mail, phone and address to the supplied values, save the change, and read the confirmation message.",
+  "app_id": "meridian-core",
+  "entry_url": "https://web-sample.interface-hiring.com/signon",
+  "outcomes_ref": "capabilities/outcomes/meridian_core.json",
+  "max_retries": 3,
+  "redact_paths": ["input.password", "input.email", "input.phone", "input.address"],
+  "inputs": [
+    { "name": "operator", "type": "string", "required": true, "example": "teller1", "sensitivity": "low" },
+    { "name": "password", "type": "string", "required": true, "example": "password", "sensitivity": "secret" },
+    { "name": "branch", "type": "enum", "required": true, "enum": ["MAIN-001", "WEST-014", "EAST-022"], "example": "MAIN-001", "sensitivity": "low" },
+    { "name": "member_number", "type": "string", "required": true, "pattern": "^[0-9]{6}$", "example": "101555" },
+    { "name": "email", "type": "string", "required": true, "example": "grace.hopper@example.com", "sensitivity": "medium" },
+    { "name": "phone", "type": "string", "required": true, "example": "555-0188", "sensitivity": "medium" },
+    { "name": "address", "type": "string", "required": true,
+      "example": "85 Compiler Way, Arlington", "sensitivity": "medium" }
+  ],
+  "outputs": [
+    { "name": "confirmation_message", "type": "string", "required": true,
+      "description": "What the console says once the update is saved." }
+  ]
+}

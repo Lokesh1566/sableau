@@ -231,6 +231,13 @@ class ReplayEngine:
 
     async def _execute_step(self, cap: Capability, step: Step, params: dict[str, Any]) -> None:
         t0 = time.monotonic()
+        self.recorder.log(
+            "step.start",
+            step=step.id,
+            action=step.action.type,
+            intent=step.intent,
+            risk=step.risk,
+        )
         self.policy.check_action(step.action.type)
         risk = step.risk
         escalated_risk = self.policy.classify_risk(step.action.type, step.intent)
@@ -313,15 +320,23 @@ class ReplayEngine:
         for cp_id in step.postconditions:
             await self._assert_checkpoint(cap.checkpoint(cp_id), step.id, "postcondition")
 
-        self._reports.append(
-            StepReport(
-                step_id=step.id,
-                status="recovered" if attempts > 1 else "ok",
-                attempts=attempts,
-                duration_ms=int((time.monotonic() - t0) * 1000),
-                resolved_strategy=resolution.strategy if resolution else None,
-                candidate_index=resolution.candidate_index if resolution else None,
-            )
+        report = StepReport(
+            step_id=step.id,
+            status="recovered" if attempts > 1 else "ok",
+            attempts=attempts,
+            duration_ms=int((time.monotonic() - t0) * 1000),
+            resolved_strategy=resolution.strategy if resolution else None,
+            candidate_index=resolution.candidate_index if resolution else None,
+        )
+        self._reports.append(report)
+        self.recorder.log(
+            "step.complete",
+            step=step.id,
+            action=step.action.type,
+            intent=step.intent,
+            status=report.status,
+            duration_ms=report.duration_ms,
+            attempts=attempts,
         )
 
     # ------------------------------------------------------------------

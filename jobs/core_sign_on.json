@@ -1,0 +1,20 @@
+{
+  "capability_id": "meridian_core.sign_on",
+  "version": "1.0.0",
+  "title": "Sign on to an operator session",
+  "description": "Authenticate an operator to MERIDIAN CORE and verify the session reached the main menu.",
+  "goal": "On the MERIDIAN CORE sign-on screen, enter the supplied Operator ID and Password. Select the supplied Branch value. Press Sign On. Verify that the MAIN MENU is displayed and read the MAIN MENU heading as session_status.",
+  "app_id": "meridian-core",
+  "entry_url": "https://web-sample.interface-hiring.com/signon",
+  "outcomes_ref": "capabilities/outcomes/meridian_core.json",
+  "max_retries": 2,
+  "redact_paths": ["input.password"],
+  "inputs": [
+    { "name": "operator", "type": "string", "required": true, "example": "teller1", "sensitivity": "low" },
+    { "name": "password", "type": "string", "required": true, "example": "password", "sensitivity": "secret" },
+    { "name": "branch", "type": "enum", "required": true, "enum": ["MAIN-001", "WEST-014", "EAST-022"], "example": "MAIN-001", "sensitivity": "low" }
+  ],
+  "outputs": [
+    { "name": "session_status", "type": "string", "required": true, "description": "MAIN MENU when an authenticated operator session is active." }
+  ]
+}

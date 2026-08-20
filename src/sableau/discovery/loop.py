@@ -17,6 +17,7 @@ unambiguous on the real page.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -114,7 +115,12 @@ class DiscoveryLoop:
             entry_url=job["entry_url"],
             params=params,
         )
-        context = {"params": params, "outputs": job.get("outputs", []), "entry_url": job["entry_url"]}
+        context = {
+            "params": params,
+            "outputs": job.get("outputs", []),
+            "entry_url": job["entry_url"],
+            "capability_id": job.get("capability_id", ""),
+        }
         history: list[str] = []
         repeats: dict[str, int] = {}
         declared_outputs = [o["name"] for o in job.get("outputs", [])]
@@ -128,6 +134,32 @@ class DiscoveryLoop:
         for turn in range(1, self.max_turns + 1):
             obs = await self.surface.observe(with_screenshot=False)
             planned = await self.planner.decide(goal, obs, history, context)
+            # Some providers occasionally return the inner action name (for
+            # example ``select``) as the tool name even though the registered
+            # tool is ``act``. The arguments still obey the act schema. Normalize
+            # that narrow case so the successful interaction is not executed but
+            # then silently omitted by the compiler.
+            if planned.tool not in {"act", "assert_state", "finish"} and planned.args.get("action"):
+                self.recorder.log(
+                    "discovery.tool_normalized",
+                    supplied=planned.tool,
+                    normalized="act",
+                )
+                planned = Planned(tool="act", args=planned.args, rationale=planned.rationale)
+            # Providers occasionally invent mouse-count verbs despite the
+            # registered enum. A double/triple click has no distinct replay
+            # meaning here; normalize it to the audited click primitive. The
+            # subsequent type action uses ``clear_first=True`` during compile,
+            # so selection-by-click is never required to clear form fields.
+            action_aliases = {"double-click": "click", "triple-click": "click"}
+            supplied_action = planned.args.get("action")
+            if supplied_action in action_aliases:
+                planned.args["action"] = action_aliases[supplied_action]
+                self.recorder.log(
+                    "discovery.action_normalized",
+                    supplied=supplied_action,
+                    normalized=planned.args["action"],
+                )
             self.recorder.log(
                 "discovery.decision",
                 turn=turn,
@@ -140,7 +172,7 @@ class DiscoveryLoop:
             # A planner that keeps re-issuing an action which changes nothing is
             # stuck. Say so out loud rather than burning the turn budget in
             # silence: first nudge it, then stop.
-            signature = _signature(planned, obs.url)
+            signature = _signature(planned, obs)
             repeats[signature] = repeats.get(signature, 0) + 1
             if repeats[signature] == self.repeat_warn:
                 history.append(
@@ -265,7 +297,9 @@ class DiscoveryLoop:
         entry.probes = await self._probe(descriptor, frame_path)
 
         if kind == "read" and not a.get("output"):
-            remaining = list(entry.args.get("_outputs_remaining") or [])
+            remaining = [
+                o for o in (entry.args.get("_outputs_remaining") or [])
+            ]
             if len(remaining) == 1:
                 a["output"] = remaining[0]
                 entry.args["output"] = remaining[0]
@@ -277,14 +311,26 @@ class DiscoveryLoop:
         result = await self.surface.act(resolution, action)
         if kind == "read":
             entry.read_value = result.value
+        elif kind == "select" and result.value is not None:
+            # Persist the option's machine value (e.g. ``name``), not a label
+            # such as ``Last Name``. Replays can then bind a typed enum directly.
+            entry.args["value"] = result.value
         entry.url_after = await self.surface.current_url()
+        moved = entry.url_after != entry.url_before
         self.recorder.log(
             "discovery.acted",
             turn=entry.seq,
             action=kind,
             risk=risk,
             resolved_via=resolution.strategy,
+            # what the resolver actually landed on. Without this, "click ok" is
+            # indistinguishable from "clicked the wrong thing successfully".
+            hit_tag=descriptor.get("tag"),
+            hit_type=descriptor.get("type"),
+            hit_name_attr=descriptor.get("name_attr"),
+            hit_text=(descriptor.get("text") or descriptor.get("value") or "")[:40],
             durable_locators=[p.locator["strategy"] for p in entry.probes if p.ok],
+            url_changed=moved,
             url=entry.url_after,
         )
 
@@ -350,26 +396,73 @@ def _hint_target(args: dict[str, Any], frame_path: list[str]) -> TargetSpec:
 
     Ambiguity is tolerated here (``first``) because this is exploration. The
     artifact that comes out the other side is held to a stricter standard.
+
+    The ordering matters on legacy surfaces. A table-based form puts its label
+    text in a neighbouring cell rather than in a ``<label for=>``, so the control
+    has no accessible name and every text based strategy misses it. The name
+    attribute and the bare-role fallback below are what make those forms
+    reachable at all: without them the planner can see a field it cannot address,
+    which is a frustrating way to fail.
     """
     cands: list[dict[str, Any]] = []
     if args.get("target_testid"):
         cands.append({"strategy": "testid", "value": args["target_testid"]})
+    if args.get("target_name_attr"):
+        cands.append({"strategy": "name", "value": args["target_name_attr"]})
     if args.get("target_role") and args.get("target_name"):
         cands.append({"strategy": "role", "role": args["target_role"], "name_equals": args["target_name"]})
     if args.get("target_label"):
         cands.append({"strategy": "label", "text": args["target_label"], "exact": False})
-    if args.get("target_role") and not args.get("target_name"):
-        cands.append({"strategy": "role", "role": args["target_role"]})
+    if args.get("target_placeholder"):
+        cands.append({"strategy": "placeholder", "text": args["target_placeholder"]})
+
+    # Guess the name attribute from the words the planner used. "Operator ID"
+    # becomes operator, operator_id, operatorid — server-rendered forms are
+    # overwhelmingly named after their own labels.
+    for guess in _name_guesses(args.get("target_name") or args.get("target_label") or ""):
+        cands.append({"strategy": "css", "value": f'[name="{guess}" i]'})
     if args.get("target_text"):
         cands.append({"strategy": "text", "text": args["target_text"]})
     if args.get("target_name"):
         cands.append({"strategy": "text", "text": args["target_name"]})
+
+    # Last resort: any control of that role. Only reached when nothing above
+    # matched, and only acceptable because discovery takes the first match and
+    # then measures what it actually hit.
+    if args.get("target_role"):
+        cands.append({"strategy": "role", "role": args["target_role"]})
+
+    # Substring match on the name attribute, genuinely last: a hint of "Search"
+    # would otherwise match a neighbouring control named "search_by".
+    hint = (args.get("target_name") or args.get("target_label") or "").strip()
+    if hint:
+        first = re.split(r"[^A-Za-z0-9]+", hint)[0].lower()
+        if len(first) > 2:
+            cands.append({"strategy": "css", "value": f'[name*="{first}" i]'})
+
     if not cands:
         raise PolicyViolation("planner proposed an action with no way to identify the control")
     return TargetSpec.model_validate(
         {"candidates": cands, "frame_path": frame_path, "ambiguity_policy": "first",
          "description": args.get("intent", "")[:80]}
     )
+
+
+def _name_guesses(hint: str) -> list[str]:
+    """Plausible ``name`` attributes for a field a human calls ``hint``."""
+    words = [w for w in re.split(r"[^A-Za-z0-9]+", hint) if w]
+    if not words:
+        return []
+    lower = [w.lower() for w in words]
+    out = ["".join(lower), "_".join(lower), lower[0]]
+    if len(lower) > 1:
+        out.append(lower[0] + lower[1].capitalize())
+    seen, unique = set(), []
+    for g in out:
+        if g and g not in seen:
+            seen.add(g)
+            unique.append(g)
+    return unique
 
 
 def _assert_target(args: dict[str, Any]) -> TargetSpec:
@@ -410,6 +503,9 @@ def _candidate_locators(descriptor: dict[str, Any]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     if descriptor.get("testid"):
         out.append({"strategy": "testid", "value": descriptor["testid"], "confidence": 0.95})
+    if descriptor.get("name_attr"):
+        # Legacy forms carry a name attribute even when they carry nothing else.
+        out.append({"strategy": "name", "value": descriptor["name_attr"], "confidence": 0.88})
     role = role_of(descriptor)
     name = (descriptor.get("aria_label") or descriptor.get("text") or "").strip()
     if role and name:
@@ -439,13 +535,33 @@ def _build_action(kind: str, a: dict[str, Any]):
     raise PolicyViolation(f"planner proposed an unsupported action: {kind}")
 
 
-def _signature(planned: Planned, url: str) -> str:
-    """Identify 'the same action on the same control on the same screen'."""
+def _signature(planned: Planned, observation) -> str:
+    """Identify 'the same action on the same control on the same screen'.
+
+    Assertions carry none of the ``target_*`` fields, so before their own
+    arguments were included here two *different* assertions on one screen were
+    counted as a repeat of each other, and the loop aborted a run that was
+    making progress.
+    """
     a = planned.args
-    bits = [planned.tool, str(a.get("action")), url]
+    bits = [planned.tool, str(a.get("action")), observation.url]
     bits += [str(a.get(k, "")) for k in
-             ("target_testid", "target_role", "target_name", "target_label",
-              "target_text", "output", "value", "text", "key", "url")]
+             ("target_testid", "target_name_attr", "target_placeholder",
+              "target_role", "target_name", "target_label",
+              "target_text", "output", "value", "text", "key", "url",
+              "id", "description", "kind")]
+    # A successful fill changes field state without changing the URL or visible
+    # body text. Include that state so the first accidental re-issue is not
+    # falsely counted as "no progress"; truly repeated actions on unchanged
+    # controls are still bounded by repeat_abort.
+    control_state = [
+        (
+            c.get("name_attr") or c.get("name") or c.get("testid") or c.get("tag"),
+            c.get("current_value", ""),
+        )
+        for c in observation.controls
+    ]
+    bits.append(json.dumps(control_state, sort_keys=True, default=str))
     return "|".join(bits)
 
 

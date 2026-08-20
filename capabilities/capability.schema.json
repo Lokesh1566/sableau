@@ -140,9 +140,12 @@
         "NONE",
         "RECORD_NOT_FOUND",
         "ALREADY_PROCESSED",
+        "INSUFFICIENT_FUNDS",
+        "ACCOUNT_ON_HOLD",
         "INVALID_INPUT",
         "VALIDATION_ERROR",
         "PERMISSION_DENIED",
+        "APPLICATION_ERROR",
         "CHECKPOINT_MISMATCH",
         "POLICY_VIOLATION",
         "SURFACE_INCOMPATIBLE",
@@ -344,6 +347,32 @@
         "text"
       ],
       "title": "LabelLocator",
+      "type": "object"
+    },
+    "NameAttrLocator": {
+      "additionalProperties": false,
+      "description": "The form control's ``name`` attribute.\n\nLegacy, server-rendered forms are built around ``name``: it is what the\nserver reads on submit, so it is the one identifier the application cannot\nchange casually. Table-based layouts frequently have no ``<label for=>`` and\nno accessible name at all, which makes every other text based strategy fail.\nRanked just below a test id for exactly that reason.",
+      "properties": {
+        "strategy": {
+          "const": "name",
+          "default": "name",
+          "title": "Strategy",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 0.88,
+          "title": "Confidence",
+          "type": "number"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "NameAttrLocator",
       "type": "object"
     },
     "NavigateAction": {
@@ -1031,6 +1060,7 @@
               "mapping": {
                 "css": "#/$defs/CssLocator",
                 "label": "#/$defs/LabelLocator",
+                "name": "#/$defs/NameAttrLocator",
                 "placeholder": "#/$defs/PlaceholderLocator",
                 "role": "#/$defs/RoleLocator",
                 "testid": "#/$defs/TestIdLocator",
@@ -1044,6 +1074,9 @@
               },
               {
                 "$ref": "#/$defs/TestIdLocator"
+              },
+              {
+                "$ref": "#/$defs/NameAttrLocator"
               },
               {
                 "$ref": "#/$defs/LabelLocator"

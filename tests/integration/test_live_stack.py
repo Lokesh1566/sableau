@@ -8,6 +8,7 @@ running, so the unit suite stays runnable anywhere. Bring both up with
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import httpx
@@ -21,7 +22,7 @@ from sableau.schema import Capability, ErrorCode, OutcomeCategory
 from sableau.surface.base import SurfaceFeature
 
 APP = "http://127.0.0.1:8099"
-CAP_PATH = Path("capabilities/meridian.record_claim_decision.v1.0.0.json")
+CAP_PATH = Path("tests/fixtures/legacy_claim_capability.json")
 
 pytestmark = pytest.mark.integration
 
@@ -34,8 +35,11 @@ def app_alive() -> bool:
 
 
 needs_stack = pytest.mark.skipif(
-    not (cdp_alive() and app_alive() and CAP_PATH.exists()),
-    reason="run ./scripts/up.sh and discovery first",
+    not (
+        os.environ.get("RUN_LIVE_LEGACY_TESTS") == "1"
+        and cdp_alive() and app_alive() and CAP_PATH.exists()
+    ),
+    reason="set RUN_LIVE_LEGACY_TESTS=1 after running ./scripts/up.sh and discovery",
 )
 
 
@@ -184,8 +188,11 @@ def tenant_alive() -> bool:
 
 
 needs_tenant = pytest.mark.skipif(
-    not (cdp_alive() and tenant_alive() and CAP_PATH.exists() and OVERLAY_PATH.exists()),
-    reason="second tenant instance not running; run ./scripts/up.sh",
+    not (
+        os.environ.get("RUN_LIVE_LEGACY_TESTS") == "1"
+        and cdp_alive() and tenant_alive() and CAP_PATH.exists() and OVERLAY_PATH.exists()
+    ),
+    reason="set RUN_LIVE_LEGACY_TESTS=1 with the two legacy target instances running",
 )
 
 

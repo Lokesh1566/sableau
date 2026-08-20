@@ -1,0 +1,156 @@
+{
+  "run_id": "replay_20260820T201627Z_c94dc7",
+  "capability_id": "meridian_core.update_member_information",
+  "capability_version": "1.0.0",
+  "started_at": "2026-08-20T20:16:29.369277+00:00",
+  "duration_ms": 20445,
+  "category": "SUCCESS",
+  "code": "NONE",
+  "outputs": {
+    "confirmation_message": "MEMBER INFORMATION UPDATED"
+  },
+  "business_outcome": null,
+  "error": null,
+  "control": {
+    "final_owner": "nobody",
+    "escalated": false,
+    "escalation_id": null,
+    "escalation_reason": null,
+    "human_actions": 0,
+    "resume_decision": null
+  },
+  "steps": [
+    {
+      "step_id": "s1_enter_the_supplied_operato",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 133,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s2_enter_the_supplied_passwor",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 73,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s3_select_the_supplied_branch",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 42,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s4_submit_the_sign_on_form",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 3039,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s5_open_member_inquiry_select",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2838,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s6_enter_the_supplied_member",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 55,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s7_search_for_the_member",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2976,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s8_open_the_first_matching_me",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2827,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s9_open_update_member_informa",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2966,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s10_enter_the_supplied_e_mail",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 70,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s11_enter_the_supplied_phone_n",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 40,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s12_enter_the_supplied_mailing",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 40,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s13_save_the_member_informatio",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 5293,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s14_read_the_member_update_con",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 44,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    }
+  ],
+  "llm_calls": 0,
+  "drift": {
+    "steps_resolved": 14,
+    "first_choice": 14,
+    "degraded": []
+  }
+}

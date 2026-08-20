@@ -200,6 +200,13 @@ def compile_capability(
             escalation_mode="human_handoff",
         ),
     )
+    bound_inputs = {name for kind, name in cap.iter_bindings() if kind == "input"}
+    unused_required = sorted(i.name for i in cap.inputs if i.required and i.name not in bound_inputs)
+    if unused_required:
+        raise CompilationError(
+            "required inputs were declared but never recorded into an action, locator, or "
+            f"checkpoint: {unused_required}. Re-run discovery with non-default examples."
+        )
     return cap
 
 
@@ -254,7 +261,34 @@ def _durable_candidates(entry, params, declared) -> list[dict[str, Any]]:
         and not (p.locator["strategy"] == "text" and (value_bearing or is_read))
     ]
     kept.sort(key=lambda c: c.get("confidence", 0.5), reverse=True)
-    return [_parameterise_deep(c, params, declared) for c in kept]
+    return [_parameterise_locator(c, params, declared) for c in kept]
+
+
+def _parameterise_locator(
+    locator: dict[str, Any], params: dict[str, Any], declared: set[str]
+) -> dict[str, Any]:
+    """Parameterise only locator fields whose visible payload may vary.
+
+    Structural identifiers such as ``name=password``, test ids and CSS paths
+    describe the application, not invocation data. Parameterising every string
+    made the public demo credential ``password`` turn ``name=password`` into
+    ``name={{input.password}}``. It happened to replay with that one credential
+    and silently failed with any other one. Role names and visible text may
+    legitimately contain a member number, so those remain parameterised.
+    """
+    out = dict(locator)
+    strategy = out.get("strategy")
+    dynamic_fields: tuple[str, ...]
+    if strategy == "role":
+        dynamic_fields = ("name_equals", "name_matches")
+    elif strategy == "text":
+        dynamic_fields = ("text",)
+    else:
+        dynamic_fields = ()
+    for field in dynamic_fields:
+        if field in out:
+            out[field] = _parameterise(out[field], params, declared)
+    return out
 
 
 def _step_from_entry(entry, index: int, params, declared, policy: Policy) -> Step | None:
@@ -287,7 +321,10 @@ def _step_from_entry(entry, index: int, params, declared, policy: Policy) -> Ste
         elif kind == "type":
             action = {"type": "type", "text": _parameterise(a.get("text", ""), params, declared)}
         elif kind == "select":
-            action = {"type": "select", "value": _parameterise(a.get("value", ""), params, declared)}
+            action = {
+                "type": "select",
+                "value": _parameterise_select_value(a.get("value", ""), params, declared),
+            }
         elif kind == "press":
             action = {"type": "press", "key": a.get("key", "Enter")}
         elif kind == "read":
@@ -312,6 +349,27 @@ def _step_from_entry(entry, index: int, params, declared, policy: Policy) -> Ste
             ).model_dump(),
         }
     )
+
+
+def _parameterise_select_value(value: Any, params: dict[str, Any], declared: set[str]) -> Any:
+    """Normalize a model-supplied option label back to the typed option value.
+
+    Legacy selects display labels such as ``WEST-014 - Westside`` while posting
+    ``WEST-014``. A planner may return either. If the label starts with a supplied
+    input value, bind only that value; retaining the discovery-time suffix would
+    produce ``MAIN-001 - Westside`` on a later invocation.
+    """
+    if not isinstance(value, str):
+        return value
+    for name in sorted(params, key=lambda n: len(str(params[n])), reverse=True):
+        if name not in declared:
+            continue
+        literal = str(params[name])
+        if value == literal:
+            return f"{{{{input.{name}}}}}"
+        if value.startswith(literal) and value[len(literal):len(literal) + 1] in {" ", "-", "("}:
+            return f"{{{{input.{name}}}}}"
+    return _parameterise(value, params, declared)
 
 
 def _verify_for(entry, params, declared) -> dict[str, Any] | None:

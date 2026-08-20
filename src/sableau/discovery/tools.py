@@ -44,6 +44,15 @@ ACT_TOOL = {
             "target_role": {"type": "string", "description": "button, link, textbox, combobox, heading..."},
             "target_name": {"type": "string", "description": "Visible or accessible name of the control."},
             "target_testid": {"type": "string"},
+            "target_name_attr": {
+                "type": "string",
+                "description": (
+                    "The control's `name` attribute, shown as name_attr in the controls list. "
+                    "On legacy forms with no label association this is the most reliable "
+                    "identifier available - prefer it when you can see one."
+                ),
+            },
+            "target_placeholder": {"type": "string"},
             "target_label": {"type": "string"},
             "target_text": {"type": "string"},
             "output": {
@@ -78,6 +87,15 @@ ASSERT_TOOL = {
             "target_role": {"type": "string"},
             "target_name": {"type": "string"},
             "target_testid": {"type": "string"},
+            "target_name_attr": {
+                "type": "string",
+                "description": (
+                    "The control's `name` attribute, shown as name_attr in the controls list. "
+                    "On legacy forms with no label association this is the most reliable "
+                    "identifier available - prefer it when you can see one."
+                ),
+            },
+            "target_placeholder": {"type": "string"},
             "frame": {"type": "string"},
         },
         "required": ["id", "description", "kind"],

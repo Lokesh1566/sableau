@@ -1,0 +1,13 @@
+{
+  "escalation_id": "esc_b0cc8f82",
+  "reason_code": "PERMISSION_DENIED",
+  "reason": "A restricted action was attempted by an operator who is not a supervisor.",
+  "step_id": "s13_continue_to_the_hold_revie",
+  "state_url": "https://web-sample.interface-hiring.com/members/101555/hold/review",
+  "screenshot_ref": "evidence/runs/replay_20260820T202123Z_ed01a2/screenshots/escalation_supervisor_override_required.png",
+  "created_at": "2026-08-20T20:21:55.894962+00:00",
+  "resolved_at": null,
+  "decision": null,
+  "operator": null,
+  "human_actions": []
+}

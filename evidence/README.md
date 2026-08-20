@@ -1,43 +1,33 @@
-# Evidence
+# MERIDIAN CORE evidence
 
-Every file here is output from a real execution on this machine. Nothing is
-hand written or reconstructed. Rebuild the whole directory with:
+These run directories were produced by the application while driving the public live MERIDIAN UI. Discovery directories contain `trace.json`, a redacted structured `log.jsonl`, `capability.json`, and a final screenshot. Replay directories contain `result.json`, a redacted log, and richer evidence captured by the engine. Replays report `llm_calls=0` in their own result contract.
 
-    ./scripts/make_evidence.sh
+## Representative run pairs
 
-Generated 2026-08-13T21:09:34+00:00.
+| Capability | Discovery | Planner | Deterministic replay | Verified replay result |
+|---|---|---|---|---|
+| Sign on | `discovery_20260820T194521Z_786e4e` | Anthropic / Claude Sonnet 4.6 | `replay_20260820T194604Z_83d003` | `SUCCESS`, `MAIN MENU`, 0 LLM calls |
+| Find member | `discovery_20260820T194820Z_4f525e` | Anthropic / Claude Sonnet 4.6 | `replay_20260820T195047Z_674998` | `SUCCESS`, member `101555`, 0 LLM calls |
+| Check balance | `discovery_20260820T195108Z_5d74f6` | Anthropic / Claude Sonnet 4.6 | `replay_20260820T200221Z_1d13b5` | second member `102777`, balance/status extracted, 0 LLM calls |
+| Transfer funds | `discovery_20260820T195824Z_19e43c` | Anthropic / Claude Sonnet 4.6 | `replay_20260820T200152Z_f36069` | posted to a different destination, confirmation `CN480086`, 0 LLM calls |
+| Open new share | `discovery_20260820T200314Z_a6e611` | Anthropic / Claude Sonnet 4.6 | `replay_20260820T200553Z_acf2cb` | different branch/type, new share `103001-S0070-6`, 0 LLM calls |
+| Update member | `discovery_20260820T201559Z_d99601` | labeled heuristic fallback | `replay_20260820T201627Z_c94dc7` | different contact values, `MEMBER INFORMATION UPDATED`, 0 LLM calls |
+| Place account hold | `discovery_20260820T201653Z_545301` | labeled heuristic fallback | `replay_20260820T202053Z_705f5e` | supervisor posted hold, confirmation `CN480100`, 0 LLM calls |
 
-## Transcripts
+The heuristic rows are intentionally identified as such in both this index and `capability.json`; they are not presented as model runs. Five genuine model-driven live discoveries remain bundled, exceeding the original requirement for at least one.
 
-- **[Discovery](01_discovery.txt)** One observe, decide, act run against the live application, and the capability compiled from it.
-- **[Deterministic replay](02_replay.txt)** The compiled capability executed with parameters it has never seen, twice, with no model in the loop.
-- **[Outcome and error taxonomy](03_errors.txt)** Ten runtime conditions, each classified rather than raised.
-- **[Human handoff](04_handoff.txt)** Automation pauses, a person acts on the same live session, automation resumes and finishes.
-- **[Test results](05_tests.txt)** Unit suite and live integration suite.
+## Exceptional and escalation run
 
-## Run directories
+`replay_20260820T202123Z_ed01a2` invokes `meridian_core.place_account_hold` as `teller1`. The capability fills the live form and attempts to continue. MERIDIAN returns its teller-only authorization sentence, after which replay:
 
-Each contains `log.jsonl` (structured, redacted), a `result.json` or
-`trace.json`, and `screenshots/` captured at failures and escalations.
+- classifies `HARD_FAILURE/PERMISSION_DENIED`;
+- captures `screenshots/escalation_supervisor_override_required.png` and a DOM snapshot;
+- transitions control from `AUTOMATION_RUNNING` to `PAUSED`;
+- emits an escalation with capability, step, URL, reason, screenshot, and timestamps;
+- returns with `llm_calls=0` and without posting the hold.
 
-| run | kind | outcome | detail | llm calls |
-| --- | --- | --- | --- | --- |
-| `discovery_20260813T210648Z_0d78b6` | discovery | success | planner=anthropic turns=15 | - |
-| `handoff_20260813T210853Z_ee2b66` | replay | SUCCESS/NONE (escalated) | confirmation_code=MCD-77201, decided_amount=385.0 | 0 |
-| `replay_20260813T210803Z_d832d9` | replay | SUCCESS/NONE | confirmation_code=MCD-77201, decided_amount=612.5 | 0 |
-| `replay_20260813T210809Z_be74cb` | replay | SUCCESS/NONE | confirmation_code=MCD-77202, decided_amount=78.0 | 0 |
-| `replay_20260813T210817Z_280e8a` | replay | HARD_FAILURE/INVALID_INPUT | input outcome must be one of ['APPROVED', 'REJECTED'], got 'MAYBE' | 0 |
-| `replay_20260813T210817Z_e86051` | replay | HARD_FAILURE/INVALID_INPUT | input claim_id does not match required format ^CLM-[0-9]{6}$ | 0 |
-| `replay_20260813T210818Z_8e3e03` | replay | BUSINESS_OUTCOME/RECORD_NOT_FOUND | search_no_match | 0 |
-| `replay_20260813T210819Z_1c8fe8` | replay | BUSINESS_OUTCOME/ALREADY_PROCESSED | already_decided | 0 |
-| `replay_20260813T210820Z_8de10c` | replay | HARD_FAILURE/VALIDATION_ERROR | The claims system rejected the decision form. | 0 |
-| `replay_20260813T210824Z_d21524` | replay | HARD_FAILURE/PERMISSION_DENIED | The signed in operator is not permitted to decide this claim. | 0 |
-| `replay_20260813T210828Z_5432e4` | replay | SUCCESS/NONE | confirmation_code=MCD-77201, decided_amount=210.0 | 0 |
-| `replay_20260813T210835Z_9592d4` | replay | SUCCESS/NONE | confirmation_code=MCD-77202, decided_amount=78.0 | 0 |
-| `replay_20260813T210844Z_4d8419` | replay | RECOVERABLE/SESSION_EXPIRED | The session expired. Re-authenticate and invoke the capability again. | 0 |
-| `replay_20260813T210853Z_df6b18` | replay | HARD_FAILURE/POLICY_VIOLATION | capability declares hosts that the deployment policy does not allow: [ | 0 |
+This is a natural target permission error, not an injected or mocked exception.
 
-Note the `llm calls` column: every replay row is zero. That number comes from
-the engine's own result contract, and the same invariant is asserted
-structurally in `tests/test_no_llm_in_replay.py`.
+## Data handling
 
+Passwords, contact data, memos, and hold notes are redacted. The live form token appears only as `[opaque]` in observations and is absent from compiled artifacts. The public demo contains synthetic records; no real customer data is included.

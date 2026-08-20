@@ -1,0 +1,11 @@
+{
+  "allowed_hosts": ["web-sample.interface-hiring.com"],
+  "allowed_actions": ["navigate", "click", "type", "select", "press", "read", "wait"],
+  "risky_intent_keywords": [
+    "post", "transfer", "approve", "reject", "delete", "save",
+    "hold", "confirm", "open new", "update", "pay", "cancel"
+  ],
+  "allow_risky": true,
+  "max_steps": 40,
+  "require_confirmation": false
+}

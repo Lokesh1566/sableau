@@ -1,75 +1,25 @@
 # Requirement audit
 
-Every row points at code that exists and, where relevant, at evidence produced by a real run. Rows
-marked **partial** say plainly what is missing.
+Verified against the live MERIDIAN CORE target on 2026-08-20. Automated result: `90 passed, 13 skipped`; skipped tests require explicitly enabled live services.
 
-Verified on my machine: 101 tests passing (69 unit, 11 live-browser integration), with real run
-directories in `evidence/runs/`.
-
-## Core flow
-
-| # | Requirement | Status | Where |
-|---|---|---|---|
-| 1 | Natural-language goal plus target application | done | `jobs/approve_claim.json`, `cli.py::cmd_discover` |
-| 2 | LLM observes the live UI and decides the action | done | `discovery/loop.py`, `discovery/planner.py::AnthropicPlanner` |
-| 3 | Clicks, types, navigates, reads until complete | done | `surface/playwright_dom.py::act`, `evidence/01_discovery.txt` |
-| 4 | Successful run becomes a typed, versioned artifact | done | `discovery/compiler.py`, `capabilities/meridian.record_claim_decision.v1.0.0.json` |
-| 5 | Artifact holds inputs, outputs, actions, targeting, checkpoints, error behaviour | done | `schema/capability.py` |
-| 6 | Invocable with new parameters | done | `evidence/02_replay.txt`, two claims discovery never saw |
-| 7 | Deterministic replay, no LLM in decisions | done | `replay/engine.py`, `tests/test_no_llm_in_replay.py` |
-| 8 | Replay verifies checkpoints, returns structured outputs | done | `engine.py::_assert_checkpoint`, `_collect_outputs` |
-| 9 | Four-way outcome classification | done | `schema/errors.py::OutcomeCategory`, `evidence/03_errors.txt` |
-| 10 | Pause and transfer the same live session to a human | done | `kernel/control.py`, `operator/app.py`, `evidence/04_handoff.txt` |
-| 11 | Human acts, then returns control | done | same file, four recorded transitions |
-| 12 | Everything logged with sensitive values redacted | done | `kernel/observability.py`, `kernel/redaction.py` |
-
-## Engineering requirements
-
-| Requirement | Status | Where |
+| Requirement | Status | Evidence / implementation |
 |---|---|---|
-| Observe → decide → act loop | done | `discovery/loop.py::DiscoveryLoop.run` |
-| Real UI interaction | done | Chromium 150 over CDP; screenshots in `evidence/runs/*/screenshots/` |
-| Surface abstraction | done | `surface/base.py::Surface` plus `SurfaceFeature` |
-| Typed, versioned capability schema | done | `schema/capability.py`, semver enforced, `capabilities/capability.schema.json` |
-| Parameterised inputs | done | closed binding grammar, `replay/bindings.py` |
-| Typed outputs | done | `OutputSpec` with `extract_regex`, cast at extraction |
-| Robust locator targeting | done | ranked candidates probed live, `verify` predicate, frame paths |
-| Deterministic replay engine | done | `replay/engine.py` |
-| Explicit checkpoints | done | `Checkpoint`, pre/postconditions, parameter-bound |
-| Structured result contract | done | `schema/results.py::ReplayResult` |
-| Error and outcome taxonomy | done | 16 codes, 4 categories, no generic exceptions |
-| Bounded retry and recovery | done | locator fallback → step retry → capability restart, all counted |
-| Domain and action allowlist | done | `policy.json`, `kernel/policy.py`, enforced in both paths |
-| Safe vs risky classification | done | mutation plus intent verbs; can raise risk, never lower |
-| Sensitive-data redaction | done | boundary-level; leak test on a live run |
-| Structured observability | done | JSONL per run |
-| Screenshots and traces on failure | done | captured at every failure and escalation |
-| Human escalation | done | reason, step, state, evidence, owner |
-| Control ownership state machine | done | illegal transitions raise |
-| Pause and resume the same live session | done | one process, one ownership token |
-| Tests for critical components | done | 68 tests |
-| Capability not coupled to browser DOM | done | no DOM concept in `schema/`; `NullSurface` proves it |
-| Raw transcript is not the capability | done | 11 turns → 8 steps, locators re-derived, 25 literals parameterised |
-| Realistic runtime error conditions | done | all ten, against the live application |
-| Safe demo application | done | `targetapp/`, fictional, localhost only |
-| Real evidence, never fabricated | done | `scripts/make_evidence.sh` regenerates the lot |
-| README and REPORT | done | both, with exact commands |
-| Small architecture, no needless infrastructure | done | no queue, broker, or orchestration |
+| Real LLM observe/decide/act discovery | done | Five Anthropic live discovery traces indexed in `evidence/README.md`; `src/sableau/discovery/` |
+| Typed, versioned, reviewable artifacts | done | `src/sableau/schema/`; seven `capabilities/meridian_core.*.v1.0.0.json` files |
+| All seven requested banking functions | done | sign-on, find member, balance, transfer, open share, update member, account hold |
+| Deterministic replay with new parameters | done | representative replay for every function; all report `llm_calls=0` |
+| Hidden per-form transaction token | done | observed only as `[opaque]`; submitted through the live form; absent from artifacts |
+| Business/recoverable/hard-failure separation | done | `ReplayResult`, `OutcomeCategory`, eleven MERIDIAN outcome detectors |
+| Validation, not-found, permission, timeout, maintenance, server errors | done | typed input validation plus `capabilities/outcomes/meridian_core.json` |
+| Successful and exceptional evidence | done | `evidence/runs/`; teller denial run `replay_20260820T202123Z_ed01a2` |
+| Pause and escalate with context | done | teller denial pauses control and emits step/URL/reason/screenshot context |
+| Same-session take-control/resume | done | `src/sableau/kernel/control.py`, `src/sableau/operator/`, optional `scripts/demo_handoff.py` fixture |
+| Host/action allowlist and risky confirmation | done | `policy-core.json`; CLI/API/chat/dashboard confirmations |
+| Secret and PII redaction | done | typed sensitivities, redaction boundary, safe artifact dump, redacted API/dashboard evidence |
+| Capability catalog and invoke API | done | exactly seven live MERIDIAN entries; `/api/capabilities`, `/invoke`, OpenAPI docs |
+| Banking chatbot | done | safe reads plus confirmation-gated write intents in `src/sableau/api/app.py` |
+| Dashboard inputs/live steps/results/history/evidence | done | seven forms and chat examples; watchable run API; live timings and escalation badge in `src/sableau/api/static/index.html` |
+| Exact README demo commands | done | `README.md` |
+| Seven-heading design report | done | `REPORT.md` |
 
-## Partial
-
-| Requirement | What exists | What does not |
-|---|---|---|
-| Model-driven discovery evidence | `AnthropicPlanner` is complete tool-use code; one command runs it | the committed evidence used `--planner heuristic`, since the machine I built on had no API key. Provenance records which planner ran |
-| Multiple surfaces | protocol, feature declaration, compatibility refusal, two implementations | a11y-tree, coordinate and desktop surfaces designed for, not written |
-| Multi-tenant infrastructure | a second tenant instance, control-alias overlays, version binding, drift scoring, cross-tenant replay proven in CI | no tenant registry, credential vaulting, or scheduled drift monitoring |
-| Session-expiry recovery | detected and classified `RECOVERABLE/SESSION_EXPIRED` | no automatic re-authentication |
-
-## Reproducing all of it
-
-```bash
-pip install -e ".[dev]" && python -m playwright install chromium
-./scripts/up.sh
-./scripts/make_evidence.sh      # discovery, replays, every error case, handoff, tests
-python -m pytest -q             # 68 tests
-```
+Deliberate cuts—desktop/screenshot adapters, browser fleet, credential vault, encrypted evidence store, and production identity/dual-control integration—are documented in `REPORT.md` under **Cuts**.

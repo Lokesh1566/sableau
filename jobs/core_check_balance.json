@@ -1,0 +1,31 @@
+{
+  "capability_id": "meridian_core.check_member_balance",
+  "version": "1.0.0",
+  "title": "Read a member's share balances",
+  "description": "Sign on to MERIDIAN CORE, look up a member by number, and read the share balances and status from the member record.",
+  "goal": "Sign on to MERIDIAN CORE using the Operator ID, Password and Branch supplied. From the main menu choose Member Inquiry / Selection. Set 'Search by' to Member Number, enter the member number in the Value box and press Search, then select the matching result. On the MEMBER RECORD screen, read the member's Name plus the Share ID, Type, Balance, and Status from the first data row of the SHARES / BALANCES table. Change nothing.",
+  "app_id": "meridian-core",
+  "entry_url": "https://web-sample.interface-hiring.com/signon",
+  "outcomes_ref": "capabilities/outcomes/meridian_core.json",
+  "max_retries": 3,
+  "redact_paths": ["input.password"],
+  "inputs": [
+    { "name": "operator", "type": "string", "required": true, "example": "teller1", "sensitivity": "low",
+      "description": "Operator ID for the sign on screen." },
+    { "name": "password", "type": "string", "required": true, "example": "password", "sensitivity": "secret",
+      "description": "Operator password. Redacted from all logs, evidence and artifacts." },
+    { "name": "branch", "type": "enum", "required": true, "enum": ["MAIN-001", "WEST-014", "EAST-022"], "example": "MAIN-001",
+      "sensitivity": "low", "description": "Branch option on the sign on screen." },
+    { "name": "member_number", "type": "string", "required": true, "pattern": "^[0-9]{6}$",
+      "example": "100234", "sensitivity": "low" }
+  ],
+  "outputs": [
+    { "name": "member_name", "type": "string", "required": true,
+      "description": "Name shown on the member record." },
+    { "name": "share_id", "type": "string", "required": true },
+    { "name": "share_type", "type": "string", "required": true },
+    { "name": "share_balance", "type": "string", "required": true,
+      "description": "Balance of the first share in the SHARES / BALANCES table." },
+    { "name": "share_status", "type": "string", "required": true }
+  ]
+}

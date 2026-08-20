@@ -1,0 +1,27 @@
+{
+  "capability_id": "meridian_core.open_new_share",
+  "version": "1.0.0",
+  "title": "Open a new share for a member",
+  "description": "Sign on, open a member record, open a new share of the given type with an initial deposit, review and post.",
+  "goal": "Sign on to MERIDIAN CORE using the Operator ID, Password and Branch supplied. From the main menu choose Member Inquiry / Selection, set 'Search by' to Member Number, enter the member number and press Search, then select the result. On the MEMBER RECORD screen use the Open New Share action. Choose the share type, enter the initial deposit, continue to the review screen, verify the review details, and post it. The hidden _token belongs to each live form: never copy or persist it; submit the live form normally so the browser carries the current token. Read the new share identifier and confirmation reference from the result screen.",
+  "app_id": "meridian-core",
+  "entry_url": "https://web-sample.interface-hiring.com/signon",
+  "outcomes_ref": "capabilities/outcomes/meridian_core.json",
+  "max_retries": 3,
+  "redact_paths": ["input.password"],
+  "inputs": [
+    { "name": "operator", "type": "string", "required": true, "example": "teller1", "sensitivity": "low" },
+    { "name": "password", "type": "string", "required": true, "example": "password", "sensitivity": "secret" },
+    { "name": "branch", "type": "enum", "required": true, "enum": ["MAIN-001", "WEST-014", "EAST-022"], "example": "MAIN-001", "sensitivity": "low" },
+    { "name": "member_number", "type": "string", "required": true, "pattern": "^[0-9]{6}$", "example": "103001" },
+    { "name": "share_type", "type": "enum", "required": true, "enum": ["S0001", "S0070", "MMKT", "CERT"], "example": "MMKT",
+      "description": "MERIDIAN share-type code." },
+    { "name": "initial_deposit", "type": "string", "required": true,
+      "pattern": "^[0-9]+(\\.[0-9]{1,2})?$", "example": "5.00" }
+  ],
+  "outputs": [
+    { "name": "new_share_id", "type": "string", "required": true,
+      "description": "Share ID of the share that was opened." },
+    { "name": "confirmation_reference", "type": "string", "required": false }
+  ]
+}

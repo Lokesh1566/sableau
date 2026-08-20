@@ -24,15 +24,19 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-DEFAULT_PORT = int(os.environ.get("SABLEAU_CDP_PORT", "9222"))
+DEFAULT_PORT = 9222
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
-def cdp_url(port: int = DEFAULT_PORT) -> str:
-    return os.environ.get("SABLEAU_CDP_URL") or f"http://127.0.0.1:{port}"
+def _resolved_port(port: int | None = None) -> int:
+    return port if port is not None else int(os.environ.get("SABLEAU_CDP_PORT", DEFAULT_PORT))
 
 
-def cdp_alive(port: int = DEFAULT_PORT, timeout: float = 1.5) -> bool:
+def cdp_url(port: int | None = None) -> str:
+    return os.environ.get("SABLEAU_CDP_URL") or f"http://127.0.0.1:{_resolved_port(port)}"
+
+
+def cdp_alive(port: int | None = None, timeout: float = 1.5) -> bool:
     try:
         with urllib.request.urlopen(f"{cdp_url(port)}/json/version", timeout=timeout):
             return True
@@ -49,10 +53,22 @@ def _wait_for_cdp(port: int, seconds: float = 25.0) -> bool:
     return False
 
 
-def launch_browser(port: int = DEFAULT_PORT, headless: bool = True) -> subprocess.Popen | None:
+def _headless_from_env() -> bool:
+    return os.environ.get("SABLEAU_HEADLESS", "1").strip().lower() not in {
+        "0", "false", "no", "off",
+    }
+
+
+def launch_browser(
+    port: int | None = None,
+    headless: bool | None = None,
+) -> subprocess.Popen | None:
     """Start a Chromium exposing CDP on ``port``. Returns None if one is already up."""
+    port = _resolved_port(port)
     if cdp_alive(port):
         return None
+    if headless is None:
+        headless = _headless_from_env()
 
     electron = REPO_ROOT / "browser" / "node_modules" / "electron" / "dist" / "electron"
     if electron.exists():
@@ -72,7 +88,7 @@ def launch_browser(port: int = DEFAULT_PORT, headless: bool = True) -> subproces
     except ImportError as exc:  # pragma: no cover
         raise RuntimeError("playwright is not installed") from exc
 
-    exe = _playwright_chromium()
+    exe = _playwright_chromium(headless=headless)
     if exe is None:
         raise RuntimeError(
             "No browser available. Either run 'python -m playwright install chromium', "
@@ -80,7 +96,7 @@ def launch_browser(port: int = DEFAULT_PORT, headless: bool = True) -> subproces
         )
     cmd = [
         exe, f"--remote-debugging-port={port}", "--no-sandbox", "--no-first-run",
-        "--remote-allow-origins=*", "--user-data-dir=/tmp/sableau-profile", "about:blank",
+        "--remote-allow-origins=*", f"--user-data-dir=/tmp/sableau-profile-{port}", "about:blank",
     ]
     if headless:
         cmd.insert(1, "--headless=new")
@@ -92,28 +108,65 @@ def launch_browser(port: int = DEFAULT_PORT, headless: bool = True) -> subproces
     raise RuntimeError("chromium did not expose CDP in time")
 
 
-def _playwright_chromium() -> str | None:
+def _playwright_chromium(headless: bool = True) -> str | None:
     """Ask Playwright where its own Chromium is.
 
     Much better than globbing install directories, which differ between macOS
     (``chrome-mac/...app/Contents/MacOS/...``) and Linux
     (``chrome-linux/chrome``) and change between releases.
     """
+    if headless:
+        cache_roots = [
+            Path.home() / "Library" / "Caches" / "ms-playwright",
+            Path.home() / ".cache" / "ms-playwright",
+        ]
+        for root in cache_roots:
+            candidates = sorted(
+                root.glob("chromium_headless_shell-*/**/chrome-headless-shell"), reverse=True
+            )
+            for candidate in candidates:
+                if candidate.is_file():
+                    return str(candidate)
+
+    system_candidates = [
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+        "/Applications/Chromium.app/Contents/MacOS/Chromium",
+        shutil.which("google-chrome"),
+        shutil.which("chromium"),
+        shutil.which("chromium-browser"),
+    ]
+    # Prefer a Playwright-managed binary when present. Using the Chromium build
+    # installed by this project's Playwright version avoids CDP protocol
+    # incompatibilities with a much newer system Chrome. In particular, current
+    # Playwright installs may ship only ``chromium_headless_shell``; asking for
+    # ``chromium.executable_path`` alone then points at a non-existent full
+    # browser even though a perfectly suitable CDP binary is already cached.
     try:
         from playwright.sync_api import sync_playwright
 
         with sync_playwright() as pw:
-            path = pw.chromium.executable_path
+            managed = pw.chromium.executable_path
+        if managed and Path(managed).exists():
+            return managed
     except Exception:  # noqa: BLE001
-        return None
-    return path if path and Path(path).exists() else None
+        pass
+
+    # Otherwise reuse a browser the machine already has. This remains a useful
+    # fallback when ``playwright install chromium`` has not been run.
+    for candidate in system_candidates:
+        if candidate and Path(candidate).exists():
+            return str(candidate)
+
+    return None
 
 
-async def open_surface(port: int = DEFAULT_PORT):
+async def open_surface(port: int | None = None):
     """Connect a PlaywrightDomSurface to the shared browser."""
     from .surface.playwright_dom import PlaywrightDomSurface
 
+    port = _resolved_port(port)
     if not cdp_alive(port):
-        launch_browser(port)
+        launch_browser(port, headless=None)
         await asyncio.sleep(0.5)
     return await PlaywrightDomSurface.connect(cdp_url(port))

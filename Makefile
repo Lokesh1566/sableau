@@ -1,53 +1,42 @@
-.PHONY: install browser up down discover replay errors handoff test test-unit test-integration evidence schema clean
+.PHONY: install discover replay serve errors test test-unit test-live schema legacy-up legacy-handoff clean
 
-CAP := capabilities/meridian.record_claim_decision.v1.0.0.json
-NOTE := Reviewed against the plan schedule, provider in network, no duplicate.
+CAP := capabilities/meridian_core.check_member_balance.v1.0.0.json
 
-install:            ## install the package and dev dependencies
-	pip install -e ".[dev]"
-	-python -m playwright install chromium
+install:             ## install package, test dependencies, and Chromium
+	python -m pip install ".[dev]"
+	python -m playwright install chromium
 
-browser:            ## fallback Chromium when the Playwright CDN is unreachable
-	cd browser && npm install
+discover:            ## record live balance capability; PLANNER=heuristic is the offline fallback
+	SABLEAU_PLANNER=$${PLANNER:-anthropic} bash core/record.sh balance
 
-up:                 ## start the target application and the shared browser
-	./scripts/up.sh
+replay:              ## deterministic balance replay with parameters discovery did not use
+	SABLEAU_POLICY=policy-core.json python -m sableau.cli replay \
+	  --capability $(CAP) --param operator=teller1 --param password=password \
+	  --param branch=MAIN-001 --param member_number=102777
 
-down:               ## stop them
-	-pkill -f "targetapp.app"
-	-pkill -f "browser_host.py"
-	-pkill -f "remote-debugging-port=9222"
-	-pkill -f "electron .*browser"
+serve:               ## run dashboard and capability API on port 8800
+	SABLEAU_POLICY=policy-core.json python -m sableau.cli serve
 
-discover:           ## LLM discovery; set PLANNER=heuristic to run without a key
-	python -m sableau.cli discover --job jobs/approve_claim.json \
-	  --planner $${PLANNER:-anthropic} \
-	  --param claim_id=CLM-004211 --param outcome=APPROVED --param "note=$(NOTE)"
+errors:              ## invalid input, not-found business outcome, teller escalation
+	bash core/demo_errors.sh
 
-replay:             ## deterministic replay with parameters discovery never saw
-	python -m sableau.cli replay --capability $(CAP) --confirm-risky \
-	  --param claim_id=CLM-004212 --param outcome=APPROVED --param "note=$(NOTE)"
+test-unit:           ## browser-free suite; live cases skip unless explicitly enabled
+	python -m pytest -q
 
-errors:             ## every runtime condition, classified not raised
-	./scripts/demo_errors.sh
+test-live:           ## live MERIDIAN API tests; shared browser/target must be reachable
+	RUN_LIVE_MERIDIAN_TESTS=1 python -m pytest tests/integration/test_api.py -q
 
-handoff:            ## pause, hand the live session to a person, resume
-	python scripts/demo_handoff.py
+test: test-unit
 
-test-unit:          ## no browser required
-	python -m pytest tests/unit tests/test_no_llm_in_replay.py -v
-
-test-integration:   ## real Chromium against the live application
-	./scripts/up.sh && python -m pytest tests/integration -v
-
-test: test-unit test-integration
-
-evidence:           ## rebuild evidence/ from real runs
-	./scripts/make_evidence.sh
-
-schema:             ## export the capability JSON Schema
+schema:              ## export the capability JSON Schema
 	python -m sableau.cli schema --out capabilities/capability.schema.json
 
+legacy-up:           ## optional original local claims fixture and shared browser
+	./scripts/up.sh
+
+legacy-handoff: legacy-up  ## optional full pause/take-control/resume demonstration
+	python scripts/demo_handoff.py
+
 clean:
-	find . -name __pycache__ -type d -exec rm -rf {} + 2>/dev/null || true
+	find . -name __pycache__ -type d -prune -exec rm -rf {} + 2>/dev/null || true
 	rm -rf .pytest_cache *.egg-info src/*.egg-info

@@ -1,0 +1,175 @@
+{
+  "run_id": "replay_20260820T202053Z_705f5e",
+  "capability_id": "meridian_core.place_account_hold",
+  "capability_version": "1.0.0",
+  "started_at": "2026-08-20T20:20:54.464965+00:00",
+  "duration_ms": 21358,
+  "category": "SUCCESS",
+  "code": "NONE",
+  "outputs": {
+    "confirmation_reference": "CN480100",
+    "hold_status": "ACCOUNT HOLD APPLIED"
+  },
+  "business_outcome": null,
+  "error": null,
+  "control": {
+    "final_owner": "nobody",
+    "escalated": false,
+    "escalation_id": null,
+    "escalation_reason": null,
+    "human_actions": 0,
+    "resume_decision": null
+  },
+  "steps": [
+    {
+      "step_id": "s1_enter_the_supplied_operato",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 208,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s2_enter_the_supplied_passwor",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 54,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s3_select_the_supplied_branch",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 34,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s4_submit_the_sign_on_form",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2875,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s5_open_member_inquiry_select",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2848,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s6_enter_the_supplied_member",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 50,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s7_search_for_the_member",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2992,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s8_open_the_first_matching_me",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2905,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s9_open_place_account_hold",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2921,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s10_select_the_supplied_share",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 78,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s11_select_the_supplied_hold_r",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 64,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s12_enter_the_hold_notes",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 393,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s13_continue_to_the_hold_revie",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2841,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s14_post_the_account_hold",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2894,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s15_read_the_hold_confirmation",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 74,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s16_read_the_resulting_hold_st",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 115,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    }
+  ],
+  "llm_calls": 0,
+  "drift": {
+    "steps_resolved": 16,
+    "first_choice": 16,
+    "degraded": []
+  }
+}

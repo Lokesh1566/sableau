@@ -1,0 +1,869 @@
+{
+  "goal": "Sign on to MERIDIAN CORE using the Operator ID, Password and Branch supplied. From the main menu choose Member Inquiry / Selection. Set 'Search by' to Member Number, enter the member number in the Value box and press Search, then select the matching result. On the MEMBER RECORD screen, read the member's Name plus the Share ID, Type, Balance, and Status from the first data row of the SHARES / BALANCES table. Change nothing.",
+  "planner": "anthropic",
+  "model": "claude-sonnet-4-6",
+  "entry_url": "https://web-sample.interface-hiring.com/signon",
+  "params": {
+    "operator": "teller1",
+    "password": "[REDACTED]",
+    "branch": "WEST-014",
+    "member_number": "101555"
+  },
+  "status": "success",
+  "summary": "All required outputs have been successfully captured from the Member Record screen for member 101555:\n- member_name: \"Hopper, Grace\"\n- share_id: \"101555-S0001\"\n- share_type: \"Regular Shares\"\n- share_balance: \"$17,969.00\"\n- share_status: \"OPEN\"\nNo changes were made to any data.",
+  "entries": [
+    {
+      "seq": 1,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the Operator ID",
+        "action": "type",
+        "target_name_attr": "operator",
+        "frame": "main",
+        "text": "teller1"
+      },
+      "rationale": "I'll start by filling in the sign-on form with the supplied credentials.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "operator",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "operator",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 2,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the [REDACTED]",
+        "action": "type",
+        "target_name_attr": "[REDACTED]",
+        "frame": "main",
+        "text": "[REDACTED]"
+      },
+      "rationale": "I can see the operator ID is already filled in. I need to enter the [REDACTED], select the branch, and sign on.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "[REDACTED]",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "[REDACTED]",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "[REDACTED]",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 3,
+      "tool": "act",
+      "args": {
+        "intent": "Select the WEST-014 branch",
+        "action": "select",
+        "target_name_attr": "branch",
+        "frame": "main",
+        "value": "WEST-014"
+      },
+      "rationale": "I can see the sign-on form. The Operator ID and Password are already filled in. I need to select the correct branch (WEST-014) and then sign on.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "select",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "MAIN-001 - Main Office\nWEST-014 - Westside\nEAST-022 - Eastgate",
+        "value": "MAIN-001",
+        "testid": "",
+        "name_attr": "branch",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "branch",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "combobox",
+            "name_equals": "MAIN-001 - Main Office\nWEST-014 - Westside\nEAST-022 - Eastgate",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 4,
+      "tool": "act",
+      "args": {
+        "intent": "Submit the sign-on form with the pre-filled credentials",
+        "action": "click",
+        "target_role": "button",
+        "target_name": "Sign On",
+        "frame": "main"
+      },
+      "rationale": "The form already has the operator ID, [REDACTED], and branch set correctly. I'll click Sign On to proceed.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "submit",
+        "aria_label": "",
+        "text": "",
+        "value": "Sign On",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 5,
+      "tool": "act",
+      "args": {
+        "intent": "Navigate to Member Inquiry / Selection from the main menu",
+        "action": "click",
+        "target_name": "Member Inquiry / Selection",
+        "target_role": "link",
+        "frame": "main"
+      },
+      "rationale": "I'm on the Main Menu. I need to click \"Member Inquiry / Selection\" to navigate to the member search screen.",
+      "url_before": "https://web-sample.interface-hiring.com/menu",
+      "url_after": "https://web-sample.interface-hiring.com/members",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "a",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Member Inquiry / Selection",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "/members",
+        "css_path": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > a"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Member Inquiry / Selection",
+            "confidence": 0.9
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Member Inquiry / Selection",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > a",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 6,
+      "tool": "assert_state",
+      "args": {
+        "id": "member_inquiry_open",
+        "description": "Member Inquiry / Selection screen is open with Search by set to Member Number",
+        "kind": "text_present",
+        "value": "MEMBER INQUIRY / SELECTION",
+        "frame": "main"
+      },
+      "rationale": "I'll assert the current state, then proceed with the search.",
+      "url_before": "https://web-sample.interface-hiring.com/members",
+      "url_after": "https://web-sample.interface-hiring.com/members",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 7,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the member number in the Value text box",
+        "action": "type",
+        "target_name_attr": "q",
+        "frame": "main",
+        "text": "101555"
+      },
+      "rationale": "I can see the Member Inquiry screen is open with \"Search by\" already set to \"Member Number\". I need to enter the member number and search.",
+      "url_before": "https://web-sample.interface-hiring.com/members",
+      "url_after": "https://web-sample.interface-hiring.com/members",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "q",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld:nth-of-type(1)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "q",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld:nth-of-type(1)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 8,
+      "tool": "act",
+      "args": {
+        "intent": "Click the Search button to search for member number 101555",
+        "action": "click",
+        "target_role": "button",
+        "target_name": "Search",
+        "frame": "main"
+      },
+      "rationale": "I can see the Member Inquiry screen is already open with \"Member Number\" selected and \"101555\" already entered in the Value field. I need to click Search now.",
+      "url_before": "https://web-sample.interface-hiring.com/members",
+      "url_after": "https://web-sample.interface-hiring.com/members?by=number&q=101555",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "submit",
+        "aria_label": "",
+        "text": "",
+        "value": "Search",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.btn:nth-of-type(2)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.btn:nth-of-type(2)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 9,
+      "tool": "assert_state",
+      "args": {
+        "id": "search_results_visible",
+        "description": "Search results show member 101555 Hopper, Grace with a Select link",
+        "kind": "text_present",
+        "value": "Hopper, Grace",
+        "frame": "main"
+      },
+      "rationale": "I can see the search results showing member 101555 \"Hopper, Grace\". Let me assert the current state and then click Select.",
+      "url_before": "https://web-sample.interface-hiring.com/members?by=number&q=101555",
+      "url_after": "https://web-sample.interface-hiring.com/members?by=number&q=101555",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 10,
+      "tool": "act",
+      "args": {
+        "intent": "Click the Select link to open the member record for Hopper, Grace (101555)",
+        "action": "click",
+        "target_name": "Select",
+        "target_role": "link",
+        "frame": "main"
+      },
+      "rationale": "I can see the search results with member 101555 \"Hopper, Grace\". I need to click the \"Select\" link to open the member record.",
+      "url_before": "https://web-sample.interface-hiring.com/members?by=number&q=101555",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "a",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Select",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "/members/101555",
+        "css_path": "table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > a"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Select",
+            "confidence": 0.9
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Select",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "AMBIGUOUS_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > a",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 11,
+      "tool": "assert_state",
+      "args": {
+        "id": "member_record_open",
+        "description": "Member Record screen is open for member 101555 Hopper, Grace with SHARES / BALANCES table visible",
+        "kind": "url_matches",
+        "value": "members/101555"
+      },
+      "rationale": "I can see the Member Record screen with all the data I need. Let me assert the state first, then read all the required values.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 12,
+      "tool": "act",
+      "args": {
+        "intent": "Read the member's name from the Name field",
+        "action": "read",
+        "target_text": "Hopper, Grace",
+        "frame": "main",
+        "output": "member_name"
+      },
+      "rationale": "I can see the Member Record screen with all the data I need. Let me read all the required values.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "td",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Hopper, Grace",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "td > table:nth-of-type(1) > tbody > tr:nth-of-type(1) > td:nth-of-type(4)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "td",
+            "name_equals": "Hopper, Grace",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Hopper, Grace",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(1) > tbody > tr:nth-of-type(1) > td:nth-of-type(4)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": "Hopper, Grace",
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 13,
+      "tool": "act",
+      "args": {
+        "intent": "Read the Share ID from the first data row of the SHARES / BALANCES table",
+        "action": "read",
+        "target_text": "101555-S0001",
+        "frame": "main",
+        "output": "share_id"
+      },
+      "rationale": "I can see the member record with all the data needed. Let me read the remaining outstanding values from the first data row of the SHARES / BALANCES table.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "td",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "101555-S0001",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "td > table:nth-of-type(2) > tbody > tr:nth-of-type(2) > td:nth-of-type(1)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "td",
+            "name_equals": "101555-S0001",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "101555-S0001",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(2) > tbody > tr:nth-of-type(2) > td:nth-of-type(1)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": "101555-S0001",
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 14,
+      "tool": "act",
+      "args": {
+        "intent": "Read the Share Type from the first data row of the SHARES / BALANCES table",
+        "action": "read",
+        "target_text": "Regular Shares",
+        "frame": "main",
+        "output": "share_type"
+      },
+      "rationale": "I can see the member record with all the data I need. Let me read the remaining outstanding values from the first data row of the SHARES / BALANCES table.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "td",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Regular Shares",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "td > table:nth-of-type(2) > tbody > tr:nth-of-type(2) > td:nth-of-type(2)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "td",
+            "name_equals": "Regular Shares",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Regular Shares",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(2) > tbody > tr:nth-of-type(2) > td:nth-of-type(2)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": "Regular Shares",
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 15,
+      "tool": "act",
+      "args": {
+        "intent": "Read the Balance from the first data row of the SHARES / BALANCES table",
+        "action": "read",
+        "target_text": "$17,969.00",
+        "frame": "main",
+        "output": "share_balance"
+      },
+      "rationale": "I need to read the Balance and Status from the first data row of the SHARES / BALANCES table.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "td",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "$17,969.00",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "td > table:nth-of-type(2) > tbody > tr:nth-of-type(2) > td:nth-of-type(3)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "td",
+            "name_equals": "$17,969.00",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "$17,969.00",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(2) > tbody > tr:nth-of-type(2) > td:nth-of-type(3)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": "$17,969.00",
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 16,
+      "tool": "act",
+      "args": {
+        "intent": "Read the Status from the first data row of the SHARES / BALANCES table (101555-S0001 row)",
+        "action": "read",
+        "frame": "main",
+        "target_text": "OPEN",
+        "output": "share_status"
+      },
+      "rationale": "The only outstanding output is `share_status`. I can see it's \"OPEN\" in the first data row of the SHARES / BALANCES table. Let me read it now.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "td",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "OPEN",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "td > table:nth-of-type(2) > tbody > tr:nth-of-type(2) > td:nth-of-type(4)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "td",
+            "name_equals": "OPEN",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "OPEN",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "AMBIGUOUS_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "td > table:nth-of-type(2) > tbody > tr:nth-of-type(2) > td:nth-of-type(4)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": "OPEN",
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 17,
+      "tool": "finish",
+      "args": {
+        "status": "success",
+        "summary": "All required outputs have been successfully captured from the Member Record screen for member 101555:\n- member_name: \"Hopper, Grace\"\n- share_id: \"101555-S0001\"\n- share_type: \"Regular Shares\"\n- share_balance: \"$17,969.00\"\n- share_status: \"OPEN\"\nNo changes were made to any data."
+      },
+      "rationale": "All declared outputs have already been captured in previous steps. The goal is complete.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    }
+  ]
+}

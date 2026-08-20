@@ -1,0 +1,1230 @@
+{
+  "goal": "Sign on to MERIDIAN CORE using the Operator ID, Password and Branch supplied. From the main menu choose Member Inquiry / Selection, set 'Search by' to Member Number, enter the member number and press Search, then select the result. On the MEMBER RECORD screen use the Funds Transfer action. Choose the from-share and the to-share, enter the amount and the memo, continue to the review screen, verify the review details, and post the transfer. The hidden _token belongs to each live form: never copy or persist it; submit the live form normally so the browser carries the current token. Read the confirmation reference and posted amount from the result screen.",
+  "planner": "anthropic",
+  "model": "claude-sonnet-4-6",
+  "entry_url": "https://web-sample.interface-hiring.com/signon",
+  "params": {
+    "operator": "teller1",
+    "password": "[REDACTED]",
+    "branch": "WEST-014",
+    "member_number": "101555",
+    "from_share": "101555-CERT",
+    "to_share": "101555-MMKT-3",
+    "amount": "1.00",
+    "memo": "Member requested transfer at branch."
+  },
+  "status": "success",
+  "summary": "The funds transfer workflow completed successfully. Logged in as teller1 / WEST-014, searched for member 101555, initiated a Funds Transfer from 101555-CERT to 101555-MMKT-3 for $1.00 with memo \"Member requested transfer at branch.\", reviewed the transfer details, and posted the transaction. Confirmation reference: CN480083, Posted amount: $1.00.",
+  "entries": [
+    {
+      "seq": 1,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the Operator ID",
+        "action": "type",
+        "target_name_attr": "operator",
+        "frame": "main",
+        "text": "teller1"
+      },
+      "rationale": "I'll start by signing on with the provided credentials. Let me fill in the form fields.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "operator",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "operator",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 2,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the [REDACTED]",
+        "action": "type",
+        "target_name_attr": "[REDACTED]",
+        "frame": "main",
+        "text": "[REDACTED]"
+      },
+      "rationale": "I can see the sign-on screen. The operator ID \"teller1\" is already filled in. I need to enter the [REDACTED] and select the branch, then sign on.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "[REDACTED]",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "[REDACTED]",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "[REDACTED]",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 3,
+      "tool": "act",
+      "args": {
+        "intent": "Select the WEST-014 branch from the dropdown",
+        "action": "select",
+        "target_name_attr": "branch",
+        "frame": "main",
+        "value": "WEST-014"
+      },
+      "rationale": "I can see the sign-on form with the Operator ID and Password already filled in. I need to select the correct branch (WEST-014) and then sign on.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "select",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "MAIN-001 - Main Office\nWEST-014 - Westside\nEAST-022 - Eastgate",
+        "value": "MAIN-001",
+        "testid": "",
+        "name_attr": "branch",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "branch",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "combobox",
+            "name_equals": "MAIN-001 - Main Office\nWEST-014 - Westside\nEAST-022 - Eastgate",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 4,
+      "tool": "act",
+      "args": {
+        "intent": "Submit the sign-on form with the pre-filled credentials",
+        "action": "click",
+        "target_role": "submit",
+        "target_name": "Sign On",
+        "frame": "main"
+      },
+      "rationale": "I can see the sign-on form is already filled with the correct values (operator: teller1, [REDACTED]: [set], branch: WEST-014). I'll submit the form now.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/signon",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "h1",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "OPERATOR SIGN ON",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table > tbody > tr:nth-of-type(2) > td > h1"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "heading",
+            "name_equals": "OPERATOR SIGN ON",
+            "confidence": 0.9
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "OPERATOR SIGN ON",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(2) > td > h1",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 5,
+      "tool": "act",
+      "args": {
+        "intent": "Submit the sign-on form with the pre-filled credentials",
+        "action": "click",
+        "target_role": "button",
+        "target_name": "Sign On",
+        "frame": "main"
+      },
+      "rationale": "I can see the sign-on form is already filled with the correct credentials (operator: teller1, [REDACTED]: [set], branch: WEST-014). I'll submit the form now.",
+      "url_before": "https://web-sample.interface-hiring.com/signon",
+      "url_after": "https://web-sample.interface-hiring.com/menu",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "submit",
+        "aria_label": "",
+        "text": "",
+        "value": "Sign On",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 6,
+      "tool": "assert_state",
+      "args": {
+        "id": "main_menu_loaded",
+        "description": "Successfully signed on and reached the Main Menu screen as TELLER1 on branch WEST-014",
+        "kind": "url_matches",
+        "value": "/menu"
+      },
+      "rationale": "I can see the Main Menu screen. Let me assert this state and then navigate to Member Inquiry / Selection.",
+      "url_before": "https://web-sample.interface-hiring.com/menu",
+      "url_after": "https://web-sample.interface-hiring.com/menu",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 7,
+      "tool": "act",
+      "args": {
+        "intent": "Navigate to Member Inquiry / Selection from the main menu",
+        "action": "click",
+        "target_name": "Member Inquiry / Selection",
+        "target_role": "link",
+        "frame": "main"
+      },
+      "rationale": "I'll click on \"Member Inquiry / Selection\" from the main menu.",
+      "url_before": "https://web-sample.interface-hiring.com/menu",
+      "url_after": "https://web-sample.interface-hiring.com/members",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "a",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Member Inquiry / Selection",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "/members",
+        "css_path": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > a"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Member Inquiry / Selection",
+            "confidence": 0.9
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Member Inquiry / Selection",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > a",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 8,
+      "tool": "assert_state",
+      "args": {
+        "id": "member_inquiry_loaded",
+        "description": "Member Inquiry / Selection screen is loaded and ready for input",
+        "kind": "text_present",
+        "value": "MEMBER INQUIRY / SELECTION",
+        "frame": "main"
+      },
+      "rationale": "I'll assert the current state first, then proceed with the search.",
+      "url_before": "https://web-sample.interface-hiring.com/members",
+      "url_after": "https://web-sample.interface-hiring.com/members",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 9,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the member number in the search field",
+        "action": "type",
+        "target_name_attr": "q",
+        "frame": "main",
+        "text": "101555"
+      },
+      "rationale": "I can see the Member Inquiry screen is loaded with \"Search by\" already set to \"Member Number\". I need to enter the member number and search.",
+      "url_before": "https://web-sample.interface-hiring.com/members",
+      "url_after": "https://web-sample.interface-hiring.com/members",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "q",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld:nth-of-type(1)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "q",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.fld:nth-of-type(1)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 10,
+      "tool": "act",
+      "args": {
+        "intent": "Click the Search button to search for member 101555",
+        "action": "click",
+        "target_role": "button",
+        "target_name": "Search",
+        "frame": "main"
+      },
+      "rationale": "I can see the Member Inquiry screen is loaded with \"Member Number\" already selected as Search by, and the member number \"101555\" is already entered. I need to click Search to proceed.",
+      "url_before": "https://web-sample.interface-hiring.com/members",
+      "url_after": "https://web-sample.interface-hiring.com/members?by=number&q=101555",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "submit",
+        "aria_label": "",
+        "text": "",
+        "value": "Search",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.btn:nth-of-type(2)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > input.btn:nth-of-type(2)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 11,
+      "tool": "assert_state",
+      "args": {
+        "id": "search_results_loaded",
+        "description": "Member search results show member 101555 Hopper, Grace with a Select link",
+        "kind": "text_present",
+        "value": "Hopper, Grace",
+        "frame": "main"
+      },
+      "rationale": "I can see the search results showing member 101555 (Hopper, Grace). Let me assert the current state and then select the member.",
+      "url_before": "https://web-sample.interface-hiring.com/members?by=number&q=101555",
+      "url_after": "https://web-sample.interface-hiring.com/members?by=number&q=101555",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 12,
+      "tool": "act",
+      "args": {
+        "intent": "Select member 101555 Hopper, Grace from the search results",
+        "action": "click",
+        "target_name": "Select",
+        "target_role": "link",
+        "frame": "main"
+      },
+      "rationale": "I can see the search results with member 101555 (Hopper, Grace). I need to click the \"Select\" link to open the member record.",
+      "url_before": "https://web-sample.interface-hiring.com/members?by=number&q=101555",
+      "url_after": "https://web-sample.interface-hiring.com/members?by=number&q=101555",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "a",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Select",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "/members/101555",
+        "css_path": "table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > a"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Select",
+            "confidence": 0.9
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Select",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "AMBIGUOUS_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > a",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 13,
+      "tool": "assert_state",
+      "args": {
+        "id": "member_record_loaded",
+        "description": "Member Record screen is loaded for member 101555 Hopper, Grace with Funds Transfer action available",
+        "kind": "text_present",
+        "value": "MEMBER RECORD",
+        "frame": "main"
+      },
+      "rationale": "I can see the Member Record screen for member 101555 (Hopper, Grace). Let me assert the state and then click Funds Transfer.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 14,
+      "tool": "act",
+      "args": {
+        "intent": "Click the Funds Transfer action link to open the transfer form",
+        "action": "click",
+        "target_name": "Funds Transfer",
+        "frame": "main"
+      },
+      "rationale": "I can see the Member Record screen for member 101555 Hopper, Grace. The Funds Transfer action is available. Let me click it.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "a",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "Funds Transfer",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "/members/101555/transfer",
+        "css_path": "table > tbody > tr:nth-of-type(3) > td > a:nth-of-type(1)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "link",
+            "name_equals": "Funds Transfer",
+            "confidence": 0.9
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "Funds Transfer",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(3) > td > a:nth-of-type(1)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 15,
+      "tool": "assert_state",
+      "args": {
+        "id": "funds_transfer_form_loaded",
+        "description": "Funds Transfer form is loaded for member 101555 Hopper, Grace with From Share, To Share, Amount, and Memo fields",
+        "kind": "text_present",
+        "value": "FUNDS TRANSFER",
+        "frame": "main"
+      },
+      "rationale": "I'll assert the current state first, then fill in the transfer form.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 16,
+      "tool": "act",
+      "args": {
+        "intent": "Select 101555-CERT as the From Share",
+        "action": "select",
+        "target_name_attr": "from",
+        "frame": "main",
+        "value": "101555-CERT"
+      },
+      "rationale": "I can see the Funds Transfer form is loaded. I need to set the From Share to \"101555-CERT\", the To Share to \"101555-MMKT-3\", enter the amount and memo, then continue. Let me start by selecting the From Share.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "select",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "101555-S0001 - Regular Shares ($17,969.00)\n101555-CERT - Certificate ($25,031.00)\n101555-MMKT-3 - Money Market ($25.00)\n",
+        "value": "101555-S0001",
+        "testid": "",
+        "name_attr": "from",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > select.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "from",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "combobox",
+            "name_equals": "101555-S0001 - Regular Shares ($17,969.00)\n101555-CERT - Certificate ($25,031.00)\n101555-MMKT-3 - Money Market ($25.00)",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 17,
+      "tool": "act",
+      "args": {
+        "intent": "Select 101555-MMKT-3 as the To Share",
+        "action": "select",
+        "target_name_attr": "to",
+        "frame": "main",
+        "value": "101555-MMKT-3"
+      },
+      "rationale": "I can see the Funds Transfer form. The \"From Share\" is already set to \"101555-CERT - Certificate ($25,031.00)\" which is correct. Now I need to set the \"To Share\" to 101555-MMKT-3, then enter the amount and memo.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "select",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "101555-S0001 - Regular Shares ($17,969.00)\n101555-CERT - Certificate ($25,031.00)\n101555-MMKT-3 - Money Market ($25.00)\n",
+        "value": "101555-S0001",
+        "testid": "",
+        "name_attr": "to",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > select.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "to",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "combobox",
+            "name_equals": "101555-S0001 - Regular Shares ($17,969.00)\n101555-CERT - Certificate ($25,031.00)\n101555-MMKT-3 - Money Market ($25.00)",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(2) > td:nth-of-type(2) > select.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 18,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the transfer amount of 1.00",
+        "action": "type",
+        "target_name_attr": "amount",
+        "frame": "main",
+        "text": "1.00"
+      },
+      "rationale": "I can see the Funds Transfer form is loaded with From Share already set to \"101555-CERT\" and To Share already set to \"101555-MMKT-3\". Now I need to enter the amount and memo fields.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "amount",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "amount",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(3) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 19,
+      "tool": "act",
+      "args": {
+        "intent": "Enter the memo text in the memo field",
+        "action": "type",
+        "target_name_attr": "memo",
+        "frame": "main",
+        "text": "Member requested transfer at branch."
+      },
+      "rationale": "I can see the form is already populated correctly:\n- From Share: 101555-CERT \u2713\n- To Share: 101555-MMKT-3 \u2713\n- Amount: 1.00 \u2713\n- Memo: (empty - needs to be filled)\n\nLet me enter the memo and then continue.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "text",
+        "aria_label": "",
+        "text": "",
+        "value": "",
+        "testid": "",
+        "name_attr": "memo",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.fld"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "name",
+            "value": "memo",
+            "confidence": 0.88
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(4) > td:nth-of-type(2) > input.fld",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 20,
+      "tool": "assert_state",
+      "args": {
+        "id": "transfer_form_filled",
+        "description": "Funds Transfer form is fully filled: From=101555-CERT, To=101555-MMKT-3, Amount=1.00, Memo set",
+        "kind": "url_matches",
+        "value": "members/101555/transfer"
+      },
+      "rationale": "I can see the form is already filled in correctly:\n- From Share: 101555-CERT \u2713\n- To Share: 101555-MMKT-3 \u2713\n- Amount: 1.00 \u2713\n- Memo: \"Member requested transfer at branch.\" \u2713\n\nAll fields are set. I need to assert this state and then click Continue to proceed to the review screen.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 21,
+      "tool": "act",
+      "args": {
+        "intent": "Submit the transfer form to proceed to the review screen",
+        "action": "click",
+        "target_role": "button",
+        "target_name": "Continue",
+        "frame": "main"
+      },
+      "rationale": "Looking at the current screen, I can see the Funds Transfer form is fully filled:\n- From Share: 101555-CERT (already selected)\n- To Share: 101555-MMKT-3 (already selected)\n- Amount: 1.00 (already entered)\n- Memo: \"Member requested transfer at branch.\" (already entered)\n\nNow I need to click \"Continue\" to proceed to the review screen.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/transfer",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer/review",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "submit",
+        "aria_label": "",
+        "text": "",
+        "value": "Continue",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table.box > tbody > tr:nth-of-type(5) > td:nth-of-type(2) > input.btn"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table.box > tbody > tr:nth-of-type(5) > td:nth-of-type(2) > input.btn",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 22,
+      "tool": "assert_state",
+      "args": {
+        "id": "confirm_transfer_screen",
+        "description": "Confirm Transfer review screen is loaded with correct details: Member 101555-Hopper Grace, From 101555-CERT, To 101555-MMKT-3, Amount $1.00, Memo matches",
+        "kind": "url_matches",
+        "value": "/members/101555/transfer/review"
+      },
+      "rationale": "I can see the review screen with all the correct details. Let me assert the state and then post the transfer.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/transfer/review",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer/review",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 23,
+      "tool": "act",
+      "args": {
+        "intent": "Post the transfer by submitting the review form",
+        "action": "click",
+        "target_role": "input",
+        "target_name": "Post Transfer",
+        "frame": "main"
+      },
+      "rationale": "The review screen looks correct. All details match the supplied parameters. Now I'll post the transfer by clicking the \"Post Transfer\" button.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/transfer/review",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer/review",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "input",
+        "explicit_role": "",
+        "type": "submit",
+        "aria_label": "",
+        "text": "",
+        "value": "Post Transfer",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "tbody > tr:nth-of-type(3) > td > form > input.btn:nth-of-type(6)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "tbody > tr:nth-of-type(3) > td > form > input.btn:nth-of-type(6)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 24,
+      "tool": "assert_state",
+      "args": {
+        "id": "transfer_posted",
+        "description": "Transfer Posted confirmation screen is displayed with confirmation CN480083 and amount $1.00",
+        "kind": "text_present",
+        "value": "TRANSFER POSTED",
+        "frame": "main"
+      },
+      "rationale": "I can see the transfer has been posted successfully. Let me assert the state and then read the confirmation reference and posted amount.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/transfer/post",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer/post",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 25,
+      "tool": "act",
+      "args": {
+        "intent": "Read the confirmation reference number from the result screen",
+        "action": "read",
+        "frame": "main",
+        "target_text": "CN480083",
+        "output": "confirmation_reference"
+      },
+      "rationale": "I can see the Transfer Posted confirmation screen. Let me read the confirmation reference and posted amount from the result screen.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/transfer/post",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer/post",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "b",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "CN480083",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "table > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > b"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "b",
+            "name_equals": "CN480083",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "CN480083",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "table > tbody > tr:nth-of-type(1) > td:nth-of-type(2) > b",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": "CN480083",
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 26,
+      "tool": "act",
+      "args": {
+        "intent": "Read the posted amount from the confirmation screen",
+        "action": "read",
+        "target_text": "$1.00",
+        "frame": "main",
+        "output": "posted_amount"
+      },
+      "rationale": "I can see the confirmation screen with the posted amount. Let me read the posted amount to capture it.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/transfer/post",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer/post",
+      "frame_path": [],
+      "descriptor": {
+        "tag": "td",
+        "explicit_role": "",
+        "type": "",
+        "aria_label": "",
+        "text": "$1.00",
+        "value": "",
+        "testid": "",
+        "name_attr": "",
+        "label": "",
+        "placeholder": "",
+        "href": "",
+        "css_path": "div.box > table > tbody > tr:nth-of-type(3) > td:nth-of-type(2)"
+      },
+      "probes": [
+        {
+          "locator": {
+            "strategy": "role",
+            "role": "td",
+            "name_equals": "$1.00",
+            "confidence": 0.9
+          },
+          "match_count": 0,
+          "ok": false,
+          "note": "MISSING_CONTROL"
+        },
+        {
+          "locator": {
+            "strategy": "text",
+            "text": "$1.00",
+            "exact": false,
+            "confidence": 0.6
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        },
+        {
+          "locator": {
+            "strategy": "css",
+            "value": "div.box > table > tbody > tr:nth-of-type(3) > td:nth-of-type(2)",
+            "confidence": 0.3
+          },
+          "match_count": 1,
+          "ok": true,
+          "note": ""
+        }
+      ],
+      "read_value": "$1.00",
+      "status": "ok",
+      "error": null
+    },
+    {
+      "seq": 27,
+      "tool": "finish",
+      "args": {
+        "status": "success",
+        "summary": "The funds transfer workflow completed successfully. Logged in as teller1 / WEST-014, searched for member 101555, initiated a Funds Transfer from 101555-CERT to 101555-MMKT-3 for $1.00 with memo \"Member requested transfer at branch.\", reviewed the transfer details, and posted the transaction. Confirmation reference: CN480083, Posted amount: $1.00."
+      },
+      "rationale": "All outputs have already been captured and all steps have been completed successfully. The transfer has been posted and both declared outputs are recorded.",
+      "url_before": "https://web-sample.interface-hiring.com/members/101555/transfer/post",
+      "url_after": "https://web-sample.interface-hiring.com/members/101555/transfer/post",
+      "frame_path": [],
+      "descriptor": null,
+      "probes": [],
+      "read_value": null,
+      "status": "ok",
+      "error": null
+    }
+  ]
+}

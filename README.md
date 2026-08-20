@@ -1,400 +1,280 @@
 # Sableau
 
-**Turning a language model's successful UI exploration into a deterministic, replayable capability.**
+Sableau turns one successful computer-use discovery into a typed, versioned capability that replays without an LLM. This submission is adapted end to end to the live **MERIDIAN CORE** legacy banking application at `https://web-sample.interface-hiring.com`.
 
-I built this to answer a question that kept bothering me about LLM computer-use agents: if a model
-has already worked out how to do a job through an application's interface, why pay a model to work it
-out again every single time?
+The production path is deliberately simple:
 
-So Sableau does it once. An LLM drives a real browser to complete a task. That successful run gets
-compiled into a typed, versioned artifact. From then on the job runs from that artifact with no model
-in the decision loop at all. When automation genuinely cannot continue, it hands the *same live
-browser session* to a person and takes it back when they are done.
-
-The case I had in mind is an application with no API, where the interface a human uses is the only
-way in.
-
-```
-  goal + app          discovery              artifact              production
- ─────────────►  observe → decide → act  ──►  capability.json  ──►  replay(params) → result
-                   (LLM, once)                (typed, versioned)    (no LLM, ever)
+```text
+goal + live UI -> LLM observe/decide/act -> capability JSON
+capability JSON + new inputs -> deterministic browser replay -> structured result
 ```
 
-**[Project site](https://YOUR-USERNAME.github.io/sableau/)** · **[Design report](REPORT.md)** ·
-**[Requirement audit](AUDIT.md)** · **[Evidence from real runs](evidence/)**
+The production catalog contains exactly seven MERIDIAN capabilities, a capability API, a thin banking chatbot, a run/evidence dashboard, explicit runtime outcomes, risky-step confirmation, redaction, and pause/escalation support. [REPORT.md](REPORT.md) explains the design; [evidence/README.md](evidence/README.md) indexes representative real runs.
 
----
+## Quick start from the ZIP
 
-## What is in here
-
-| | |
-|---|---|
-| **Target application** | Meridian Claims Desk, a fictional insurer's back office I wrote for this. Search, open record, decide, confirm. The decision form sits in an iframe, the results table has no test ids, and eight seeded claims misbehave on purpose. |
-| **Discovery** | An observe, decide, act loop. The planner emits one typed tool call per turn and is never allowed to write a selector. |
-| **Compiler** | Turns one run into a general capability: ranked locators measured against the live DOM, parameter bindings, checkpoints, typed outputs, safety constraints. |
-| **Replay engine** | Executes a capability with zero LLM calls, enforced structurally rather than by convention. |
-| **Outcome taxonomy** | Sixteen codes across four categories. "Claim not found" is an answer, not an exception. |
-| **Human handoff** | Automation pauses, an operator drives the same live page, automation resumes. |
-| **Evidence** | [`evidence/`](evidence/) is real output from real runs. One command regenerates all of it. |
-
-If you read one other file, read [REPORT.md](REPORT.md). That is where I explain why each decision
-went the way it did.
-
----
-
-## Install
-
-Python 3.11 or newer.
+Python 3.11 or newer is required.
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/sableau.git && cd sableau
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+unzip sableau2-final-submission.zip
+cd sableau2
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install ".[dev]"
 python -m playwright install chromium
 ```
 
-<details>
-<summary>If <code>playwright install</code> cannot reach its CDN</summary>
-
-Some networks block `cdn.playwright.dev`. `browser/` holds a three line Electron shell whose bundled
-Chromium works identically over CDP, and Electron pulls from GitHub release assets instead:
+Validate the seven shipped artifacts and run the browser-free suite:
 
 ```bash
-cd browser && npm install && cd ..
+for cap in capabilities/meridian_core.*.v1.0.0.json; do
+  python -m sableau.cli validate --capability "$cap"
+done
+python -m pytest -q
 ```
 
-`scripts/up.sh` uses this automatically when it is present *and* `xvfb-run` is available, which is
-the Linux-sandbox case. Everywhere else it launches Playwright's own Chromium via
-`scripts/browser_host.py`, which asks Playwright for the executable path rather than guessing at
-install directories.
-</details>
-
-## Configure
-
-```bash
-cp .env.example .env
-```
-
-`.env` is gitignored. The only secret is `ANTHROPIC_API_KEY`, and it is needed **only** for
-`discover --planner anthropic`. Replay never reads it.
-
-`policy.json` is the deployment safety policy: allowed hosts, allowed action types, which verbs count
-as risky. A capability can only ever be *more* restrictive than this file, never less.
-
-## Start the application and the browser
-
-```bash
-./scripts/up.sh
-```
-
-Starts Meridian Claims Desk on `http://127.0.0.1:8099`, a second tenant's instance of the same
-product on `http://127.0.0.1:8098`, and a Chromium exposing CDP on 9222, skipping any that are
-already up. Both outlive individual commands, which is what lets automation and the
-operator console share one session.
-
-Reset the seeded data whenever you want:
-
-```bash
-curl -X POST http://127.0.0.1:8099/admin/reset
-```
-
----
-
-## Commands
-
-### Discovery
-
-With a real model:
-
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-python -m sableau.cli discover \
-  --job jobs/approve_claim.json \
-  --planner anthropic \
-  --param claim_id=CLM-004211 \
-  --param outcome=APPROVED \
-  --param "note=Within plan limits, provider in network, no duplicate found."
-```
-
-Without one:
-
-```bash
-python -m sableau.cli discover --job jobs/approve_claim.json --planner heuristic \
-  --param claim_id=CLM-004211 --param outcome=APPROVED \
-  --param "note=Within plan limits, provider in network, no duplicate found."
-```
-
-`--planner heuristic` is a rule based planner that reads the same live screen objects the model
-reads. I wrote it so the loop, the compiler and the tests stay runnable with no API credential, and
-so CI does not need one. Every artifact records `provenance.planner`, so an offline run can never be
-mistaken for a model driven one. **The evidence committed to this repo was produced with
-`heuristic`** — see [Honest limits](#honest-limits).
-
-Both write `capabilities/meridian.record_claim_decision.v1.0.0.json` and a full trace under
-`evidence/runs/`.
-
-### Inspect an artifact
-
-```bash
-python -m sableau.cli validate --capability capabilities/meridian.record_claim_decision.v1.0.0.json
-python -m sableau.cli schema --out capabilities/capability.schema.json
-```
-
-### Deterministic replay
-
-This is the part that matters. New parameters, no model:
-
-```bash
-python -m sableau.cli replay \
-  --capability capabilities/meridian.record_claim_decision.v1.0.0.json \
-  --confirm-risky \
-  --param claim_id=CLM-004212 \
-  --param outcome=APPROVED \
-  --param "note=Imaging authorised under referral 88213, within schedule."
-```
-
-```
-SUCCESS/NONE | outputs=confirmation_code=MCD-77201, decided_amount=612.5 | llm_calls=0
-```
-
-`--confirm-risky` is required because the capability declares its save step risky. Leave it off and
-the policy layer refuses before anything is written.
-
-### The capability API and dashboard
-
-The CLI was always a thin wrapper around one idea: capability plus parameters in, structured result
-out. The same idea over HTTP is what an AI agent actually calls.
+Start the API and dashboard:
 
 ```bash
 python -m sableau.cli serve
 ```
 
-- **Dashboard** — http://127.0.0.1:8800
-- **API docs** — http://127.0.0.1:8800/docs (generated from the same models)
+The `serve` command selects `policy-core.json` automatically. Set
+`SABLEAU_POLICY` only when intentionally running a different deployment policy.
 
-**Open the dashboard in your normal browser, not the automation one.** Invoking drives the
-automation browser, so if the dashboard were in that window it would navigate away mid-run.
+Open:
 
-#### The catalogue an agent discovers
+- Dashboard: `http://127.0.0.1:8800`
+- OpenAPI docs: `http://127.0.0.1:8800/docs`
 
-```bash
-curl -s http://127.0.0.1:8800/api/capabilities | python3 -m json.tool
-```
+The console opens on the balance-inquiry capability and lists only the seven live banking workflows. The first dashboard invocation automatically opens a **visible** shared Chromium window on the dashboard-specific CDP port `9334`, while the dashboard streams each step, timing, result, and escalation status. Set `SABLEAU_HEADLESS=1` for an unattended run. If a browser already exposes CDP, set `SABLEAU_CDP_URL`, for example `http://127.0.0.1:9222`.
 
-```json
-[{
-  "capability_id": "meridian.record_claim_decision",
-  "title": "Record a decision on a pending claim",
-  "risk_level": "high",
-  "inputs": [
-    { "name": "claim_id", "type": "string", "required": true, "pattern": "^CLM-[0-9]{6}$" },
-    { "name": "outcome",  "type": "enum",   "required": true, "enum": ["APPROVED", "REJECTED"] },
-    { "name": "note",     "type": "string", "required": true, "sensitivity": "medium" }
-  ],
-  "outputs": [
-    { "name": "confirmation_code", "type": "string" },
-    { "name": "decided_amount",    "type": "number" }
-  ],
-  "known_outcomes": ["search_no_match", "already_decided", "permission_denied", "..."],
-  "tenants": ["riverbend"]
-}]
-```
+### Dashboard-first demo (no replay commands)
 
-**The catalogue is derived, never authored.** It projects the artifacts on disk, so there is no
-second copy of the contract to drift out of sync, and a capability becomes callable the moment it is
-compiled.
+After `python -m sableau.cli serve`, every required workflow can be run from
+`http://127.0.0.1:8800`:
 
-#### Invoking one
+1. Select any of the seven capability forms, enter the public demo password
+   `password`, and click **Invoke**. High-risk forms require the confirmation
+   checkbox.
+2. Or click a chat example for sign-on, member lookup, balance, transfer, open
+   share, member update, or account hold, then press **Send**. High-risk chat
+   examples include the required word `confirm`.
+3. Watch the controlled MERIDIAN browser and the dashboard's **Live processing**
+   panel together. The panel reports queued/running/final state, every step and
+   its duration, structured output, and a prominent escalation indicator.
+4. Click the completed row under **Recent runs** to inspect redacted inputs,
+   outputs, step reports, logs, screenshots, DOM snapshots, and other evidence.
 
-```bash
-curl -X POST http://127.0.0.1:8800/api/capabilities/meridian.record_claim_decision/invoke \
-  -H 'Content-Type: application/json' \
-  -d '{"params":{"claim_id":"CLM-004211","outcome":"APPROVED","note":"Within plan limits."}}'
-```
+## Public demo access and configuration
 
-```json
-{ "category": "SUCCESS", "code": "NONE",
-  "outputs": { "confirmation_code": "MCD-77201", "decided_amount": 148.0 },
-  "llm_calls": 0, "duration_ms": 5829 }
-```
+MERIDIAN CORE uses synthetic data and public demo operators:
 
-Add `"tenant": "riverbend"` to run it against another institution's instance.
+| Operator | Password | Role |
+|---|---|---|
+| `teller1` | `password` | teller |
+| `super1` | `password` | supervisor |
 
-**Status codes are used only for genuine HTTP problems** — unknown capability, malformed body. A
-business outcome or a hard failure is a 200 with a typed body, because an HTTP error code cannot
-carry the distinction between "no such claim" and "the service is broken", and the caller needs it.
-
-| Endpoint | What it does |
-|---|---|
-| `GET /api/capabilities` | the catalogue |
-| `GET /api/capabilities/{id}` | one contract |
-| `POST /api/capabilities/{id}/invoke` | run it, returns `ReplayResult` |
-| `GET /api/runs` | recent runs with outcome, drift and AI-call count |
-| `GET /api/runs/{run_id}` | one run with its full structured log |
-| `POST /api/chat` | thin natural-language front door |
-| `GET /api/health` | liveness |
-
-#### The chat endpoint
-
-Deliberately thin. Intent parsing is keyword matching, not a model — a scope decision, not a design
-one. The interesting surface is the typed API underneath, and in production interface.ai's own agent
-sits in this position. What it demonstrates is the shape: text in, a typed capability call out, a
-typed result back.
+The chatbot uses those public defaults. They may be overridden without changing an artifact:
 
 ```bash
-curl -X POST http://127.0.0.1:8800/api/chat -H 'Content-Type: application/json' \
-  -d '{"message":"approve claim CLM-004211"}'
+export SABLEAU_OPERATOR=teller1
+export SABLEAU_SUPERVISOR_OPERATOR=super1
+export SABLEAU_OPERATOR_PASSWORD=password
+export SABLEAU_BRANCH=MAIN-001
+export SABLEAU_POLICY=policy-core.json
 ```
 
-```json
-{ "reply": "Done. Confirmation code MCD-77201 for 148.0.",
-  "invoked": "meridian.record_claim_decision",
-  "params": { "claim_id": "CLM-004211", "outcome": "APPROVED", "note": "..." } }
-```
-
-The four outcome categories map onto four different things you would say to a person, which is
-exactly why they are separate.
-
-### Cross-tenant reuse
-
-`scripts/up.sh` also starts a second instance of the same claims product on port 8098, branded and
-versioned as another institution would run it: different labels, no test ids on the search screen,
-different test ids on the decision panel, and a differently named iframe. The base capability runs
-against it with no re-recording, specialised by an overlay:
+`ANTHROPIC_API_KEY` is needed only to make a new model-driven discovery. It is never read during replay, and no `.env` file or key is included in the deliverable.
 
 ```bash
+cp .env.example .env
+# edit .env, then:
+set -a; source .env; set +a
+```
+
+## Required MERIDIAN functions
+
+Every row has a job specification under `jobs/`, a compiled artifact under `capabilities/`, and live discovery/replay evidence under `evidence/runs/`.
+
+| Function | Capability ID | Main outputs | Risk |
+|---|---|---|---|
+| Sign on / session establishment | `meridian_core.sign_on` | session status | low |
+| Member inquiry by number or last name | `meridian_core.find_member` | member number, member name | low |
+| Balance inquiry | `meridian_core.check_member_balance` | member, share ID/type/balance/status | low |
+| Transfer review and post | `meridian_core.transfer_funds` | confirmation, posted amount | high |
+| Open share review and post | `meridian_core.open_new_share` | new share ID, confirmation | high |
+| Update member information | `meridian_core.update_member_information` | confirmation message | high |
+| Place account hold review and post | `meridian_core.place_account_hold` | confirmation, hold status | high; supervisor-only |
+
+The review/post forms contain a per-transaction hidden `_token`. Discovery records neither its value nor a locator action for it. Replay submits the current live form, so the browser supplies the fresh token naturally.
+
+## Exact demo path
+
+### 1. Real LLM discovery
+
+Set `ANTHROPIC_API_KEY`, then record the mandatory balance workflow:
+
+```bash
+export SABLEAU_POLICY=policy-core.json
+export SABLEAU_PLANNER=anthropic
+bash core/record.sh balance
+```
+
+That command drives the real website, writes `capabilities/meridian_core.check_member_balance.v1.0.0.json`, and saves its trace, screenshot, log, and compiled artifact under `evidence/runs/discovery_*`.
+
+The repository already contains genuine Anthropic discoveries for sign-on, member inquiry, balance inquiry, transfer, and open-share. When a model key is unavailable, the same live observation, policy, probing, compiler, and evidence path can be exercised with the explicitly labeled offline planner:
+
+```bash
+export SABLEAU_PLANNER=heuristic
+bash core/record.sh update
+```
+
+Artifacts always record `provenance.planner` and the model name, so heuristic evidence cannot be mistaken for LLM evidence.
+
+### 2. Deterministic replay with new inputs
+
+```bash
+export SABLEAU_POLICY=policy-core.json
 python -m sableau.cli replay \
-  --capability capabilities/meridian.record_claim_decision.v1.0.0.json \
-  --overlay capabilities/overlays/riverbend.json --confirm-risky \
-  --param claim_id=CLM-004212 --param outcome=APPROVED \
-  --param "note=Imaging authorised under referral 88213, within schedule."
+  --capability capabilities/meridian_core.check_member_balance.v1.0.0.json \
+  --param operator=teller1 \
+  --param password=password \
+  --param branch=MAIN-001 \
+  --param member_number=102777
 ```
 
-```
-SUCCESS/NONE | outputs=confirmation_code=MCD-77201, decided_amount=612.5 |
-              drift=0.25 (6 degraded) | llm_calls=0
-  drift: 2/8 controls found by their preferred locator
-    s1_enter_the_claim_reference: fell back to candidate 1 (css)
-    ...
+Representative result:
+
+```text
+SUCCESS/NONE | outputs=member_name=Johnson, Katherine,
+share_id=102777-S0001, share_type=Regular Shares,
+share_balance=$42,000.00, share_status=HOLD [HOLD] | llm_calls=0
 ```
 
-The drift line is the point: the run succeeded, and it also told you which six controls this tenant
-has moved. See [REPORT §4](REPORT.md#4-heterogeneity-and-multi-tenant-design).
+Replay has no planner dependency. The result contract itself reports `llm_calls=0`, and `tests/test_no_llm_in_replay.py` enforces that dependency boundary.
 
-### Error and outcome demonstrations
+### 3. Exceptional path and escalation
+
+Run the bundled demonstrations:
 
 ```bash
-./scripts/demo_errors.sh
+bash core/demo_errors.sh
 ```
 
-Ten conditions, each classified rather than raised: invalid input, enum violation, record not found,
-already processed, application validation error, permission denied, a transient backend failure
-absorbed by a bounded restart, a slow page waited out, session expiry, and a policy refusal.
+They cover invalid input, a nonexistent member as a typed business outcome, and a teller attempting the supervisor-only hold flow. The teller run stops after the application refuses the review, captures a screenshot and DOM evidence, transitions control to `PAUSED`, and emits an escalation containing the capability, step, URL, reason, and evidence reference.
 
-### Human handoff
+The shipped exceptional run is `evidence/runs/replay_20260820T202123Z_ed01a2`:
+
+```text
+HARD_FAILURE/PERMISSION_DENIED
+control: AUTOMATION_RUNNING -> PAUSED
+escalated: true
+llm_calls=0
+```
+
+The original local claims fixture remains under `targetapp/` as a reproducible test harness for the full take-control/resume console. Its artifact is isolated under `tests/fixtures/`, so it is not exposed by the production capability catalog. Run `./scripts/up.sh` and `python scripts/demo_handoff.py` to see a scripted operator take the same live browser session, perform the blocked action, and hand control back. It is auxiliary to the live MERIDIAN adaptation, not the submitted target.
+
+## API, chatbot, and dashboard
+
+The catalog is projected directly from artifacts; there is no hand-maintained second contract.
 
 ```bash
-python scripts/demo_handoff.py
+curl -s http://127.0.0.1:8800/api/capabilities | python -m json.tool
 ```
 
-Claim `CLM-004214` has a compliance notice covering the decision panel. Automation pauses, an
-operator clears it on the same live page, automation finishes the job.
-
-To drive it yourself:
+Invoke balance inquiry through the agent-facing API:
 
 ```bash
-python -m sableau.cli handoff \
-  --capability capabilities/meridian.record_claim_decision.v1.0.0.json --confirm-risky \
-  --param claim_id=CLM-004214 --param outcome=APPROVED \
-  --param "note=Network review bulletin read, provider remains in network." \
-  --hold 300
+curl -X POST \
+  http://127.0.0.1:8800/api/capabilities/meridian_core.check_member_balance/invoke \
+  -H 'Content-Type: application/json' \
+  -d '{"params":{"operator":"teller1","password":"password","branch":"MAIN-001","member_number":"101555"}}'
 ```
 
-then open **http://127.0.0.1:8777**, press *Take control*, clear the notice, press *Resume*.
-
-### Tests
+Invoke the thin chatbot:
 
 ```bash
-python -m pytest tests/unit tests/test_no_llm_in_replay.py -v   # 69 tests, no browser needed
-./scripts/up.sh && python -m pytest tests/integration -v        # 29 tests, real Chromium
-python -m pytest -q                                             # all 80
+curl -X POST http://127.0.0.1:8800/api/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"check balance for member 101555"}'
 ```
 
-### Rebuild all evidence
+The parser also maps sign-on, member lookup, transfer, open-share, update, and hold requests. High-risk chat requests are not run unless the message includes the word `confirm`. The dashboard likewise requires a confirmation checkbox. Direct API bodies default `confirm_risky` to `false`.
+
+Useful endpoints:
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/capabilities` | typed capability catalog |
+| `GET /api/capabilities/{id}` | one input/output contract |
+| `POST /api/capabilities/{id}/invoke` | deterministic execution |
+| `POST /api/capabilities/{id}/start` | start a dashboard run immediately and return its run ID |
+| `GET /api/live-runs/{run_id}` | redacted live status, step events, timings, and final result |
+| `POST /api/chat` | thin natural-language front door |
+| `POST /api/chat/start` | parse chat and start a watchable replay |
+| `GET /api/runs` | discovery and replay history |
+| `GET /api/runs/{run_id}` | redacted inputs, outputs, log, and evidence index |
+| `GET /api/runs/{run_id}/evidence/{path}` | one contained evidence file |
+| `GET /api/health` | liveness and artifact count |
+
+Expected business answers and execution failures both return the engine's typed body. HTTP status codes are reserved for malformed requests or missing API resources.
+
+## Runtime outcome model
+
+The MERIDIAN outcome catalog distinguishes:
+
+- `SUCCESS`: checkpoint verified and declared outputs extracted.
+- `BUSINESS_OUTCOME`: for example `RECORD_NOT_FOUND`, `INSUFFICIENT_FUNDS`, or a share already on hold.
+- `RECOVERABLE`: session expiry or a known maintenance/transient condition with bounded recovery guidance.
+- `HARD_FAILURE`: validation, permission, application failure, policy refusal, or exhausted retries.
+
+Eleven target-specific detectors cover bad sign-on, session timeout, transaction validation, injected validation/not-found faults, insufficient funds, account hold, maintenance, application error, and the exact teller authorization denial. The supervisor warning banner is intentionally not treated as denial; a supervisor can continue through it.
+
+## Safety and data handling
+
+- `policy-core.json` allowlists the live host and action vocabulary.
+- Artifacts may only narrow deployment policy.
+- High-risk steps require explicit CLI/API/dashboard/chat confirmation.
+- Credentials, notes, contact details, and other declared sensitive inputs are redacted from logs, API echoes, evidence, and artifact examples.
+- The per-form `_token` is represented only as `[opaque]` in observations and is never persisted.
+- Locator ambiguity fails closed; bounded retries never guess a different control.
+- Escalation preserves the same CDP browser session and records ownership transitions and human actions.
+
+All bundled data is synthetic public-demo data. Do not point this demo policy at a real institution.
+
+## Testing
 
 ```bash
-./scripts/make_evidence.sh
+python -m pytest -q
 ```
 
-Wipes `evidence/` and regenerates it from real runs, index included. Nothing in that directory is
-hand written.
-
----
-
-## Layout
-
-```
-src/sableau/
-  schema/      capability artifact, outcome taxonomy, result contract
-  surface/     Surface protocol; Playwright DOM and in-memory implementations
-  kernel/      control state machine, policy, redaction, observability
-  discovery/   planners, observe→decide→act loop, compiler        (LLM lives here, only here)
-  replay/      deterministic engine and bindings                  (no LLM, enforced)
-  operator/    handoff console
-  api/         capability API and dashboard
-targetapp/     Meridian Claims Desk
-jobs/          discovery job specs: the contract declared up front
-capabilities/  compiled artifacts, tenant overlays, outcome catalogues, exported JSON Schema
-docs/          project site published to GitHub Pages
-evidence/      real run output
-```
-
----
-
-## Honest limits
-
-I would rather state these than have someone find them.
-
-- **The committed evidence used the heuristic planner.** `AnthropicPlanner` is complete tool-use code
-  on the same interface; run the discovery command above with a key and it produces model-driven
-  evidence. Everything else in `evidence/` — the UI interaction, the compilation, every replay, the
-  handoff — is genuine execution against real Chromium.
-- **One surface is implemented.** The abstraction is real (feature declaration, compatibility
-  refusal, a second in-memory implementation the whole engine is tested against), but accessibility
-  tree, screenshot-plus-coordinates and native desktop surfaces are designed for, not written.
-- **Discovery is single-shot.** A failed exploration is not retried with a revised strategy, and the
-  compiler refuses to emit an artifact from an unsuccessful run.
-- **Session expiry is classified, not repaired.** The engine returns `RECOVERABLE/SESSION_EXPIRED`
-  and leaves re-authenticating to the caller.
-
-[REPORT.md §7](REPORT.md#7-cuts-limitations-and-next-steps) covers what I cut deliberately and what I
-would build next.
-
----
-
-## Publishing the project site
-
-`docs/` is a static site with no build step. To publish it:
-
-1. Push the repo to GitHub.
-2. **Settings → Pages → Build and deployment → Source: GitHub Actions.**
-3. The workflow in `.github/workflows/pages.yml` deploys `docs/` on every push to `main` that
-   touches it. It lands at `https://YOUR-USERNAME.github.io/sableau/`.
-
-Then replace `YOUR-USERNAME` in `README.md` and `docs/index.html`:
+Current clean result: `90 passed, 13 skipped`. The skipped tests require live services and are opt-in:
 
 ```bash
-grep -rl YOUR-USERNAME README.md docs/index.html | xargs sed -i 's/YOUR-USERNAME/your-github-handle/g'
+RUN_LIVE_MERIDIAN_TESTS=1 python -m pytest tests/integration/test_api.py -q
+RUN_LIVE_LEGACY_TESTS=1 ./scripts/up.sh
+RUN_LIVE_LEGACY_TESTS=1 python -m pytest tests/integration/test_live_stack.py -q
 ```
 
-If you would rather skip Actions entirely, **Settings → Pages → Source: Deploy from a branch →
-`main` / `/docs`** works too; `docs/.nojekyll` is already there so the site is served as-is.
+The committed MERIDIAN evidence was produced against the public live UI, including real LLM discoveries, parameter-varied deterministic replays, successful writes, a natural permission failure, screenshot capture, and escalation.
 
-`.github/workflows/tests.yml` runs the unit suite on every push, and runs discovery plus the
-integration suite against a headless Chromium. Neither workflow needs an API key.
+## Repository map
 
----
+```text
+src/sableau/discovery/       observe/decide/act planners and compiler
+src/sableau/replay/          deterministic engine and outcome handling
+src/sableau/schema/          capability and result contracts
+src/sableau/surface/         surface protocol and Playwright DOM adapter
+src/sableau/kernel/          policy, redaction, evidence, control ownership
+src/sableau/api/             catalog, invoke API, chat, dashboard
+jobs/core_*.json             seven MERIDIAN discovery specifications
+capabilities/meridian_core.* seven compiled capabilities
+capabilities/outcomes/       target runtime detectors
+core/record.sh               repeatable live discovery commands
+evidence/runs/               discovery, replay, failure, and escalation evidence
+targetapp/                   optional original local claims test fixture
+```
 
-## Licence
-
-MIT. See [LICENSE](LICENSE).
+MERIDIAN CORE is stateful and may reset on redeploy. Use small demo amounts and inspect the current share list before repeating state-changing examples.

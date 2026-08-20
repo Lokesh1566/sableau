@@ -40,10 +40,18 @@ Work towards the stated goal one action at a time. Rules:
 - Before acting, read `current_value` on the controls. A field that already holds
   the value you wanted is done: move on to the next step. Re-selecting a dropdown
   that is already set achieves nothing and wastes a turn.
+- To replace text in a textbox, emit one `type` action containing the complete
+  supplied value. The type primitive clears the existing value first. Never
+  emit double-click, triple-click, select-all, or a preliminary clearing click.
 - Consult STEPS ALREADY TAKEN every turn. If an action appears there and the
   screen reflects it, do not repeat it.
 - Describe controls the way a person would: role plus visible name, or the test
   id when one exists. Never invent CSS selectors or XPath.
+- Older, server-rendered screens often lay their forms out in tables, so a field
+  has no label association and no accessible name. Those controls still carry a
+  `name` attribute, shown as name_attr in the controls list. When you see one,
+  pass it as `target_name_attr` - on those screens it is the only reliable way
+  to address the field.
 - Each control lists the `frame` it lives in. Pass that same value as `frame`
   when you act on it.
 - Use `assert_state` EVERY time the screen changes, before your next action. A
@@ -52,6 +60,15 @@ Work towards the stated goal one action at a time. Rules:
   and assert the confirmation screen once the work is saved.
 - When you read a value that fills one of the declared outputs, use the `read`
   action and set `output` to that output's name.
+- Static table cells and receipt values may have no role or label. They are
+  still listed in controls with tag `td` and their visible value as `name`.
+  Read those with `target_text` set to the exact visible value. Do not point a
+  read at the page heading merely because the desired value appears elsewhere
+  in visible text.
+- A hidden `_token` control is shown with value `[opaque]`. Never copy or persist
+  that token. Submit the live form normally; the browser carries the current
+  per-transaction token with it, which prevents a recorded token from ever
+  entering the artifact.
 - Never use a value that was not supplied to you. Parameter values you are given
   are examples; the recorded workflow will be replayed with different ones.
 - Call `finish` as soon as the goal is achieved, or if it clearly cannot be.
@@ -108,6 +125,7 @@ class AnthropicPlanner:
 
 def _render_observation(goal, observation: Observation, history, context) -> str:
     controls = json.dumps(observation.controls[:60], indent=0)
+    # Field state is what tells the planner whether its last action landed.
     done = "\n".join(f"{i+1}. {h}" for i, h in enumerate(history[-12:])) or "(nothing yet)"
     return f"""GOAL
 {goal}
@@ -156,6 +174,8 @@ class HeuristicPlanner:
 
     async def decide(self, goal, observation: Observation, history, context) -> Planned:
         self.calls += 1
+        if str(context.get("capability_id", "")).startswith("meridian_core."):
+            return self._decide_meridian(observation, history, context)
         params = context.get("params", {})
         claim_id = params.get("claim_id", "")
         note = params.get("note", "")
@@ -282,6 +302,172 @@ class HeuristicPlanner:
 
         return Planned("finish", {"status": "give_up", "summary": f"unexpected screen at {url}"})
 
+    def _decide_meridian(self, observation: Observation, history, context) -> Planned:
+        """Offline observe/decide/act fallback for the documented live target.
+
+        This is deliberately labelled ``heuristic`` in provenance. It keeps the
+        demo reproducible when no model credential is available; it is not used
+        to claim model-driven discovery. The same policy, live DOM probing,
+        compiler, and replay path still apply.
+        """
+        params = context.get("params", {})
+        capability = str(context.get("capability_id", ""))
+        url = observation.url
+        controls = observation.controls
+        taken = "\n".join(history).lower()
+
+        def done(key: str) -> bool:
+            return key.lower() in taken
+
+        def control(name_attr: str) -> dict[str, Any] | None:
+            return next((c for c in controls if c.get("name_attr") == name_attr), None)
+
+        def current(name_attr: str) -> str:
+            return str((control(name_attr) or {}).get("current_value") or "")
+
+        def act(intent: str, action: str, **kwargs: Any) -> Planned:
+            return Planned("act", {"intent": intent, "action": action, "frame": "main", **kwargs})
+
+        def assertion(key: str, description: str, value: str, kind: str = "text_present") -> Planned:
+            return Planned("assert_state", {
+                "id": key, "description": description, "kind": kind, "value": value,
+            })
+
+        # Some legacy POST handlers render the confirmation at the same URL as
+        # the edit form. Screen state, not a URL suffix, is authoritative.
+        if (capability == "meridian_core.update_member_information"
+                and "MEMBER INFORMATION UPDATED" in observation.text):
+            if not done("assert:member_information_updated"):
+                return assertion("member_information_updated", "The console confirms the member update",
+                                 "MEMBER INFORMATION UPDATED")
+            if not done("read:confirmation_message"):
+                return act("Read the member update confirmation", "read",
+                           output="confirmation_message", target_text="MEMBER INFORMATION UPDATED")
+            return Planned("finish", {"status": "success", "summary": "Updated member contact information"})
+
+        # Shared sign-on sequence.
+        if "/signon" in url:
+            if current("operator") != str(params.get("operator", "")):
+                return act("Enter the supplied Operator ID", "type",
+                           text=str(params.get("operator", "")), target_name_attr="operator")
+            if current("password") != "[set]":
+                return act("Enter the supplied password", "type",
+                           text=str(params.get("password", "")), target_name_attr="password")
+            if current("branch") != str(params.get("branch", "")):
+                return act("Select the supplied branch", "select",
+                           value=str(params.get("branch", "")), target_name_attr="branch")
+            return act("Submit the sign-on form", "click",
+                       target_role="button", target_name="Sign On")
+
+        if url.rstrip("/").endswith("/menu"):
+            if not done("assert:main_menu_loaded"):
+                return assertion("main_menu_loaded", "An authenticated MAIN MENU is displayed", "MAIN MENU")
+            if capability == "meridian_core.sign_on":
+                if not done("read:session_status"):
+                    return act("Read the authenticated session status", "read",
+                               output="session_status", target_text="MAIN MENU")
+                return Planned("finish", {"status": "success", "summary": "Signed on and verified MAIN MENU"})
+            return act("Open Member Inquiry / Selection", "click",
+                       target_role="link", target_name="Member Inquiry / Selection")
+
+        # Search form versus result set are distinguished by the query string.
+        if url.rstrip("/").endswith("/members") and "?" not in url:
+            if not done("assert:member_inquiry_loaded"):
+                return assertion("member_inquiry_loaded", "Member Inquiry / Selection is displayed",
+                                 "MEMBER INQUIRY / SELECTION")
+            search_by = str(params.get("search_by") or "number")
+            query = str(params.get("query") or params.get("member_number") or "")
+            if current("by") != search_by:
+                return act("Choose how to search for the member", "select",
+                           value=search_by, target_name_attr="by")
+            if current("q") != query:
+                return act("Enter the supplied member search value", "type",
+                           text=query, target_name_attr="q")
+            return act("Search for the member", "click", target_role="button", target_name="Search")
+
+        if "/members?" in url:
+            if not done("assert:search_results_loaded"):
+                return assertion("search_results_loaded", "A selectable member result is displayed", "Select")
+            return act("Open the first matching member record", "click",
+                       target_role="link", target_name="Select")
+
+        member = str(params.get("member_number") or params.get("query") or "")
+        member_root = f"/members/{member}"
+
+        if url.rstrip("/").endswith(member_root):
+            if capability == "meridian_core.update_member_information" and done("click:save_changes"):
+                if not done("assert:member_information_updated"):
+                    return assertion("member_information_updated", "The console confirms the member update",
+                                     "MEMBER INFORMATION UPDATED")
+                if not done("read:confirmation_message"):
+                    return act("Read the member update confirmation", "read",
+                               output="confirmation_message", target_text="MEMBER INFORMATION UPDATED")
+                return Planned("finish", {"status": "success", "summary": "Updated member contact information"})
+
+            if not done("assert:member_record_loaded"):
+                return assertion("member_record_loaded", "The requested MEMBER RECORD is displayed",
+                                 "MEMBER RECORD")
+            if capability == "meridian_core.update_member_information":
+                return act("Open Update Member Information", "click",
+                           target_role="link", target_name="Update Member Information")
+            if capability == "meridian_core.place_account_hold":
+                return act("Open Place Account Hold", "click",
+                           target_role="link", target_name="Place Account Hold")
+            return Planned("finish", {"status": "give_up", "summary": "unsupported offline member workflow"})
+
+        if url.rstrip("/").endswith(f"{member_root}/update"):
+            if not done("assert:update_form_loaded"):
+                return assertion("update_form_loaded", "The Update Member Information form is displayed",
+                                 "UPDATE MEMBER INFORMATION")
+            for field_name, label in (
+                ("email", "e-mail address"), ("phone", "phone number"), ("address", "mailing address")
+            ):
+                wanted = str(params.get(field_name, ""))
+                if current(field_name) != wanted:
+                    return act(f"Enter the supplied {label}", "type", text=wanted,
+                               target_name_attr=field_name)
+            return act("Save the member information changes", "click",
+                       target_role="button", target_name="Save Changes")
+
+        if url.rstrip("/").endswith(f"{member_root}/hold"):
+            if not done("assert:hold_form_loaded"):
+                return assertion("hold_form_loaded", "The Place Account Hold form is displayed",
+                                 "PLACE ACCOUNT HOLD")
+            if current("share") != str(params.get("share", "")):
+                return act("Select the supplied share", "select", value=str(params.get("share", "")),
+                           target_name_attr="share")
+            if current("reason") != str(params.get("reason_code", "")):
+                return act("Select the supplied hold reason", "select",
+                           value=str(params.get("reason_code", "")), target_name_attr="reason")
+            if current("notes") != str(params.get("notes", "")):
+                return act("Enter the hold notes", "type", text=str(params.get("notes", "")),
+                           target_name_attr="notes")
+            return act("Continue to the hold review", "click", target_role="button", target_name="Continue")
+
+        if url.rstrip("/").endswith(f"{member_root}/hold/review"):
+            if not done("assert:hold_review_loaded"):
+                return assertion("hold_review_loaded", "The hold review screen is displayed",
+                                 "CONFIRM ACCOUNT HOLD")
+            return act("Post the account hold", "click", target_role="button", target_name="Place Hold")
+
+        if url.rstrip("/").endswith(f"{member_root}/hold/post"):
+            if not done("assert:hold_posted"):
+                return assertion("hold_posted", "The hold confirmation screen is displayed", "HOLD")
+            remaining = context.get("outputs_remaining", [])
+            if "confirmation_reference" in remaining:
+                ref = next((str(c.get("name")) for c in controls
+                            if re.fullmatch(r"CN\d+", str(c.get("name") or ""))), "")
+                return act("Read the hold confirmation reference", "read",
+                           output="confirmation_reference", target_text=ref)
+            if "hold_status" in remaining:
+                status = next((str(c.get("name")) for c in controls
+                               if str(c.get("name") or "").strip().upper() == "HOLD"), "HOLD")
+                return act("Read the resulting hold status", "read",
+                           output="hold_status", target_text=status)
+            return Planned("finish", {"status": "success", "summary": "Placed the account hold"})
+
+        return Planned("finish", {"status": "give_up", "summary": f"unexpected MERIDIAN screen at {url}"})
+
 
 def make_planner(kind: str, model: str | None = None) -> Planner:
     if kind == "anthropic":
@@ -302,13 +488,20 @@ def history_key(planned: Planned) -> str:
     if action == "read":
         return f"read:{a.get('output')}"
     if action == "type":
-        return "type:search" if a.get("target_testid") == "claim-search-input" else "type:note"
+        if a.get("target_testid") == "claim-search-input":
+            return "type:search"
+        if a.get("target_label") == "Decision note":
+            return "type:note"
+        return f"type:{a.get('target_name_attr') or a.get('target_name') or a.get('target_label') or 'field'}"
     if action == "select":
-        return "select:outcome"
+        if a.get("target_testid") == "decision-select":
+            return "select:outcome"
+        return f"select:{a.get('target_name_attr') or a.get('target_name') or 'field'}"
     if action == "click":
         if a.get("target_testid") == "claim-search-submit":
             return "click:submit_search"
         if a.get("target_testid") == "decision-submit":
             return "click:save"
-        return "click:open_record"
+        name = str(a.get("target_name") or a.get("target_text") or "open_record")
+        return f"click:{re.sub(r'[^a-z0-9]+', '_', name.lower()).strip('_')}"
     return f"{action}:{re.sub(r'[^a-z]', '', str(a.get('target_name', ''))[:12].lower())}"

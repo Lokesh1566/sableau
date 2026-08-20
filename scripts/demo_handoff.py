@@ -33,7 +33,7 @@ import httpx
 ROOT = Path(__file__).resolve().parents[1]
 CONSOLE = "http://127.0.0.1:8777"
 APP = "http://127.0.0.1:8099"
-CAP = ROOT / "capabilities" / "meridian.record_claim_decision.v1.0.0.json"
+CAP = ROOT / "tests" / "fixtures" / "legacy_claim_capability.json"
 JSON_HEADERS = {"Accept": "application/json"}
 
 

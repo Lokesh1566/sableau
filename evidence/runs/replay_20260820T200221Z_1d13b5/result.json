@@ -1,0 +1,151 @@
+{
+  "run_id": "replay_20260820T200221Z_1d13b5",
+  "capability_id": "meridian_core.check_member_balance",
+  "capability_version": "1.0.0",
+  "started_at": "2026-08-20T20:02:22.258550+00:00",
+  "duration_ms": 11916,
+  "category": "SUCCESS",
+  "code": "NONE",
+  "outputs": {
+    "member_name": "Johnson, Katherine",
+    "share_id": "102777-S0001",
+    "share_type": "Regular Shares",
+    "share_balance": "$42,000.00",
+    "share_status": "HOLD [HOLD]"
+  },
+  "business_outcome": null,
+  "error": null,
+  "control": {
+    "final_owner": "nobody",
+    "escalated": false,
+    "escalation_id": null,
+    "escalation_reason": null,
+    "human_actions": 0,
+    "resume_decision": null
+  },
+  "steps": [
+    {
+      "step_id": "s1_enter_the_operator_id",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 164,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s2_enter_the_[REDACTED]",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 60,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s3_select_the_west_014_branch",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 36,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s4_submit_the_sign_on_form_wi",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2923,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s5_navigate_to_member_inquiry",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2859,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s6_enter_the_member_number_in",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 37,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s7_click_the_search_button_to",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2808,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s8_click_the_select_link_to_o",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2839,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s9_read_the_member_s_name_fro",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 38,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s10_read_the_share_id_from_the",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 26,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s11_read_the_share_type_from_t",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 22,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s12_read_the_balance_from_the",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 32,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s13_read_the_status_from_the_f",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 61,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    }
+  ],
+  "llm_calls": 0,
+  "drift": {
+    "steps_resolved": 13,
+    "first_choice": 13,
+    "degraded": []
+  }
+}
