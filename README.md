@@ -1,4 +1,4 @@
-# Sableau 2
+# Sableau 
 
 Sableau turns one successful computer-use discovery into a typed, versioned capability that replays without an LLM. This submission is adapted end to end to the live **MERIDIAN CORE** legacy banking application at `https://web-sample.interface-hiring.com`.
 
