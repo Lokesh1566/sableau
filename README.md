@@ -1,6 +1,6 @@
 # Sableau 
 
-Sableau turns one successful computer-use discovery into a typed, versioned capability that replays without an LLM. This submission is adapted end to end to the live **MERIDIAN CORE** legacy banking application at `https://web-sample.interface-hiring.com`.
+Sableau turns one successful computer-use discovery into a typed, versioned capability that replays without an LLM. The system is adapted end to end to the live **MERIDIAN CORE** legacy banking application at `https://web-sample.interface-hiring.com`.
 
 The production path is deliberately simple:
 
@@ -11,17 +11,17 @@ capability JSON + new inputs -> deterministic browser replay -> structured resul
 
 The production catalog contains exactly seven MERIDIAN capabilities, a capability API, a thin banking chatbot, a run/evidence dashboard, explicit runtime outcomes, risky-step confirmation, redaction, and pause/escalation support. [REPORT.md](REPORT.md) explains the design; [evidence/README.md](evidence/README.md) indexes representative real runs.
 
-## Quick start from the ZIP
+## Quick start from GitHub
 
 Python 3.11 or newer is required.
 
 ```bash
-unzip sableau2-final-submission.zip
-cd sableau2
+git clone --branch main-2 https://github.com/Lokesh1566/sableau.git
+cd sableau
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install ".[dev]"
+python -m pip install -e ".[dev]"
 python -m playwright install chromium
 ```
 
@@ -86,7 +86,7 @@ export SABLEAU_BRANCH=MAIN-001
 export SABLEAU_POLICY=policy-core.json
 ```
 
-`ANTHROPIC_API_KEY` is needed only to make a new model-driven discovery. It is never read during replay, and no `.env` file or key is included in the deliverable.
+`ANTHROPIC_API_KEY` is needed only to make a new model-driven discovery. It is never read during replay, and no `.env` file or API key is committed to the repository.
 
 ```bash
 cp .env.example .env
@@ -174,7 +174,7 @@ escalated: true
 llm_calls=0
 ```
 
-The original local claims fixture remains under `targetapp/` as a reproducible test harness for the full take-control/resume console. Its artifact is isolated under `tests/fixtures/`, so it is not exposed by the production capability catalog. Run `./scripts/up.sh` and `python scripts/demo_handoff.py` to see a scripted operator take the same live browser session, perform the blocked action, and hand control back. It is auxiliary to the live MERIDIAN adaptation, not the submitted target.
+The original local claims fixture remains under `targetapp/` as a reproducible test harness for the full take-control/resume console. Its artifact is isolated under `tests/fixtures/`, so it is not exposed by the production capability catalog. Run `./scripts/up.sh` and `python scripts/demo_handoff.py` to see a scripted operator take the same live browser session, perform the blocked action, and hand control back. It is auxiliary to the live MERIDIAN adaptation, not part of the production capability catalog.
 
 ## API, chatbot, and dashboard
 

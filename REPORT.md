@@ -36,7 +36,7 @@ The capability depends on required surface features rather than Playwright class
 
 Legacy web is already exercised here: server-rendered tables, sparse semantics, form-bound tokens, and controls best identified by `name`. Candidate chains allow semantic locators where present and measured structural fallbacks where they are not. Replay records which candidate succeeded, producing a drift score without a separate crawl.
 
-For many institutions running the same vendor product, I would keep a vendor/version base capability and apply reviewed tenant overlays for entry URLs, allowed hosts, locator candidate additions, detector wording, and feature flags. Overlays may specialize but never broaden safety. Successful fallback use provides per-step drift telemetry; repeated degradation can trigger revalidation before failure. The repository retains the original two-tenant claims fixture as an implemented example of this overlay seam, while MERIDIAN is the submitted live target.
+For many institutions running the same vendor product, I would keep a vendor/version base capability and apply reviewed tenant overlays for entry URLs, allowed hosts, locator candidate additions, detector wording, and feature flags. Overlays may specialize but never broaden safety. Successful fallback use provides per-step drift telemetry; repeated degradation can trigger revalidation before failure. The repository retains the original two-tenant claims fixture as an implemented example of this overlay seam, while MERIDIAN is the production live target.
 
 ## Escalation & handoff
 
