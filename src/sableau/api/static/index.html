@@ -3,137 +3,237 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sableau — capability console</title>
+<title>Sableau — Operations Control</title>
 <style>
 :root{
-  --desk:#141c24; --panel:#1b242e; --rule:#2c3a47; --card:#e8e3d6;
-  --ink:#c9d3dd; --dim:#7d8fa0; --ok:#7fc4a0; --biz:#8fb8d6;
-  --rec:#e0b264; --bad:#c98878; --brass:#a8873f;
+  --canvas:#070b13; --canvas-soft:#0a101c; --surface:#0f1726; --surface-raised:#131e30;
+  --surface-soft:#172338; --rule:rgba(148,163,184,.14); --rule-strong:rgba(148,163,184,.24);
+  --ink:#e8edf6; --ink-soft:#c3cede; --dim:#7f90a8; --muted:#5f7088;
+  --brand:#7181ff; --brand-strong:#5867f1; --cyan:#29c7df; --ok:#51d4a0;
+  --biz:#69bdf2; --rec:#f4bd61; --bad:#f08073; --shadow:0 22px 65px rgba(0,0,0,.3);
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--desk);color:var(--ink);
-  font:14px/1.5 "IBM Plex Sans",system-ui,-apple-system,sans-serif}
-code,pre,.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
-header{background:#0e151c;border-bottom:1px solid var(--rule);padding:12px 20px;
-  display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
-header b{font:700 13px/1 system-ui;letter-spacing:.22em;text-transform:uppercase}
-header span{font-size:12px;color:var(--dim)}
-header .spacer{flex:1}
-.pill{font:500 11px/1.8 "IBM Plex Mono",monospace;padding:1px 9px;border:1px solid var(--rule);
-  border-radius:2px;color:var(--dim)}
-main{display:grid;grid-template-columns:340px 1fr;gap:18px;padding:18px;max-width:1500px;margin:0 auto}
-.panel{background:var(--panel);border:1px solid var(--rule)}
-.panel h2{margin:0;padding:9px 14px;font:600 11px/1 system-ui;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--dim);background:#202b36;border-bottom:1px solid var(--rule)}
-.panel .body{padding:14px}
-.cap{padding:11px 14px;border-bottom:1px solid var(--rule);cursor:pointer;transition:background .12s}
-.cap:hover{background:#22303c}
-.cap.on{background:#22303c;box-shadow:inset 3px 0 0 var(--brass)}
-.cap b{display:block;font-size:14px;color:#e6edf4;font-weight:600}
-.cap span{display:block;font-size:11.5px;color:var(--dim);margin-top:3px}
-label{display:block;font:600 10.5px/1 system-ui;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--dim);margin:13px 0 5px}
-input,select,textarea{width:100%;background:#0f161d;color:var(--ink);border:1px solid #35424f;
-  padding:7px 9px;font:13px/1.4 "IBM Plex Sans",sans-serif;border-radius:2px}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;background:
+  radial-gradient(circle at 34% -10%,rgba(73,88,210,.18),transparent 30%),
+  radial-gradient(circle at 92% 5%,rgba(29,155,178,.1),transparent 24%),var(--canvas);
+  color:var(--ink);font:14px/1.55 Inter,"SF Pro Text",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;background-image:
+  linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:32px 32px}
+a{color:#9fb2ff;text-decoration:none}a:hover{color:#c3ceff}
+code,pre,.mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
+.topbar{position:sticky;top:0;z-index:50;height:70px;background:rgba(7,11,19,.88);
+  backdrop-filter:blur(22px);border-bottom:1px solid var(--rule);padding:0 28px;
+  display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:11px;min-width:256px}
+.brand-mark{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(145deg,var(--brand),#4853c8);box-shadow:0 8px 24px rgba(88,103,241,.3);
+  font-weight:800;font-size:15px;color:white}
+.brand-copy strong{display:block;font-size:15px;letter-spacing:.17em;text-transform:uppercase}
+.brand-copy span{display:block;color:var(--dim);font-size:10px;letter-spacing:.08em}
+.top-context{display:flex;align-items:center;gap:9px;color:var(--dim);font-size:12px}
+.top-context .current{color:var(--ink-soft)}.top-context .slash{color:var(--muted)}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.docs-link{padding:7px 11px;border:1px solid var(--rule);border-radius:9px;color:var(--ink-soft);font-size:12px}
+.pill{display:inline-flex;align-items:center;gap:7px;font:600 10.5px/1 "SFMono-Regular",monospace;
+  padding:9px 12px;border:1px solid rgba(81,212,160,.23);border-radius:999px;color:#92e8bf;
+  background:rgba(35,102,75,.13)}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(81,212,160,.1)}
+.app-shell{position:relative;display:grid;grid-template-columns:292px minmax(560px,1fr);
+  gap:20px;padding:22px 24px 48px;max-width:1880px;margin:0 auto}
+.left-rail{align-self:start;position:sticky;top:92px;max-height:calc(100vh - 112px)}
+.left-rail{overflow:hidden}.workspace{min-width:0}
+.panel{background:linear-gradient(180deg,rgba(18,28,45,.96),rgba(13,21,34,.96));
+  border:1px solid var(--rule);border-radius:16px;box-shadow:0 12px 36px rgba(0,0,0,.16);overflow:hidden}
+.panel+.panel{margin-top:18px!important}
+.panel h2{margin:0;padding:17px 20px;font:700 10.5px/1 system-ui;letter-spacing:.16em;
+  text-transform:uppercase;color:#99a9bf;background:rgba(255,255,255,.014);border-bottom:1px solid var(--rule)}
+.panel .body{padding:20px}
+.rail-card{background:rgba(13,21,34,.92);border:1px solid var(--rule);border-radius:16px;overflow:hidden;box-shadow:0 16px 44px rgba(0,0,0,.2)}
+.rail-head{padding:18px 17px 12px}.rail-head-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.eyebrow{font-size:10px;font-weight:750;letter-spacing:.17em;text-transform:uppercase;color:#8c9bb2}
+.count-badge{font:600 10px/1 "SFMono-Regular",monospace;color:#aebcff;background:rgba(113,129,255,.1);
+  border:1px solid rgba(113,129,255,.2);padding:6px 8px;border-radius:999px}
+.search-wrap{position:relative}.search-wrap::before{content:"⌕";position:absolute;left:11px;top:6px;color:var(--dim);font-size:18px;line-height:1}
+.search-wrap input{padding-left:34px;height:38px;background:rgba(5,10,18,.62)}
+#caps{max-height:calc(100vh - 205px);overflow:auto;padding:2px 8px 10px;scrollbar-width:thin}
+.cap{position:relative;padding:13px 12px;margin:4px 0;border:1px solid transparent;border-radius:11px;
+  cursor:pointer;transition:background .16s,border-color .16s,transform .16s}
+.cap:hover{background:rgba(255,255,255,.035);border-color:var(--rule);transform:translateX(2px)}
+.cap.on{background:linear-gradient(90deg,rgba(100,116,245,.16),rgba(100,116,245,.045));
+  border-color:rgba(113,129,255,.24);box-shadow:inset 3px 0 0 var(--brand)}
+.cap-top{display:flex;align-items:center;gap:8px;margin-bottom:7px}.cap-index{display:grid;place-items:center;width:23px;height:23px;
+  border-radius:7px;background:rgba(255,255,255,.055);color:#8fa0b8;font:600 9px/1 "SFMono-Regular",monospace}
+.cap.on .cap-index{background:rgba(113,129,255,.18);color:#bac4ff}
+.risk{margin-left:auto;font:700 8.5px/1 system-ui;letter-spacing:.08em;text-transform:uppercase;padding:5px 6px;border-radius:6px}
+.risk-low{color:#7dddb0;background:rgba(48,158,111,.1)}.risk-high{color:#f2c66e;background:rgba(197,135,33,.12)}
+.cap b{display:block;color:#dfe7f2;font-size:12.5px;font-weight:650;line-height:1.35}
+.cap-meta{display:block;color:var(--dim);font:500 9.5px/1.45 "SFMono-Regular",monospace;margin-top:5px;overflow-wrap:anywhere}
+.hero{position:relative;overflow:hidden;padding:28px 30px;margin-bottom:18px;border:1px solid rgba(113,129,255,.19);
+  border-radius:18px;background:linear-gradient(118deg,rgba(28,39,67,.98),rgba(14,24,42,.98) 56%,rgba(11,32,43,.94));box-shadow:var(--shadow)}
+.hero::after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-85px;top:-130px;
+  background:radial-gradient(circle,rgba(52,211,235,.18),transparent 67%)}
+.hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end}
+.hero h1{margin:7px 0 7px;font-size:clamp(24px,2.1vw,36px);line-height:1.08;letter-spacing:-.035em}
+.hero p{max-width:650px;margin:0;color:#9eacc0;font-size:13px}.hero-stats{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.hero-stat{min-width:104px;padding:12px 13px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(7,12,22,.35)}
+.hero-stat strong{display:block;font-size:16px;letter-spacing:-.02em}.hero-stat span{font-size:9px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+.section-lede{margin:0 0 14px;color:#9dacc0;font-size:13px;max-width:850px}
+.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}.field{min-width:0}.field.wide{grid-column:1/-1}
+label{display:block;font:700 9.5px/1 system-ui;letter-spacing:.115em;text-transform:uppercase;color:#8999af;margin:15px 0 7px}
+input,select,textarea{width:100%;background:rgba(5,10,18,.68);color:var(--ink);border:1px solid var(--rule-strong);
+  padding:10px 11px;font:13px/1.4 Inter,system-ui,sans-serif;border-radius:9px;transition:border .16s,box-shadow .16s,background .16s}
+input:hover,select:hover,textarea:hover{border-color:rgba(148,163,184,.36)}
+input:focus,select:focus,textarea:focus{border-color:rgba(113,129,255,.72);background:#0a1220;box-shadow:0 0 0 3px rgba(113,129,255,.11);outline:0}
 input[type=checkbox]{width:auto;margin:0 7px 0 0;vertical-align:middle}
-textarea{min-height:58px;resize:vertical}
-button{font:600 12px/1 system-ui;background:#25507e;color:#fff;border:1px solid #356a9e;
-  padding:9px 18px;cursor:pointer;border-radius:2px;margin-top:14px}
-button:hover{filter:brightness(1.15)}
+textarea{min-height:76px;resize:vertical}
+button{font:700 11.5px/1 system-ui;background:linear-gradient(135deg,var(--brand),var(--brand-strong));color:#fff;
+  border:1px solid rgba(150,162,255,.45);padding:11px 16px;cursor:pointer;border-radius:9px;margin-top:14px;
+  box-shadow:0 8px 18px rgba(68,80,196,.17);transition:transform .14s,filter .14s,border-color .14s}
+button:hover{filter:brightness(1.09);transform:translateY(-1px)}button:active{transform:translateY(0)}
 button:disabled{opacity:.5;cursor:wait}
-button.ghost{background:#232f3a;border-color:#3a4753}
-button.example{margin:3px 3px 0 0;padding:5px 8px;background:#232f3a;border-color:#3a4753;
-  color:var(--ink);font-size:10.5px;font-weight:500}
-:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
+button.ghost{background:rgba(255,255,255,.035);border-color:var(--rule-strong);box-shadow:none;color:var(--ink-soft)}
+button.example{margin:4px 3px 0 0;padding:7px 9px;background:rgba(255,255,255,.035);border-color:var(--rule);
+  color:#aebbd0;font-size:10px;font-weight:600;box-shadow:none;border-radius:999px}
+:focus-visible{outline:2px solid #9eaaff;outline-offset:2px}.form-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.risk-confirm{display:flex;align-items:flex-start;gap:4px;padding:12px 13px;margin-top:16px!important;border-radius:10px;
+  border:1px solid rgba(244,189,97,.24);background:rgba(111,73,13,.1);color:#efc776!important}
 .hint{font-size:12px;color:var(--dim)}
-.contract{font-size:12px;margin:0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px}
-.contract dt{color:var(--dim)}
-.contract dd{margin:0;font-family:"IBM Plex Mono",monospace;font-size:11.5px}
+.contract{font-size:12px;margin:0;display:grid;grid-template-columns:auto 1fr;gap:5px 12px}.contract dt{color:var(--dim)}
+.contract dd{margin:0;font-family:"SFMono-Regular",monospace;font-size:10.5px;color:#c8d2e1;overflow-wrap:anywhere}
+.capability-contract{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.contract-chip{padding:7px 9px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--rule);color:#91a2b8;font:600 9.5px/1 "SFMono-Regular",monospace}
 table{width:100%;border-collapse:collapse;font-size:12.5px}
-th{text-align:left;font:600 10px/1.8 system-ui;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--dim);border-bottom:1px solid var(--rule);padding:7px 10px}
-td{border-bottom:1px solid #222d38;padding:7px 10px;vertical-align:top}
-tr.run{cursor:pointer} tr.run:hover{background:#22303c}
-td.mono{font-family:"IBM Plex Mono",monospace;font-size:11.5px}
-.tag{font:500 10px/1.7 "IBM Plex Mono",monospace;padding:1px 7px;border:1px solid;border-radius:2px}
-.t-SUCCESS{color:var(--ok);border-color:#2f6b4f}
-.t-BUSINESS_OUTCOME{color:var(--biz);border-color:#3d637f}
-.t-RECOVERABLE{color:var(--rec);border-color:#7a5a1e}
-.t-HARD_FAILURE{color:var(--bad);border-color:#7a3b30}
-pre{background:#0f161d;border:1px solid var(--rule);padding:12px;overflow:auto;max-height:280px;
-  font-size:11.5px;margin:0;border-radius:2px}
-.chat{display:flex;gap:8px;margin-top:6px}
-.chat input{flex:1}
-.chat button{margin-top:0}
-.msg{padding:9px 12px;border-left:2px solid var(--rule);margin:9px 0;font-size:13px}
-.msg.you{border-color:#356a9e;color:#b6c9da}
-.msg.bot{border-color:var(--brass)}
-.spin{display:inline-block;width:9px;height:9px;border:2px solid var(--brass);
+th{text-align:left;font:700 9px/1.8 system-ui;letter-spacing:.13em;text-transform:uppercase;color:#75869d;
+  border-bottom:1px solid var(--rule);padding:11px 13px;background:rgba(255,255,255,.012)}
+td{border-bottom:1px solid rgba(148,163,184,.08);padding:11px 13px;vertical-align:top;color:#b9c5d5}
+tr.run{cursor:pointer;transition:background .14s}tr.run:hover{background:rgba(113,129,255,.055)}
+td.mono{font-family:"SFMono-Regular",monospace;font-size:10.5px}.table-wrap{width:100%;overflow:auto}
+.tag{display:inline-flex;align-items:center;font:700 9px/1.6 "SFMono-Regular",monospace;padding:2px 7px;border:1px solid;border-radius:999px;letter-spacing:.02em}
+.t-SUCCESS{color:var(--ok);border-color:rgba(81,212,160,.32);background:rgba(81,212,160,.07)}
+.t-BUSINESS_OUTCOME{color:var(--biz);border-color:rgba(105,189,242,.3);background:rgba(105,189,242,.07)}
+.t-RECOVERABLE{color:var(--rec);border-color:rgba(244,189,97,.32);background:rgba(244,189,97,.07)}
+.t-HARD_FAILURE{color:var(--bad);border-color:rgba(240,128,115,.32);background:rgba(240,128,115,.07)}
+pre{background:#070d17;border:1px solid var(--rule);padding:14px;overflow:auto;max-height:320px;font-size:10.5px;margin:0;border-radius:10px;color:#b7c4d6}
+.chat-backdrop{position:fixed;inset:0;z-index:69;background:rgba(2,6,12,.52);backdrop-filter:blur(3px);
+  opacity:0;visibility:hidden;transition:opacity .22s ease,visibility .22s ease}
+.chat-rail{display:flex;position:fixed;z-index:70;right:20px;top:90px;bottom:20px;width:min(400px,calc(100vw - 40px));
+  transform:translateX(calc(100% + 36px));opacity:0;visibility:hidden;pointer-events:none;
+  transition:transform .28s cubic-bezier(.22,.78,.28,1),opacity .2s ease,visibility .28s ease}
+body.chat-open .chat-rail{transform:translateX(0);opacity:1;visibility:visible;pointer-events:auto}
+.assistant-card{display:flex;flex-direction:column;width:100%;height:100%;
+  background:linear-gradient(180deg,rgba(16,25,41,.98),rgba(10,17,29,.98));border:1px solid rgba(113,129,255,.17);
+  border-radius:17px;box-shadow:var(--shadow);overflow:hidden}
+.assistant-head{padding:17px 17px 14px;border-bottom:1px solid var(--rule)}
+.assistant-title{display:flex;gap:11px;align-items:center}.assistant-avatar{display:grid;place-items:center;width:34px;height:34px;
+  border-radius:10px;background:linear-gradient(145deg,#273963,#1c2a4a);border:1px solid rgba(129,145,255,.23);color:#aeb9ff;font-weight:800}
+.assistant-title strong{display:block;font-size:13px}.assistant-title span{display:block;font-size:10px;color:var(--dim)}
+.assistant-status{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(81,212,160,.08)}
+.assistant-close{display:grid;place-items:center;width:32px;height:32px;padding:0;margin:0 0 0 auto;border-radius:9px;
+  color:#9eacc0;background:rgba(255,255,255,.035);border-color:var(--rule);box-shadow:none;font-size:18px;font-weight:400}
+.assistant-close:hover{color:white;background:rgba(255,255,255,.075)}
+.assistant-copy{font-size:11.5px;color:#8293aa;margin:13px 0 0}#examples{padding:9px 14px 3px}
+#chatLog{flex:1;min-height:170px;overflow:auto;padding:8px 14px 14px;scrollbar-width:thin}
+.chat-empty{margin:10px 0;padding:14px;border:1px dashed var(--rule-strong);border-radius:11px;color:#71839b;font-size:11.5px}
+.chat-compose{padding:13px 14px 15px;border-top:1px solid var(--rule);background:rgba(5,10,18,.32)}
+.chat{display:flex;gap:8px;margin-top:0}.chat input{flex:1;min-width:0}.chat button{margin-top:0;padding:10px 13px}
+.compose-hint{display:flex;justify-content:space-between;margin-top:8px;color:#607189;font-size:9.5px}
+.msg{position:relative;padding:10px 11px;margin:9px 0;font-size:11.5px;border:1px solid var(--rule);border-radius:10px;
+  background:rgba(255,255,255,.025);overflow-wrap:anywhere}
+.msg.you{margin-left:26px;border-color:rgba(113,129,255,.21);background:rgba(89,103,224,.09);color:#c9d3e6}
+.msg.bot{margin-right:18px;color:#b9c6d8}.msg.bot::before{content:"S";position:absolute;left:-24px;top:8px;
+  display:grid;place-items:center;width:17px;height:17px;border-radius:5px;background:rgba(113,129,255,.18);color:#aeb9ff;font-size:8px;font-weight:800}
+.chat-launcher{position:fixed;right:24px;bottom:24px;z-index:80;display:flex;align-items:center;gap:10px;
+  margin:0;padding:8px 10px 8px 8px;border-radius:999px;border:1px solid rgba(139,151,255,.4);
+  background:linear-gradient(135deg,#6373f4,#4c5cdd);box-shadow:0 16px 38px rgba(42,52,151,.42),0 0 0 6px rgba(99,115,244,.08);
+  transition:transform .2s ease,opacity .2s ease,box-shadow .2s ease}
+.chat-launcher:hover{transform:translateY(-2px);box-shadow:0 20px 44px rgba(42,52,151,.5),0 0 0 7px rgba(99,115,244,.11)}
+.launcher-icon{position:relative;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;
+  background:rgba(8,13,30,.22);font-size:15px;font-weight:850;letter-spacing:-.02em}
+.launcher-icon::after{content:"";position:absolute;right:1px;bottom:1px;width:9px;height:9px;border-radius:50%;
+  background:var(--ok);border:2px solid #5969eb}
+.launcher-copy{text-align:left;padding-right:4px}.launcher-copy strong{display:block;font-size:11.5px}.launcher-copy span{display:block;
+  color:#d8ddff;font-size:9.5px;font-weight:550;margin-top:3px}
+body.chat-open .chat-launcher{opacity:0;pointer-events:none;transform:translateY(8px) scale(.94)}
+.spin{display:inline-block;width:9px;height:9px;border:2px solid var(--brand);
   border-top-color:transparent;border-radius:50%;animation:s .7s linear infinite;
   vertical-align:middle;margin-right:7px}
-.progress{height:7px;background:#0f161d;border:1px solid var(--rule);margin:9px 0 12px}
-.progress span{display:block;height:100%;background:#356a9e;transition:width .25s}
+.progress{height:6px;background:#070d17;border:1px solid var(--rule);margin:12px 0 13px;border-radius:99px;overflow:hidden}
+.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--cyan));transition:width .25s;border-radius:99px}
 .live-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:5px}
-.live-head .mono{color:var(--dim);font-size:11px}
-.step-list{display:grid;gap:5px;margin-top:10px}
-.step{display:grid;grid-template-columns:30px 1fr auto;gap:8px;padding:7px 9px;
-  background:#151e27;border-left:2px solid var(--rule);font-size:11.5px}
-.step.running{border-color:var(--brass)} .step.done{border-color:#2f6b4f}
-.step.failed{border-color:#7a3b30}.step .intent{color:#dce5ed}.step .meta{color:var(--dim)}
-.escalated{border:1px solid #7a5a1e;background:#322817;color:#f0bd64;padding:8px 10px;margin:10px 0}
-.operator-box{border:1px solid #7a5a1e;background:#171d22;padding:11px;margin-top:12px}
+.live-head .mono{color:var(--dim);font-size:10.5px}.step-list{display:grid;gap:7px;margin-top:12px}
+.step{position:relative;display:grid;grid-template-columns:28px 1fr auto;gap:10px;padding:10px 12px;
+  background:rgba(7,13,23,.55);border:1px solid var(--rule);border-left:3px solid var(--rule-strong);border-radius:9px;font-size:11px}
+.step.running{border-left-color:var(--brand);background:rgba(90,103,225,.065)}.step.done{border-left-color:var(--ok)}
+.step.failed{border-left-color:var(--bad);background:rgba(155,58,48,.055)}.step .intent{color:#dce5ed}.step .meta{color:var(--dim)}
+.escalated{border:1px solid rgba(244,189,97,.3);border-radius:10px;background:rgba(111,73,13,.13);color:#f0c97f;padding:11px 12px;margin:12px 0}
+.operator-box{border:1px solid rgba(244,189,97,.31);background:linear-gradient(180deg,rgba(61,45,20,.15),rgba(10,16,27,.65));
+  padding:16px;margin-top:14px;border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,.2)}
 .operator-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}
 .operator-grid label{margin-top:7px}.operator-grid .wide{grid-column:1/-1}
-.live-shot{display:block;width:100%;max-height:360px;object-fit:contain;background:#0f161d;
-  border:1px solid var(--rule);margin:10px 0}
+.live-shot{display:block;width:100%;max-height:420px;object-fit:contain;background:#060b13;border:1px solid var(--rule);border-radius:10px;margin:12px 0}
 .operator-actions{display:flex;gap:7px;flex-wrap:wrap}.operator-actions button{margin-top:9px}
+.result-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:14px}.result-head .llm{margin-left:auto;color:var(--dim);font-size:10px}
+.output-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin:10px 0 14px}
+.output-card{padding:12px;border:1px solid var(--rule);border-radius:10px;background:rgba(255,255,255,.025);min-width:0}
+.output-card span{display:block;color:var(--dim);font-size:9px;letter-spacing:.09em;text-transform:uppercase;margin-bottom:5px}
+.output-card strong{display:block;font:600 11px/1.45 "SFMono-Regular",monospace;color:#d7e0ed;overflow-wrap:anywhere}
+.evidence-links{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.evidence-file{display:inline-flex;max-width:100%;padding:7px 9px;border:1px solid rgba(113,129,255,.19);
+  border-radius:8px;background:rgba(113,129,255,.055);font:600 9.5px/1.25 "SFMono-Regular",monospace;
+  color:#aebaff;overflow-wrap:anywhere}
+details{margin-top:12px}summary{cursor:pointer}.empty-state{padding:10px 0}.empty-icon{display:grid;place-items:center;width:40px;height:40px;
+  border-radius:12px;background:rgba(113,129,255,.08);border:1px solid rgba(113,129,255,.14);color:#9ba8ff;margin-bottom:10px;font-weight:800}
 @keyframes s{to{transform:rotate(360deg)}}
-@media (max-width:1000px){main{grid-template-columns:1fr}.operator-grid{grid-template-columns:1fr}}
+@media (max-width:1450px){.app-shell{grid-template-columns:265px minmax(500px,1fr);gap:15px;padding-inline:16px}.brand{min-width:225px}}
+@media (max-width:1160px){.app-shell{grid-template-columns:260px minmax(0,1fr)}.hero-grid{grid-template-columns:1fr}.hero-stats{justify-content:flex-start}}
+@media (max-width:760px){body.chat-open{overflow:hidden}.topbar{padding:0 14px;height:62px}.brand{min-width:0}.brand-copy span,.top-context,.docs-link{display:none}.app-shell{grid-template-columns:1fr;padding:14px}.left-rail{position:static;max-height:none}#caps{max-height:360px}.field-grid{grid-template-columns:1fr}.hero{padding:22px}.hero-stats{display:grid;grid-template-columns:repeat(2,1fr)}.operator-grid{grid-template-columns:1fr}.table-wrap{min-width:900px}.panel .body{padding:16px}.chat-rail{inset:10px;width:auto}.assistant-card{border-radius:15px}body.chat-open .chat-backdrop{opacity:1;visibility:visible}.chat-launcher{right:15px;bottom:15px}.launcher-copy{display:none}.chat-launcher{padding:8px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.chat-rail,.chat-backdrop,.chat-launcher{transition:none!important}}
 </style>
 </head>
 <body>
 
-<header>
-  <b>Sableau</b>
-  <span>capability console</span>
-  <div class="spacer"></div>
-  <span class="pill" id="health">checking…</span>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">S</div>
+    <div class="brand-copy"><strong>Sableau</strong><span>capability console</span></div>
+  </div>
+  <div class="top-context"><span>Platform</span><span class="slash">/</span><span class="current">Operations control</span></div>
+  <div class="top-actions">
+    <a class="docs-link" href="/docs" target="_blank" rel="noopener">API reference</a>
+    <span class="pill" id="health">checking…</span>
+  </div>
 </header>
 
-<main>
-  <!-- left: catalogue -->
-  <div>
-    <div class="panel">
-      <h2>Capabilities</h2>
-      <div id="caps"><div class="body hint">Loading…</div></div>
-    </div>
-
-    <div class="panel" style="margin-top:18px">
-      <h2>Chat</h2>
-      <div class="body">
-        <p class="hint" style="margin:0 0 8px">
-          Run every MERIDIAN workflow here. Write operations require the word “confirm”.
-        </p>
-        <div id="examples">
-          <button class="example" data-example="sign on">Sign on</button>
-          <button class="example" data-example="find member Lovelace">Find member</button>
-          <button class="example" data-example="check balance for member 101555">Balance</button>
-          <button class="example" data-example="transfer member 101555 from 101555-CERT to 101555-MMKT-3 amount 1.00 memo dashboard demo confirm">Transfer</button>
-          <button class="example" data-example="open share for member 103001 MMKT deposit 5.00 confirm">Open share</button>
-          <button class="example" data-example="update member 101555 email grace.hopper@example.com phone 555-0188 address 85 Compiler Way, Arlington confirm">Update member</button>
-          <button class="example" data-example="place hold for member 101555 share 101555-MMKT-4 LEGAL notes dashboard demo confirm as supervisor">Place hold</button>
-        </div>
-        <div class="chat">
-          <input id="chatIn" placeholder="check balance for member 101555" autocomplete="off">
-          <button id="chatGo">Send</button>
-        </div>
-        <div id="chatLog"></div>
+<div class="app-shell">
+  <aside class="left-rail">
+    <div class="rail-card">
+      <div class="rail-head">
+        <div class="rail-head-row"><span class="eyebrow">Capabilities</span><span class="count-badge" id="capCount">7 active</span></div>
+        <div class="search-wrap"><input id="capSearch" aria-label="Search capabilities" placeholder="Search workflows"></div>
       </div>
+      <div id="caps"><div class="body hint">Loading capabilities…</div></div>
     </div>
-  </div>
+  </aside>
 
-  <!-- right: invoke + runs -->
-  <div>
+  <main class="workspace">
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <span class="eyebrow">MERIDIAN CORE · Live environment</span>
+          <h1>Operations control center</h1>
+          <p>Invoke deterministic banking capabilities, follow every browser action, and move safely between automation and human control.</p>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><strong id="heroCapabilityCount">7</strong><span>Capabilities</span></div>
+          <div class="hero-stat"><strong>0</strong><span>Replay LLM calls</span></div>
+          <div class="hero-stat"><strong>Live</strong><span>Evidence stream</span></div>
+        </div>
+      </div>
+    </section>
+
     <div class="panel">
       <h2 id="invokeTitle">Invoke</h2>
       <div class="body" id="invoke">
@@ -144,31 +244,68 @@ pre{background:#0f161d;border:1px solid var(--rule);padding:12px;overflow:auto;m
     <div class="panel" style="margin-top:18px">
       <h2>Live processing</h2>
       <div class="body" id="live">
-        <p class="hint">Start a form or chat request. A visible controlled browser opens automatically and each replay step appears here.</p>
+        <div class="empty-state"><div class="empty-icon">↗</div><p class="hint">Start a form or chat request. The controlled browser opens automatically and every replay step appears here.</p></div>
       </div>
     </div>
 
     <div class="panel" style="margin-top:18px">
       <h2>Result</h2>
-      <div class="body" id="result"><p class="hint">No invocation yet.</p></div>
+      <div class="body" id="result"><div class="empty-state"><div class="empty-icon">✓</div><p class="hint">Structured outputs and outcome details will appear here.</p></div></div>
     </div>
 
     <div class="panel" style="margin-top:18px">
       <h2>Recent runs</h2>
       <div class="body" style="padding:0">
-        <table>
+        <div class="table-wrap"><table>
           <thead><tr><th>Run</th><th>Outcome</th><th>Outputs</th><th>Time</th><th>Drift</th><th>Escalation</th><th>AI</th></tr></thead>
           <tbody id="runs"><tr><td colspan="7" style="padding:14px" class="hint">Loading…</td></tr></tbody>
-        </table>
+        </table></div>
       </div>
     </div>
 
     <div class="panel" style="margin-top:18px">
       <h2>Run evidence</h2>
-      <div class="body" id="runDetail"><p class="hint">Select a recent run to inspect its redacted inputs, outputs, log, and evidence files.</p></div>
+      <div class="body" id="runDetail"><div class="empty-state"><div class="empty-icon">⌁</div><p class="hint">Select a recent run to inspect redacted inputs, outputs, logs, screenshots, and evidence files.</p></div></div>
     </div>
-  </div>
-</main>
+  </main>
+
+  <aside class="chat-rail" id="chatDrawer" aria-hidden="true" aria-label="Sableau assistant">
+    <div class="assistant-card">
+      <div class="assistant-head">
+        <div class="assistant-title">
+          <div class="assistant-avatar">S</div>
+          <div><strong>Sableau assistant</strong><span>Capability orchestration</span></div>
+          <div class="assistant-status" title="Assistant available"></div>
+          <button class="assistant-close" id="chatClose" type="button" aria-label="Close Sableau assistant">×</button>
+        </div>
+        <p class="assistant-copy">Ask in plain language. Write operations require the word <span class="mono">confirm</span>.</p>
+      </div>
+      <div id="examples">
+        <button class="example" data-example="sign on">Sign on</button>
+        <button class="example" data-example="find member Lovelace">Find member</button>
+        <button class="example" data-example="check balance for member 101555">Balance</button>
+        <button class="example" data-example="transfer member 101555 from 101555-CERT to 101555-MMKT-3 amount 1.00 memo dashboard demo confirm">Transfer</button>
+        <button class="example" data-example="open share for member 103001 MMKT deposit 5.00 confirm">Open share</button>
+        <button class="example" data-example="update member 101555 email grace.hopper@example.com phone 555-0188 address 85 Compiler Way, Arlington confirm">Update member</button>
+        <button class="example" data-example="place hold for member 101555 share 101555-MMKT-4 LEGAL notes dashboard demo confirm as supervisor">Place hold</button>
+      </div>
+      <div id="chatLog"><div class="chat-empty">Try “check balance for member 101555” or choose a workflow above.</div></div>
+      <div class="chat-compose">
+        <div class="chat">
+          <input id="chatIn" aria-label="Message Sableau assistant" placeholder="Ask Sableau to run a workflow…" autocomplete="off">
+          <button id="chatGo">Send</button>
+        </div>
+        <div class="compose-hint"><span>Enter to send</span><span>Policy checked</span></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="chat-backdrop" id="chatBackdrop" aria-hidden="true"></div>
+<button class="chat-launcher" id="chatLauncher" type="button" aria-controls="chatDrawer" aria-expanded="false">
+  <span class="launcher-icon" aria-hidden="true">S</span>
+  <span class="launcher-copy"><strong>Ask Sableau</strong><span>AI operations assistant</span></span>
+</button>
 
 <script>
 const $ = (id) => document.getElementById(id);
@@ -189,6 +326,8 @@ async function loadHealth(){
   try{
     const h = await jget('/api/health');
     $('health').textContent = `${h.capabilities} capabilit${h.capabilities===1?'y':'ies'} · api up`;
+    $('capCount').textContent = `${h.capabilities} active`;
+    $('heroCapabilityCount').textContent = h.capabilities;
   }catch{ $('health').textContent = 'api unreachable'; }
 }
 
@@ -198,16 +337,33 @@ async function loadCaps(){
   const preferred = caps.findIndex(c => c.capability_id === 'meridian_core.check_member_balance');
   const initial = preferred >= 0 ? preferred : 0;
   $('caps').innerHTML = caps.map((c,i) => `
-    <div class="cap${i===initial?' on':''}" data-i="${i}">
+    <div class="cap${i===initial?' on':''}" data-i="${i}" role="button" tabindex="0"
+         aria-selected="${i===initial?'true':'false'}"
+         data-search="${esc((c.title+' '+c.capability_id).toLowerCase())}">
+      <div class="cap-top">
+        <span class="cap-index">${String(i+1).padStart(2,'0')}</span>
+        <span class="risk risk-${esc(c.risk_level)}">${esc(c.risk_level)} risk</span>
+      </div>
       <b>${esc(c.title)}</b>
-      <span>${esc(c.capability_id)} · v${esc(c.version)} · ${c.step_count} steps · risk ${esc(c.risk_level)}</span>
+      <span class="cap-meta">${esc(c.capability_id)} · ${c.step_count} steps · v${esc(c.version)}</span>
     </div>`).join('');
-  document.querySelectorAll('.cap').forEach(el => el.onclick = () => {
-    document.querySelectorAll('.cap').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.cap').forEach(el => {
+    el.onclick = () => {
+    document.querySelectorAll('.cap').forEach(x => { x.classList.remove('on'); x.setAttribute('aria-selected','false'); });
     el.classList.add('on');
+    el.setAttribute('aria-selected','true');
     select(caps[+el.dataset.i]);
+    };
+    el.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.click(); } };
   });
   select(caps[initial]);
+}
+
+function filterCapabilities(){
+  const query = $('capSearch').value.trim().toLowerCase();
+  document.querySelectorAll('.cap').forEach(el => {
+    el.hidden = query && !el.dataset.search.includes(query);
+  });
 }
 
 function select(cap){
@@ -216,38 +372,42 @@ function select(cap){
   const fields = cap.inputs.map(i => {
     const req = i.required ? ' *' : '';
     if(i.enum){
-      return `<label for="p_${i.name}">${esc(i.name)}${req}</label>
-        <select id="p_${i.name}">${i.enum.map(o=>`<option${o===i.example?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
+      return `<div class="field"><label for="p_${i.name}">${esc(i.name)}${req}</label>
+        <select id="p_${i.name}">${i.enum.map(o=>`<option${o===i.example?' selected':''}>${esc(o)}</option>`).join('')}</select></div>`;
     }
     if(['note','memo','notes','address'].includes(i.name)){
-      return `<label for="p_${i.name}">${esc(i.name)}${req}</label>
-        <textarea id="p_${i.name}">${esc(i.example || '')}</textarea>`;
+      return `<div class="field wide"><label for="p_${i.name}">${esc(i.name)}${req}</label>
+        <textarea id="p_${i.name}">${esc(i.example || '')}</textarea></div>`;
     }
     const secret = i.sensitivity === 'secret';
-    return `<label for="p_${i.name}">${esc(i.name)}${req}${i.pattern?` · <span class="mono">${esc(i.pattern)}</span>`:''}</label>
+    return `<div class="field"><label for="p_${i.name}">${esc(i.name)}${req}${i.pattern?` · <span class="mono">${esc(i.pattern)}</span>`:''}</label>
       <input id="p_${i.name}" type="${secret?'password':'text'}" value="${secret?'':esc(i.example || '')}"
-             placeholder="${secret?'required; never stored':''}">`;
+             placeholder="${secret?'Required · never stored':''}"></div>`;
   }).join('');
 
   const tenantSel = cap.tenants.length
-    ? `<label for="tenant">tenant</label><select id="tenant">
+    ? `<div class="field wide"><label for="tenant">tenant</label><select id="tenant">
          <option value="">reference instance</option>
          ${cap.tenants.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('')}
-       </select>` : '';
+       </select></div>` : '';
 
   $('invoke').innerHTML = `
-    <p class="hint" style="margin:0 0 4px">${esc(cap.description)}</p>
+    <p class="section-lede">${esc(cap.description)}</p>
+    <div class="capability-contract">
+      <span class="contract-chip">${cap.step_count} deterministic steps</span>
+      <span class="contract-chip">${cap.checkpoint_count} checkpoints</span>
+      <span class="contract-chip">${cap.known_outcomes.length} declared outcomes</span>
+      <span class="contract-chip">${cap.outputs.length} typed outputs</span>
+    </div>
     <dl class="contract">
       <dt>returns</dt><dd>${cap.outputs.map(o=>esc(o.name)+':'+esc(o.type)).join(', ')||'—'}</dd>
-      <dt>outcomes</dt><dd>${cap.known_outcomes.length} declared</dd>
-      <dt>checkpoints</dt><dd>${cap.checkpoint_count}</dd>
     </dl>
-    ${fields}${tenantSel}
-    ${cap.risk_level === 'high' ? `<label style="text-transform:none;letter-spacing:0;font-size:12px;color:var(--rec)">
+    <div class="field-grid">${fields}${tenantSel}</div>
+    ${cap.risk_level === 'high' ? `<label class="risk-confirm" style="text-transform:none;letter-spacing:0;font-size:12px">
       <input id="confirmRisk" type="checkbox">I confirm this live, state-changing operation
     </label>` : ''}
-    <button id="go">Invoke</button>
-    <button id="curl" class="ghost" style="margin-left:8px">Show as curl</button>`;
+    <div class="form-actions"><button id="go">Run capability</button>
+    <button id="curl" class="ghost">View API request</button></div>`;
   $('go').onclick = invoke;
   $('curl').onclick = showCurl;
 }
@@ -273,7 +433,7 @@ function showCurl(){
 }
 
 async function invoke(){
-  const btn = $('go'); btn.disabled = true; btn.textContent = 'Running…';
+  const btn = $('go'); btn.disabled = true; btn.textContent = 'Starting run…';
   $('result').innerHTML = '<p class="hint"><span class="spin"></span>Driving the browser…</p>';
   try{
     const started = await jpost(`/api/capabilities/${selected.capability_id}/start`, collect());
@@ -281,7 +441,7 @@ async function invoke(){
   }catch(e){
     $('result').innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`;
   }finally{
-    btn.disabled = false; btn.textContent = 'Invoke'; loadRuns();
+    btn.disabled = false; btn.textContent = 'Run capability'; loadRuns();
   }
 }
 
@@ -458,13 +618,13 @@ function renderResult(r){
   const escalated = r.control && r.control.escalated;
   const steps = r.steps || [];
   $('result').innerHTML = `
-    <p style="margin:0 0 10px">
+    <div class="result-head">
       <span class="tag t-${esc(r.category)}">${esc(r.category)}</span>
-      <span class="mono" style="margin-left:8px;color:var(--dim)">${esc(r.code)}</span>
-      <span class="mono" style="float:right;color:var(--dim)">llm_calls=${r.llm_calls}</span>
-    </p>
-    ${outputs.length ? `<dl class="contract">${outputs.map(([k,v])=>
-        `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
+      <span class="mono" style="color:var(--dim)">${esc(r.code)}</span>
+      <span class="mono llm">llm_calls=${r.llm_calls}</span>
+    </div>
+    ${outputs.length ? `<div class="output-grid">${outputs.map(([k,v])=>
+        `<div class="output-card"><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}</div>` : ''}
     ${r.business_outcome ? `<p class="hint">${esc(r.business_outcome.description)}</p>` : ''}
     ${r.error ? `<p style="color:var(--bad)">${esc(r.error.message)}</p>` : ''}
     ${escalated ? `<div class="escalated"><b>ESCALATED</b> — ${esc(r.control.escalation_reason || 'Automation paused for an operator.')}</div>` : ''}
@@ -508,20 +668,22 @@ async function loadRun(runId){
     const outputs = result.outputs || {};
     const evidence = (d.evidence || []).map(path => {
       const encoded = path.split('/').map(encodeURIComponent).join('/');
-      return `<a href="/api/runs/${encodeURIComponent(runId)}/evidence/${encoded}" target="_blank" rel="noopener">${esc(path)}</a>`;
-    }).join('<br>');
+      return `<a class="evidence-file" href="/api/runs/${encodeURIComponent(runId)}/evidence/${encoded}" target="_blank" rel="noopener">${esc(path)}</a>`;
+    }).join('');
     const tail = (d.log || []).slice(-16);
     $('runDetail').innerHTML = `
+      <div class="output-grid">
+        <div class="output-card"><span>Run</span><strong>${esc(runId)}</strong></div>
+        <div class="output-card"><span>Status</span><strong>${esc(result.category || (d.trace||{}).status || '—')} / ${esc(result.code || '—')}</strong></div>
+        <div class="output-card"><span>Duration</span><strong>${result.duration_ms===undefined?'—':esc(result.duration_ms)+'ms'}</strong></div>
+        <div class="output-card"><span>Escalation</span><strong>${result.control && result.control.escalated ? 'YES · '+esc(result.control.escalation_reason || '') : 'No'}</strong></div>
+      </div>
       <dl class="contract">
-        <dt>run</dt><dd>${esc(runId)}</dd>
-        <dt>status</dt><dd>${esc(result.category || (d.trace||{}).status || '—')} / ${esc(result.code || '—')}</dd>
-        <dt>duration</dt><dd>${result.duration_ms===undefined?'—':esc(result.duration_ms)+'ms'}</dd>
-        <dt>escalated</dt><dd>${result.control && result.control.escalated ? 'YES — '+esc(result.control.escalation_reason || '') : 'no'}</dd>
         <dt>inputs</dt><dd>${esc(JSON.stringify(params))}</dd>
         <dt>outputs</dt><dd>${esc(JSON.stringify(outputs))}</dd>
         <dt>steps</dt><dd>${esc(JSON.stringify(result.steps || []))}</dd>
-        <dt>evidence</dt><dd>${evidence || '—'}</dd>
       </dl>
+      <label>Evidence files</label><div class="evidence-links">${evidence || '<span class="hint">No evidence files.</span>'}</div>
       <label>Event log · final ${tail.length}</label>
       <pre>${esc(JSON.stringify(tail, null, 2))}</pre>`;
   }catch(e){ $('runDetail').innerHTML = `<p style="color:var(--bad)">${esc(e.message)}</p>`; }
@@ -532,10 +694,13 @@ async function sendChat(){
   if(!text) return;
   const button = $('chatGo'); button.disabled = true;
   input.value = '';
+  const empty = $('chatLog').querySelector('.chat-empty');
+  if(empty) empty.remove();
   $('chatLog').insertAdjacentHTML('beforeend', `<div class="msg you">${esc(text)}</div>`);
   const id = 'm'+Date.now();
   $('chatLog').insertAdjacentHTML('beforeend',
     `<div class="msg bot" id="${id}"><span class="spin"></span>working…</div>`);
+  $('chatLog').scrollTop = $('chatLog').scrollHeight;
   try{
     const r = await jpost('/api/chat/start', {message: text});
     $(id).innerHTML = esc(r.reply);
@@ -544,10 +709,30 @@ async function sendChat(){
     $(id).innerHTML = `<span style="color:var(--bad)">${esc(e.message)}</span>`;
   }finally{
     button.disabled = false;
+    $('chatLog').scrollTop = $('chatLog').scrollHeight;
   }
 }
 $('chatGo').onclick = sendChat;
 $('chatIn').addEventListener('keydown', e => { if(e.key==='Enter') sendChat(); });
+$('capSearch').addEventListener('input', filterCapabilities);
+
+function setChatOpen(open){
+  document.body.classList.toggle('chat-open', open);
+  $('chatLauncher').setAttribute('aria-expanded', String(open));
+  $('chatDrawer').setAttribute('aria-hidden', String(!open));
+  $('chatBackdrop').setAttribute('aria-hidden', String(!open));
+  if(open){
+    window.setTimeout(() => $('chatIn').focus(), 220);
+  }else{
+    $('chatLauncher').focus();
+  }
+}
+$('chatLauncher').onclick = () => setChatOpen(true);
+$('chatClose').onclick = () => setChatOpen(false);
+$('chatBackdrop').onclick = () => setChatOpen(false);
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && document.body.classList.contains('chat-open')) setChatOpen(false);
+});
 document.querySelectorAll('[data-example]').forEach(button => {
   button.onclick = () => { $('chatIn').value = button.dataset.example; $('chatIn').focus(); };
 });
