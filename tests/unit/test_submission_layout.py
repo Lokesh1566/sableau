@@ -6,3 +6,11 @@ def test_ci_discovery_cannot_pollute_the_production_catalog_or_evidence():
 
     assert "SABLEAU_EVIDENCE=/tmp/sableau-ci-discovery-evidence" in workflow
     assert "--out /tmp/legacy-claim-capability.json" in workflow
+
+
+def test_dashboard_keeps_handoff_controls_stable_between_poll_updates():
+    dashboard = Path("src/sableau/api/static/index.html").read_text()
+
+    assert "existingOperatorPanel.dataset.controlState === incomingControlState" in dashboard
+    assert 'data-control-state="PAUSED"' in dashboard
+    assert 'data-control-state="HUMAN_CONTROL"' in dashboard

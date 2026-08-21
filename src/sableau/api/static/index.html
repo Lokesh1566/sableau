@@ -311,8 +311,13 @@ async function watchRun(runId, chatMessageId=null){
 }
 
 function renderLive(state){
-  const focused = document.activeElement;
-  if(focused && focused.closest && focused.closest('#operatorPanel')) return;
+  const incomingControlState = state.control && state.control.state;
+  const existingOperatorPanel = $('operatorPanel');
+  // Polling must not replace live controls while a human is interacting with
+  // them. Redraw as soon as ownership changes so pause/resume/abort states are
+  // still reflected immediately.
+  if(existingOperatorPanel &&
+      existingOperatorPanel.dataset.controlState === incomingControlState) return;
   const events = state.events || [];
   const starts = events.filter(e => e.event === 'step.start');
   const complete = events.filter(e => e.event === 'step.complete');
@@ -364,7 +369,7 @@ function operatorPanel(state){
   const run = esc(state.run_id);
   const shot = `/api/live-runs/${encodeURIComponent(state.run_id)}/screenshot?t=${Date.now()}`;
   if(control.state === 'PAUSED'){
-    return `<div class="operator-box" id="operatorPanel">
+    return `<div class="operator-box" id="operatorPanel" data-control-state="PAUSED">
       <b>Human takeover available</b>
       <p class="hint">Automation released this exact browser session. Identify yourself and take control.</p>
       <img class="live-shot" src="${shot}" alt="Current paused browser session">
@@ -375,7 +380,7 @@ function operatorPanel(state){
     </div>`;
   }
   const actions = ((control.active_escalation||{}).human_actions||[]);
-  return `<div class="operator-box" id="operatorPanel">
+  return `<div class="operator-box" id="operatorPanel" data-control-state="HUMAN_CONTROL">
     <b>Human owns the live session</b>
     <p class="hint">Actions below operate the same browser tab and are written to this run's evidence.</p>
     <img id="operatorShot" class="live-shot" src="${shot}" alt="Current browser session under human control">
