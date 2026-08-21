@@ -81,14 +81,8 @@ pre{background:#0f161d;border:1px solid var(--rule);padding:12px;overflow:auto;m
 .step.running{border-color:var(--brass)} .step.done{border-color:#2f6b4f}
 .step.failed{border-color:#7a3b30}.step .intent{color:#dce5ed}.step .meta{color:var(--dim)}
 .escalated{border:1px solid #7a5a1e;background:#322817;color:#f0bd64;padding:8px 10px;margin:10px 0}
-.operator-box{border:1px solid #7a5a1e;background:#171d22;padding:11px;margin-top:12px}
-.operator-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}
-.operator-grid label{margin-top:7px}.operator-grid .wide{grid-column:1/-1}
-.live-shot{display:block;width:100%;max-height:360px;object-fit:contain;background:#0f161d;
-  border:1px solid var(--rule);margin:10px 0}
-.operator-actions{display:flex;gap:7px;flex-wrap:wrap}.operator-actions button{margin-top:9px}
 @keyframes s{to{transform:rotate(360deg)}}
-@media (max-width:1000px){main{grid-template-columns:1fr}.operator-grid{grid-template-columns:1fr}}
+@media (max-width:1000px){main{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -174,7 +168,6 @@ pre{background:#0f161d;border:1px solid var(--rule);padding:12px;overflow:auto;m
 const $ = (id) => document.getElementById(id);
 let caps = [], selected = null;
 let liveToken = 0;
-let operatorIdentity = 'operator.demo';
 
 async function jget(url){ const r = await fetch(url); if(!r.ok) throw new Error(await r.text()); return r.json(); }
 async function jpost(url, body){
@@ -311,8 +304,6 @@ async function watchRun(runId, chatMessageId=null){
 }
 
 function renderLive(state){
-  const focused = document.activeElement;
-  if(focused && focused.closest && focused.closest('#operatorPanel')) return;
   const events = state.events || [];
   const starts = events.filter(e => e.event === 'step.start');
   const complete = events.filter(e => e.event === 'step.complete');
@@ -335,104 +326,17 @@ function renderLive(state){
     </div>`;
   }).join('');
   const result = state.result;
-  const control = state.control || null;
-  const controlState = control && control.state;
-  const waitingForHuman = controlState === 'PAUSED' || controlState === 'HUMAN_CONTROL';
-  const activeEscalation = control && control.active_escalation;
-  const escalated = waitingForHuman || (result && result.control && result.control.escalated);
-  const escalationReason = activeEscalation
-      ? `${activeEscalation.reason_code}: ${activeEscalation.reason}`
-      : result && result.control ? result.control.escalation_reason : '';
-  const displayStatus = waitingForHuman ? 'RECOVERABLE'
-      : result ? result.category : state.status.toUpperCase();
+  const escalated = result && result.control && result.control.escalated;
   $('live').innerHTML = `
     <div class="live-head">
-      ${(state.status === 'running' || state.status === 'queued') && !waitingForHuman ? '<span class="spin"></span>' : ''}
-      <span class="tag t-${esc(displayStatus)}">${esc(displayStatus)}</span>
+      ${state.status === 'running' || state.status === 'queued' ? '<span class="spin"></span>' : ''}
+      <span class="tag ${result ? 't-'+esc(result.category) : ''}">${esc(result ? result.category : state.status.toUpperCase())}</span>
       <span class="mono">${esc(state.title || state.capability_id)} · ${esc(state.run_id)}</span>
     </div>
     <div class="progress"><span style="width:${percent}%"></span></div>
     <p class="hint">${count}/${total} steps complete${state.status==='queued'?' · waiting for the shared browser':''}</p>
-    ${escalated ? `<div class="escalated"><b>ESCALATED</b> — ${esc(escalationReason || 'Automation paused for an operator.')}</div>` : ''}
-    <div class="step-list">${rows || '<p class="hint">Preparing the browser…</p>'}</div>
-    ${operatorPanel(state)}`;
-}
-
-function operatorPanel(state){
-  const control = state.control;
-  if(!control || !['PAUSED','HUMAN_CONTROL'].includes(control.state)) return '';
-  const run = esc(state.run_id);
-  const shot = `/api/live-runs/${encodeURIComponent(state.run_id)}/screenshot?t=${Date.now()}`;
-  if(control.state === 'PAUSED'){
-    return `<div class="operator-box" id="operatorPanel">
-      <b>Human takeover available</b>
-      <p class="hint">Automation released this exact browser session. Identify yourself and take control.</p>
-      <img class="live-shot" src="${shot}" alt="Current paused browser session">
-      <label for="operatorName">Operator identity</label>
-      <input id="operatorName" value="${esc(operatorIdentity)}" maxlength="80">
-      <button onclick="takeRunControl('${run}')">Take control</button>
-      <span id="operatorStatus" class="hint"></span>
-    </div>`;
-  }
-  const actions = ((control.active_escalation||{}).human_actions||[]);
-  return `<div class="operator-box" id="operatorPanel">
-    <b>Human owns the live session</b>
-    <p class="hint">Actions below operate the same browser tab and are written to this run's evidence.</p>
-    <img id="operatorShot" class="live-shot" src="${shot}" alt="Current browser session under human control">
-    <div class="operator-grid">
-      <div><label for="operatorAction">Action</label><select id="operatorAction">
-        <option value="click">Click</option><option value="type">Type</option>
-        <option value="select">Select option</option><option value="press">Press key</option>
-        <option value="navigate">Navigate</option></select></div>
-      <div><label for="operatorFrame">Frame</label><input id="operatorFrame" value="main"></div>
-      <div class="wide"><label for="operatorTarget">Control</label>
-        <input id="operatorTarget" placeholder="button:Sign On, visible text, or test id"></div>
-      <div class="wide"><label for="operatorValue">Value</label>
-        <input id="operatorValue" placeholder="typed text, option value, key, or allowed URL"></div>
-    </div>
-    <div class="operator-actions">
-      <button onclick="actOnRun('${run}')">Perform action</button>
-      <button class="ghost" onclick="resumeRun('${run}','RETRY_STEP')">Retry failed step</button>
-      <button class="ghost" onclick="resumeRun('${run}','CONTINUE_FROM_CURRENT_STEP')">Continue after manual completion</button>
-      <button class="ghost" onclick="resumeRun('${run}','ABORT')">Abort safely</button>
-    </div>
-    <p id="operatorStatus" class="hint">${actions.length} human action${actions.length===1?'':'s'} recorded.</p>
-  </div>`;
-}
-
-async function takeRunControl(runId){
-  const name = ($('operatorName').value || '').trim();
-  if(!name){ $('operatorStatus').textContent = 'Enter an operator identity.'; return; }
-  operatorIdentity = name;
-  try{
-    await jpost(`/api/live-runs/${encodeURIComponent(runId)}/take-control`, {operator:name});
-    document.activeElement.blur();
-  }catch(e){ $('operatorStatus').textContent = e.message; }
-}
-
-async function actOnRun(runId){
-  const body = {
-    action: $('operatorAction').value,
-    target: $('operatorTarget').value,
-    value: $('operatorValue').value,
-    frame: $('operatorFrame').value || 'main'
-  };
-  $('operatorStatus').textContent = 'Performing action…';
-  try{
-    await jpost(`/api/live-runs/${encodeURIComponent(runId)}/operator-actions`, body);
-    $('operatorStatus').textContent = 'Action recorded.';
-    $('operatorShot').src = `/api/live-runs/${encodeURIComponent(runId)}/screenshot?t=${Date.now()}`;
-  }catch(e){ $('operatorStatus').textContent = e.message; }
-}
-
-async function resumeRun(runId, decision){
-  $('operatorStatus').textContent = 'Returning control to automation…';
-  try{
-    await jpost(`/api/live-runs/${encodeURIComponent(runId)}/resume`, {
-      decision, operator:operatorIdentity
-    });
-    document.activeElement.blur();
-  }catch(e){ $('operatorStatus').textContent = e.message; }
+    ${escalated ? `<div class="escalated"><b>ESCALATED</b> — ${esc(result.control.escalation_reason || 'Automation paused for an operator.')}</div>` : ''}
+    <div class="step-list">${rows || '<p class="hint">Preparing the browser…</p>'}</div>`;
 }
 
 function explainResult(r){

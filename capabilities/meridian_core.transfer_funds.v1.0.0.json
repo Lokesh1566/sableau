@@ -264,8 +264,8 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s3_select_the_supplied_branch",
-      "intent": "Select the supplied branch from the dropdown",
+      "id": "s3_select_the_west_014_branch",
+      "intent": "Select the WEST-014 branch from the dropdown",
       "action": {
         "type": "select",
         "value": "{{input.branch}}"
@@ -286,7 +286,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Select the supplied branch from the dropdown"
+        "description": "Select the WEST-014 branch from the dropdown"
       },
       "risk": "safe",
       "preconditions": [],
@@ -428,7 +428,7 @@
     },
     {
       "id": "s8_click_the_search_button_to",
-      "intent": "Click the Search button to search for the supplied member",
+      "intent": "Click the Search button to search for member 101555",
       "action": {
         "type": "click"
       },
@@ -443,7 +443,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Click the Search button to search for the supplied member"
+        "description": "Click the Search button to search for member 101555"
       },
       "risk": "safe",
       "preconditions": [],
@@ -461,8 +461,8 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s9_select_the_matching_member",
-      "intent": "Select the matching member from the search results",
+      "id": "s9_select_member_101555_hoppe",
+      "intent": "Select member 101555 Hopper, Grace from the search results",
       "action": {
         "type": "click"
       },
@@ -488,7 +488,7 @@
           "attr": "href",
           "value": "/members/{{input.member_number}}"
         },
-        "description": "Select the matching member from the search results"
+        "description": "Select member 101555 Hopper, Grace from the search results"
       },
       "risk": "safe",
       "preconditions": [],
@@ -558,8 +558,8 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s11_select_the_source_share",
-      "intent": "Select the supplied source share",
+      "id": "s11_select_101555_cert_as_the",
+      "intent": "Select 101555-CERT as the From Share",
       "action": {
         "type": "select",
         "value": "{{input.from_share}}"
@@ -580,7 +580,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Select the supplied source share"
+        "description": "Select 101555-CERT as the From Share"
       },
       "risk": "safe",
       "preconditions": [],
@@ -596,8 +596,8 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s12_select_the_destination_share",
-      "intent": "Select the supplied destination share",
+      "id": "s12_select_101555_mmkt_3_as_th",
+      "intent": "Select 101555-MMKT-3 as the To Share",
       "action": {
         "type": "select",
         "value": "{{input.to_share}}"
@@ -618,7 +618,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Select the supplied destination share"
+        "description": "Select 101555-MMKT-3 as the To Share"
       },
       "risk": "safe",
       "preconditions": [],

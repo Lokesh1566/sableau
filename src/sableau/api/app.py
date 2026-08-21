@@ -28,29 +28,19 @@ import asyncio
 import json
 import os
 import re
-from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse, Response
-from pydantic import BaseModel, Field, model_validator
+from fastapi.responses import FileResponse, HTMLResponse
+from pydantic import BaseModel, Field
 
 from ..browser import open_surface
-from ..kernel import (
-    ControlState,
-    Policy,
-    ResumeDecision,
-    RunRecorder,
-    SessionControl,
-    new_run_id,
-)
-from ..operator.app import perform_operator_action
+from ..kernel import Policy, RunRecorder, new_run_id
 from ..replay import ReplayEngine
 from ..schema import Capability
 from ..schema.errors import PolicyViolation, SableauError
-from ..surface.base import Surface
 from ..tenancy import TenantOverlay, apply_overlay
 
 CAPABILITY_DIR = Path("capabilities")
@@ -117,41 +107,6 @@ class RunSummary(BaseModel):
     escalated: bool = False
     started_at: str | None = None
     kind: str = "replay"
-
-
-class TakeControlRequest(BaseModel):
-    operator: str = Field(min_length=1, max_length=80)
-
-
-class OperatorActionRequest(BaseModel):
-    action: Literal["click", "type", "select", "press", "navigate"]
-    target: str = ""
-    value: str = ""
-    frame: str = "main"
-
-    @model_validator(mode="after")
-    def required_action_fields(self) -> "OperatorActionRequest":
-        if self.action == "navigate" and not self.value.strip():
-            raise ValueError("navigate requires an allowed URL in value")
-        if self.action != "navigate" and not self.target.strip():
-            raise ValueError(f"{self.action} requires a target control")
-        return self
-
-
-class ResumeRunRequest(BaseModel):
-    decision: ResumeDecision
-    operator: str = Field(min_length=1, max_length=80)
-
-
-@dataclass
-class LiveRunContext:
-    """Non-serializable objects retained only while a watchable run is active."""
-
-    surface: Surface
-    recorder: RunRecorder
-    control: SessionControl
-    policy: Policy
-    operator_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
 
 # ---------------------------------------------------------------- helpers
@@ -289,11 +244,7 @@ def build_api() -> FastAPI:
     #: surfaces keyed by tenant.
     lock = asyncio.Lock()
     live_runs: dict[str, dict[str, Any]] = {}
-    live_contexts: dict[str, LiveRunContext] = {}
     background_tasks: set[asyncio.Task] = set()
-    # Exposed for focused integration tests; HTTP callers only see the
-    # redacted projections returned by the routes below.
-    app.state.live_run_contexts = live_contexts
 
     def prepare_capability(capability_id: str, body: InvokeRequest) -> Capability:
         cap, _ = _load_capability(capability_id)
@@ -311,8 +262,6 @@ def build_api() -> FastAPI:
         cap: Capability,
         body: InvokeRequest,
         run_id: str,
-        *,
-        interactive_handoff: bool = False,
     ) -> dict[str, Any]:
         async with lock:
             if run_id in live_runs:
@@ -320,35 +269,15 @@ def build_api() -> FastAPI:
                 live_runs[run_id]["started_at"] = datetime.now(timezone.utc).isoformat()
             recorder = RunRecorder(run_id, root=str(EVIDENCE_DIR), echo=False)
             surface = await open_surface()
-            deployment_policy = Policy.load()
-            control = SessionControl(run_id, on_event=recorder.event_sink())
-            context = LiveRunContext(
-                surface=surface,
-                recorder=recorder,
-                control=control,
-                policy=deployment_policy.intersect(cap.safety),
-            )
-            if interactive_handoff:
-                live_contexts[run_id] = context
             try:
                 if cap.surface.entry_url:
                     await surface.navigate(cap.surface.entry_url)
-                handoff_timeout = (
-                    float(os.environ.get("SABLEAU_HANDOFF_TIMEOUT", "300"))
-                    if interactive_handoff else 0.0
-                )
                 engine = ReplayEngine(
-                    surface,
-                    recorder,
-                    deployment_policy,
-                    control=control,
-                    confirm_risky=body.confirm_risky,
-                    escalation_timeout_s=handoff_timeout,
+                    surface, recorder, Policy.load(),
+                    confirm_risky=body.confirm_risky, escalation_timeout_s=30,
                 )
                 result = await engine.run(cap, body.params)
             finally:
-                recorder.write_json("control.json", control.snapshot())
-                live_contexts.pop(run_id, None)
                 await surface.close()
         return result.model_dump(mode="json")
 
@@ -358,9 +287,7 @@ def build_api() -> FastAPI:
         run_id: str,
     ) -> None:
         try:
-            result = await execute_capability(
-                cap, body, run_id, interactive_handoff=True
-            )
+            result = await execute_capability(cap, body, run_id)
             live_runs[run_id].update({
                 "status": "complete",
                 "finished_at": datetime.now(timezone.utc).isoformat(),
@@ -466,94 +393,7 @@ def build_api() -> FastAPI:
             "events": events,
             "completed_steps": completed_count,
             "current_step": current,
-            "control": (
-                live_contexts[run_id].control.snapshot()
-                if run_id in live_contexts else None
-            ),
         }
-
-    def active_context(run_id: str) -> LiveRunContext:
-        context = live_contexts.get(run_id)
-        if context is None:
-            raise HTTPException(
-                409,
-                "this run has no active shared session; it may be queued or already complete",
-            )
-        return context
-
-    @app.get("/api/live-runs/{run_id}/screenshot")
-    async def live_screenshot(run_id: str) -> Response:
-        context = active_context(run_id)
-        if context.control.state not in {
-            ControlState.PAUSED,
-            ControlState.HUMAN_CONTROL,
-        }:
-            raise HTTPException(409, "screenshots are exposed only during a handoff")
-        bundle = await context.surface.evidence()
-        if not bundle.screenshot_png:
-            raise HTTPException(404, "the active surface did not provide a screenshot")
-        return Response(
-            bundle.screenshot_png,
-            media_type="image/png",
-            headers={"Cache-Control": "no-store"},
-        )
-
-    @app.post("/api/live-runs/{run_id}/take-control")
-    async def take_control(run_id: str, body: TakeControlRequest) -> dict[str, Any]:
-        context = active_context(run_id)
-        try:
-            async with context.operator_lock:
-                context.control.take_control(body.operator)
-        except RuntimeError as exc:
-            raise HTTPException(409, str(exc)) from exc
-        context.recorder.log("operator.took_control", operator=body.operator, via="dashboard")
-        return {"ok": True, "control": context.control.snapshot()}
-
-    @app.post("/api/live-runs/{run_id}/operator-actions")
-    async def operator_action(
-        run_id: str, body: OperatorActionRequest
-    ) -> dict[str, Any]:
-        context = active_context(run_id)
-        try:
-            async with context.operator_lock:
-                if context.control.state is not ControlState.HUMAN_CONTROL:
-                    raise RuntimeError(
-                        "operator actions require the human control token"
-                    )
-                detail = await perform_operator_action(
-                    context.surface, body.model_dump(), context.policy
-                )
-                context.control.record_human_action(body.action, detail)
-        except RuntimeError as exc:
-            raise HTTPException(409, str(exc)) from exc
-        except SableauError as exc:
-            context.recorder.log(
-                "operator.action_failed", code=exc.code.value, message=exc.message
-            )
-            raise HTTPException(409, f"{exc.code.value}: {exc.message}") from exc
-        context.recorder.log("operator.action", action=body.action, detail=detail)
-        return {"ok": True, "detail": detail, "control": context.control.snapshot()}
-
-    @app.post("/api/live-runs/{run_id}/resume")
-    async def resume_run(run_id: str, body: ResumeRunRequest) -> dict[str, Any]:
-        context = active_context(run_id)
-        try:
-            async with context.operator_lock:
-                active = context.control.active
-                if active is None or active.operator != body.operator:
-                    raise RuntimeError(
-                        "only the operator who took control may resume this run"
-                    )
-                context.control.resume(body.decision, body.operator)
-        except RuntimeError as exc:
-            raise HTTPException(409, str(exc)) from exc
-        context.recorder.log(
-            "operator.resumed",
-            decision=body.decision.value,
-            operator=body.operator,
-            via="dashboard",
-        )
-        return {"ok": True, "control": context.control.snapshot()}
 
     @app.get("/api/runs", response_model=list[RunSummary])
     async def list_runs(limit: int = 25) -> list[RunSummary]:

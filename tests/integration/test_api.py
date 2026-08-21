@@ -12,31 +12,12 @@ from fastapi.testclient import TestClient
 
 from sableau.api import build_api
 from sableau.api import app as api_app
-from sableau.api.app import InvokeRequest, LiveRunContext, _parse_intent
+from sableau.api.app import InvokeRequest, _parse_intent
 from sableau.browser import cdp_alive
-from sableau.kernel import (
-    MASK,
-    ControlState,
-    Policy,
-    ResumeDecision,
-    RunRecorder,
-    SessionControl,
-)
-from sableau.surface.base import EvidenceBundle
 from sableau.surface.null_surface import FakeScreen, NullSurface
-from sableau.surface.null_surface import FakeElement
 
 CAP_ID = "meridian_core.check_member_balance"
 CAP_PATH = Path("capabilities/meridian_core.check_member_balance.v1.0.0.json")
-
-
-class ScreenshotNullSurface(NullSurface):
-    async def evidence(self) -> EvidenceBundle:
-        return EvidenceBundle(
-            url=self.url,
-            screenshot_png=b"\x89PNG\r\n\x1a\nsynthetic-test-image",
-            dom_snapshot=self.screen.body_text,
-        )
 
 
 @pytest.fixture
@@ -262,110 +243,6 @@ def test_watchable_start_finishes_without_blocking_the_start_response(monkeypatc
         assert watched["result"]["code"] == "INVALID_INPUT"
 
 
-def test_dashboard_handoff_acts_on_same_policy_checked_session(client, tmp_path):
-    run_id = "api_dashboard_handoff"
-    url = "https://example.test/paused"
-    surface = ScreenshotNullSurface(
-        {
-            url: FakeScreen(
-                url,
-                body_text="Operator attention required",
-                elements=[
-                    FakeElement("ack", role="button", name="Acknowledge"),
-                    FakeElement("secret", role="textbox", name="Password"),
-                ],
-            )
-        },
-        url,
-    )
-    control = SessionControl(run_id)
-    control.escalate(
-        "UNEXPECTED_DIALOG",
-        "A known workflow cannot safely dismiss this dialog.",
-        step_id="s4_review",
-        state_url=url,
-    )
-    context = LiveRunContext(
-        surface=surface,
-        recorder=RunRecorder(run_id, root=str(tmp_path), echo=False),
-        control=control,
-        policy=Policy(allowed_hosts=["example.test"]),
-    )
-    client.app.state.live_run_contexts[run_id] = context
-    try:
-        screenshot = client.get(f"/api/live-runs/{run_id}/screenshot")
-        assert screenshot.status_code == 200
-        assert screenshot.headers["content-type"] == "image/png"
-        assert screenshot.content.startswith(b"\x89PNG")
-
-        premature = client.post(
-            f"/api/live-runs/{run_id}/operator-actions",
-            json={"action": "click", "target": "button:Acknowledge"},
-        )
-        assert premature.status_code == 409
-        assert surface.action_log == []
-
-        taken = client.post(
-            f"/api/live-runs/{run_id}/take-control",
-            json={"operator": "reviewer@example.test"},
-        )
-        assert taken.status_code == 200
-        assert control.state is ControlState.HUMAN_CONTROL
-
-        refused = client.post(
-            f"/api/live-runs/{run_id}/operator-actions",
-            json={"action": "navigate", "value": "https://evil.example/"},
-        )
-        assert refused.status_code == 409
-        assert control.human_action_count == 0
-
-        acted = client.post(
-            f"/api/live-runs/{run_id}/operator-actions",
-            json={"action": "click", "target": "button:Acknowledge"},
-        )
-        assert acted.status_code == 200
-        assert surface.action_log == [("click", "ack")]
-        assert control.human_action_count == 1
-
-        typed = client.post(
-            f"/api/live-runs/{run_id}/operator-actions",
-            json={
-                "action": "type",
-                "target": "textbox:Password",
-                "value": "short-lived-secret",
-            },
-        )
-        assert typed.status_code == 200
-        assert surface.typed["secret"] == "short-lived-secret"
-        assert typed.json()["detail"]["value"] == MASK
-        assert "short-lived-secret" not in str(control.active.to_dict())
-        assert control.human_action_count == 2
-
-        wrong_operator = client.post(
-            f"/api/live-runs/{run_id}/resume",
-            json={
-                "decision": ResumeDecision.RETRY_STEP.value,
-                "operator": "someone-else@example.test",
-            },
-        )
-        assert wrong_operator.status_code == 409
-        assert control.state is ControlState.HUMAN_CONTROL
-
-        resumed = client.post(
-            f"/api/live-runs/{run_id}/resume",
-            json={
-                "decision": ResumeDecision.RETRY_STEP.value,
-                "operator": "reviewer@example.test",
-            },
-        )
-        assert resumed.status_code == 200
-        assert control.state is ControlState.AUTOMATION_RUNNING
-        assert control.active is not None
-        assert control.active.decision is ResumeDecision.RETRY_STEP
-    finally:
-        client.app.state.live_run_contexts.pop(run_id, None)
-
-
 def test_evidence_route_rejects_traversal(client):
     assert client.get("/api/runs/no_such_run/evidence/../../README.md").status_code == 404
 
@@ -382,8 +259,4 @@ def test_dashboard_is_served(client):
     assert "Live processing" in response.text
     assert "/api/chat/start" in response.text
     assert "ESCALATED" in response.text
-    assert "Human takeover available" in response.text
-    assert "/take-control" in response.text
-    assert "/operator-actions" in response.text
-    assert "/resume" in response.text
     assert "Run evidence" in response.text

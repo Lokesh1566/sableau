@@ -21,8 +21,6 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 
 from ..kernel.control import ControlState, ResumeDecision, SessionControl
 from ..kernel.observability import RunRecorder
-from ..kernel.policy import Policy
-from ..kernel.redaction import MASK
 from ..schema import ClickAction, NavigateAction, PressAction, SelectAction, TargetSpec, TypeAction
 from ..schema.errors import SableauError
 from ..surface.base import Surface
@@ -121,15 +119,9 @@ def _render(template: str, **values: Any) -> str:
     return out
 
 
-def build_console(
-    control: SessionControl,
-    surface: Surface,
-    recorder: RunRecorder,
-    policy: Policy | None = None,
-) -> FastAPI:
+def build_console(control: SessionControl, surface: Surface, recorder: RunRecorder) -> FastAPI:
     app = FastAPI(title="Sableau operator console", docs_url=None, redoc_url=None)
     lock = asyncio.Lock()
-    operator_policy = policy or Policy.load()
 
     def _escalation_html() -> str:
         esc = control.active
@@ -197,7 +189,7 @@ def build_console(
         form = await request.form()
         payload = {k: str(v) for k, v in form.items()}
         try:
-            detail = await perform_operator_action(surface, payload, operator_policy)
+            detail = await _perform(surface, payload)
         except SableauError as exc:
             recorder.log("operator.action_failed", code=exc.code.value, message=exc.message)
             return _back(request, error=exc.message)
@@ -225,20 +217,14 @@ def _back(request: Request, error: str | None = None):
     return RedirectResponse("/", status_code=303)
 
 
-async def perform_operator_action(
-    surface: Surface,
-    payload: dict[str, Any],
-    policy: Policy,
-) -> dict[str, Any]:
-    """Run one policy-checked operator action on automation's live surface."""
+async def _perform(surface: Surface, payload: dict[str, Any]) -> dict[str, Any]:
+    """Run one operator action through the same surface automation uses."""
     action = payload.get("action", "click")
     value = payload.get("value", "")
     frame = payload.get("frame", "main")
     target = payload.get("target", "")
-    policy.check_action(action)
 
     if action == "navigate":
-        policy.check_url(value)
         await surface.act(None, NavigateAction(url=value))
         return {"url": value}
 
@@ -259,13 +245,7 @@ async def perform_operator_action(
         await surface.act(resolution, SelectAction(value=value))
     elif action == "press":
         await surface.act(resolution, PressAction(key=value or "Enter"))
-    audit_value = MASK if action == "type" and value else value
-    return {
-        "target": target,
-        "frame": frame,
-        "value": audit_value,
-        "via": resolution.strategy,
-    }
+    return {"target": target, "frame": frame, "value": value, "via": resolution.strategy}
 
 
 def _operator_candidates(target: str) -> list[dict[str, Any]]:

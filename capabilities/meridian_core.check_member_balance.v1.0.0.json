@@ -245,8 +245,8 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s3_select_the_supplied_branch",
-      "intent": "Select the supplied branch",
+      "id": "s3_select_the_west_014_branch",
+      "intent": "Select the WEST-014 branch",
       "action": {
         "type": "select",
         "value": "{{input.branch}}"
@@ -267,7 +267,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Select the supplied branch"
+        "description": "Select the WEST-014 branch"
       },
       "risk": "safe",
       "preconditions": [],
@@ -407,7 +407,7 @@
     },
     {
       "id": "s7_click_the_search_button_to",
-      "intent": "Click the Search button to search for the supplied member number",
+      "intent": "Click the Search button to search for member number 101555",
       "action": {
         "type": "click"
       },
@@ -422,7 +422,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Click the Search button to search for the supplied member number"
+        "description": "Click the Search button to search for member number 101555"
       },
       "risk": "safe",
       "preconditions": [],
@@ -441,7 +441,7 @@
     },
     {
       "id": "s8_click_the_select_link_to_o",
-      "intent": "Click the Select link to open the matching member record",
+      "intent": "Click the Select link to open the member record for Hopper, Grace (101555)",
       "action": {
         "type": "click"
       },
@@ -467,7 +467,7 @@
           "attr": "href",
           "value": "/members/{{input.member_number}}"
         },
-        "description": "Click the Select link to open the matching member record"
+        "description": "Click the Select link to open the member record for Hopper, Grace (101555)"
       },
       "risk": "safe",
       "preconditions": [],
@@ -622,7 +622,7 @@
     },
     {
       "id": "s13_read_the_status_from_the_f",
-      "intent": "Read the Status from the first row of the SHARES / BALANCES table",
+      "intent": "Read the Status from the first data row of the SHARES / BALANCES table (101555-S0001 row)",
       "action": {
         "type": "read",
         "binding": "text",
@@ -639,7 +639,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Read the Status from the first row of the SHARES / BALANCES table"
+        "description": "Read the Status from the first data row of the SHARES / BALANCES table (101555-S"
       },
       "risk": "safe",
       "preconditions": [],
@@ -684,7 +684,7 @@
     },
     {
       "id": "cp_member_record_open",
-      "description": "The matching Member Record is open with the SHARES / BALANCES table visible",
+      "description": "Member Record screen is open for member 101555 Hopper, Grace with SHARES / BALANCES table visible",
       "condition": {
         "kind": "url_matches",
         "target": null,

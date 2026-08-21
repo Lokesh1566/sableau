@@ -2,7 +2,7 @@ name: Tests
 
 on:
   push:
-    branches: [main, main-2]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -39,4 +39,4 @@ jobs:
           python -m sableau.cli discover --job jobs/approve_claim.json --planner heuristic \
             --param claim_id=CLM-004211 --param outcome=APPROVED \
             --param "note=Within plan limits, provider in network, no duplicate found."
-      - run: RUN_LIVE_LEGACY_TESTS=1 python -m pytest tests/integration -v
+      - run: python -m pytest tests/integration -v

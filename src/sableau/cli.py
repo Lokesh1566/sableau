@@ -186,7 +186,7 @@ async def cmd_handoff(args) -> int:
 
     from .operator.app import build_console
 
-    console = build_console(control, surface, recorder, policy.intersect(cap.safety))
+    console = build_console(control, surface, recorder)
     config = uvicorn.Config(console, host="127.0.0.1", port=args.console_port, log_level="warning")
     server = uvicorn.Server(config)
     server_task = asyncio.create_task(server.serve())

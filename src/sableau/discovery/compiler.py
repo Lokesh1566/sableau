@@ -67,7 +67,6 @@ def compile_capability(
     params = trace.params
     inputs = [InputSpec.model_validate(spec) for spec in job.get("inputs", [])]
     declared = {i.name for i in inputs}
-    display_declared = {i.name for i in inputs if i.sensitivity != "secret"}
 
     steps: list[Step] = []
     checkpoints: list[Checkpoint] = []
@@ -84,7 +83,7 @@ def compile_capability(
             continue
 
         if entry.tool == "assert_state":
-            cp = _checkpoint_from_assert(entry, params, declared, display_declared)
+            cp = _checkpoint_from_assert(entry, params, declared)
             checkpoints.append(cp)
             if steps:
                 pending_asserts.append(cp)
@@ -98,9 +97,7 @@ def compile_capability(
             )
             pending_asserts = []
 
-        step = _step_from_entry(
-            entry, len(steps) + 1, params, declared, display_declared, policy
-        )
+        step = _step_from_entry(entry, len(steps) + 1, params, declared, policy)
         if step is None:
             continue
         steps.append(step)
@@ -246,30 +243,6 @@ def _parameterise_deep(node: Any, params: dict[str, Any], declared: set[str]) ->
     return node
 
 
-def _parameterise_display(
-    value: Any, params: dict[str, Any], display_declared: set[str]
-) -> Any:
-    """Parameterise invocation examples in human-facing labels.
-
-    Planner intents and checkpoint descriptions are documentation, but they
-    still appear in the dashboard and evidence. Keeping discovery-time values
-    such as ``WEST-014`` or ``101555`` in those labels makes a correctly bound
-    replay look hard-coded. Replace only non-secret inputs, case-insensitively;
-    provenance remains the historical record of the concrete discovery run.
-    """
-    if not isinstance(value, str) or not value:
-        return value
-    out = value
-    for name in sorted(params, key=lambda n: len(str(params[n])), reverse=True):
-        if name not in display_declared:
-            continue
-        literal = str(params[name])
-        if len(literal) < 3:
-            continue
-        out = re.sub(re.escape(literal), f"{{{{input.{name}}}}}", out, flags=re.IGNORECASE)
-    return out
-
-
 def _durable_candidates(entry, params, declared) -> list[dict[str, Any]]:
     """Keep only locators measured to match exactly one element, best first.
 
@@ -318,19 +291,10 @@ def _parameterise_locator(
     return out
 
 
-def _step_from_entry(
-    entry,
-    index: int,
-    params,
-    declared,
-    display_declared,
-    policy: Policy,
-) -> Step | None:
+def _step_from_entry(entry, index: int, params, declared, policy: Policy) -> Step | None:
     a = entry.args
     kind = a.get("action")
-    intent = _parameterise_display(
-        a.get("intent", kind or "step"), params, display_declared
-    )
+    intent = a.get("intent", kind or "step")
     step_id = f"s{index}_{_slug(intent)}"
 
     if kind == "navigate":
@@ -434,7 +398,7 @@ def _strip_host(pattern: str) -> str:
     return re.sub(r"^\^?https?://[^/]+", "", pattern)
 
 
-def _checkpoint_from_assert(entry, params, declared, display_declared) -> Checkpoint:
+def _checkpoint_from_assert(entry, params, declared) -> Checkpoint:
     a = entry.args
     kind = a["kind"]
     cond: dict[str, Any] = {"kind": kind, "frame_path": entry.frame_path}
@@ -458,9 +422,7 @@ def _checkpoint_from_assert(entry, params, declared, display_declared) -> Checkp
     return Checkpoint.model_validate(
         {
             "id": f"cp_{_slug(a['id'])}",
-            "description": _parameterise_display(
-                a.get("description", a["id"]), params, display_declared
-            ),
+            "description": a.get("description", a["id"]),
             "condition": cond,
             "timeout_ms": 8000,
             "on_fail_code": ErrorCode.CHECKPOINT_MISMATCH,
