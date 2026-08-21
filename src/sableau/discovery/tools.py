@@ -72,7 +72,8 @@ ASSERT_TOOL = {
     "name": "assert_state",
     "description": (
         "Record something that must be true at this point for the workflow to be on "
-        "track. These become replay checkpoints."
+        "track. These become replay checkpoints. Use stable UI text, controls, URLs, "
+        "or supplied inputs; never use returned customer data or a declared output."
     ),
     "input_schema": {
         "type": "object",
@@ -83,7 +84,13 @@ ASSERT_TOOL = {
                 "type": "string",
                 "enum": ["element_visible", "text_present", "url_matches"],
             },
-            "value": {"type": "string", "description": "Text or url regex for text/url kinds."},
+            "value": {
+                "type": "string",
+                "description": (
+                    "Stable text or URL regex for text/url kinds. Do not use a discovered "
+                    "name, balance, identifier, receipt value, or other returned output."
+                ),
+            },
             "target_role": {"type": "string"},
             "target_name": {"type": "string"},
             "target_testid": {"type": "string"},

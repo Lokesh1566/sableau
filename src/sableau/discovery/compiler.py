@@ -48,6 +48,7 @@ from ..surface.base import STRATEGY_FEATURE, SurfaceFeature
 from .loop import DiscoveryTrace
 
 COMPILER_VERSION = "1.0.0"
+INPUT_BINDING_RE = re.compile(r"\{\{input\.[A-Za-z_][A-Za-z0-9_]*\}\}")
 
 
 class CompilationError(Exception):
@@ -68,6 +69,7 @@ def compile_capability(
     inputs = [InputSpec.model_validate(spec) for spec in job.get("inputs", [])]
     declared = {i.name for i in inputs}
     display_declared = {i.name for i in inputs if i.sensitivity != "secret"}
+    captured_outputs = _captured_output_literals(trace, job)
 
     steps: list[Step] = []
     checkpoints: list[Checkpoint] = []
@@ -84,7 +86,9 @@ def compile_capability(
             continue
 
         if entry.tool == "assert_state":
-            cp = _checkpoint_from_assert(entry, params, declared, display_declared)
+            cp = _checkpoint_from_assert(
+                entry, params, declared, display_declared, captured_outputs
+            )
             checkpoints.append(cp)
             if steps:
                 pending_asserts.append(cp)
@@ -270,6 +274,98 @@ def _parameterise_display(
     return out
 
 
+def _captured_output_literals(
+    trace: DiscoveryTrace, job: dict[str, Any]
+) -> dict[str, str]:
+    """Concrete business values read during this discovery run.
+
+    These values are legitimate evidence, but they must never become replay
+    checkpoints. A member name, balance or confirmation reference describes
+    one observed record; it does not describe the reusable state of the UI.
+    The full trace is available before compilation, so even an assertion made
+    before the later read can be checked against the outputs eventually
+    captured by that discovery.
+    """
+    declared_outputs = {str(spec["name"]) for spec in job.get("outputs", [])}
+    captured: dict[str, str] = {}
+    for entry in trace.entries:
+        if (
+            entry.status != "ok"
+            or entry.tool != "act"
+            or entry.args.get("action") != "read"
+            or entry.args.get("output") not in declared_outputs
+            or entry.read_value is None
+        ):
+            continue
+        value = str(entry.read_value).strip()
+        if value:
+            captured[str(entry.args["output"])] = value
+    return captured
+
+
+def _matching_output_literals(
+    value: Any, captured_outputs: dict[str, str]
+) -> list[str]:
+    if not isinstance(value, str) or not value:
+        return []
+    folded = value.casefold()
+    return [
+        name
+        for name, literal in captured_outputs.items()
+        if len(literal) >= 3 and literal.casefold() in folded
+    ]
+
+
+def _generalise_output_display(
+    value: Any, captured_outputs: dict[str, str]
+) -> Any:
+    """Remove concrete captured outputs from human-facing artifact labels."""
+    if not isinstance(value, str) or not value:
+        return value
+    out = value
+    for name, literal in sorted(
+        captured_outputs.items(), key=lambda item: len(item[1]), reverse=True
+    ):
+        if len(literal) < 3:
+            continue
+        out = re.sub(re.escape(literal), f"[{name}]", out, flags=re.IGNORECASE)
+    return out
+
+
+def _parameterised_runtime_url(
+    url: str, params: dict[str, Any], declared: set[str]
+) -> str | None:
+    """Build a host-neutral URL checkpoint while preserving input bindings.
+
+    When a model asserts a concrete output such as a member name on a search
+    result page, the current URL often contains the supplied search input. That
+    is a better invariant: it proves which query produced the result without
+    freezing the customer data returned by that query.
+    """
+    from urllib.parse import urlsplit
+
+    parts = urlsplit(url)
+    relative = parts.path or "/"
+    if parts.query:
+        relative = f"{relative}?{parts.query}"
+    templated = _parameterise(relative, params, declared)
+    bindings = INPUT_BINDING_RE.findall(templated)
+    if not bindings:
+        return None
+
+    saved: dict[str, str] = {}
+
+    def stash(match: re.Match[str]) -> str:
+        token = f"SABLEAUBINDING{len(saved)}TOKEN"
+        saved[token] = match.group(0)
+        return token
+
+    escaped = re.escape(INPUT_BINDING_RE.sub(stash, templated))
+    for token, binding in saved.items():
+        escaped = escaped.replace(re.escape(token), binding)
+    return escaped
+
+
 def _durable_candidates(entry, params, declared) -> list[dict[str, Any]]:
     """Keep only locators measured to match exactly one element, best first.
 
@@ -434,16 +530,62 @@ def _strip_host(pattern: str) -> str:
     return re.sub(r"^\^?https?://[^/]+", "", pattern)
 
 
-def _checkpoint_from_assert(entry, params, declared, display_declared) -> Checkpoint:
+def _checkpoint_from_assert(
+    entry,
+    params,
+    declared,
+    display_declared,
+    captured_outputs: dict[str, str] | None = None,
+) -> Checkpoint:
     a = entry.args
     kind = a["kind"]
-    cond: dict[str, Any] = {"kind": kind, "frame_path": entry.frame_path}
-    if kind in ("text_present", "url_matches"):
+    captured_outputs = captured_outputs or {}
+    description = _parameterise_display(
+        a.get("description", a["id"]), params, display_declared
+    )
+    description = _generalise_output_display(description, captured_outputs)
+
+    condition_source = " ".join(
+        str(a.get(field, ""))
+        for field in ("value", "target_name", "target_testid")
+    )
+    output_matches = _matching_output_literals(condition_source, captured_outputs)
+
+    # A model may choose a real customer's name or balance as proof that a page
+    # loaded. It was true during discovery but false for the next invocation.
+    # Prefer the parameterised runtime URL; if that is unavailable, use a
+    # supplied input already named in the assertion. Refuse to compile when
+    # neither stable invariant exists instead of shipping a one-record artifact.
+    if output_matches:
+        stable_url = _parameterised_runtime_url(entry.url_before, params, declared)
+        if stable_url:
+            kind = "url_matches"
+            cond: dict[str, Any] = {
+                "kind": kind,
+                "frame_path": entry.frame_path,
+                "value": stable_url,
+            }
+        else:
+            input_bindings = INPUT_BINDING_RE.findall(str(description))
+            if not input_bindings:
+                names = ", ".join(sorted(output_matches))
+                raise CompilationError(
+                    f"checkpoint '{a['id']}' depends on captured output(s) {names}. "
+                    "Assert a stable page label, supplied input, URL, or control instead."
+                )
+            kind = "text_present"
+            cond = {
+                "kind": kind,
+                "frame_path": entry.frame_path,
+                "value": input_bindings[0],
+            }
+    elif kind in ("text_present", "url_matches"):
         value = _parameterise(a.get("value", ""), params, declared)
         if kind == "url_matches":
             value = _strip_host(value)
-        cond["value"] = value
+        cond = {"kind": kind, "frame_path": entry.frame_path, "value": value}
     else:
+        cond = {"kind": kind, "frame_path": entry.frame_path}
         cands: list[dict[str, Any]] = []
         if a.get("target_testid"):
             cands.append({"strategy": "testid", "value": a["target_testid"]})
@@ -458,9 +600,7 @@ def _checkpoint_from_assert(entry, params, declared, display_declared) -> Checkp
     return Checkpoint.model_validate(
         {
             "id": f"cp_{_slug(a['id'])}",
-            "description": _parameterise_display(
-                a.get("description", a["id"]), params, display_declared
-            ),
+            "description": description,
             "condition": cond,
             "timeout_ms": 8000,
             "on_fail_code": ErrorCode.CHECKPOINT_MISMATCH,

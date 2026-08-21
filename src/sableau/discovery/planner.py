@@ -58,6 +58,11 @@ Work towards the stated goal one action at a time. Rules:
   capability with no checkpoints cannot verify it reached the state it expected,
   and will be rejected. At minimum: assert the record is open once you reach it,
   and assert the confirmation screen once the work is saved.
+- Checkpoints must remain true when supplied parameters and returned business
+  data change. Assert a stable heading, control, URL containing a supplied
+  parameter, or the supplied parameter itself. Never assert a discovered
+  customer name, balance, share ID, confirmation reference, or other returned
+  value: those belong only in declared outputs and evidence.
 - When you read a value that fills one of the declared outputs, use the `read`
   action and set `output` to that output's name.
 - Static table cells and receipt values may have no role or label. They are
