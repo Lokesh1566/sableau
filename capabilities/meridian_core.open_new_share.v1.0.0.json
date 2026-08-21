@@ -240,8 +240,8 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s3_select_the_west_014_branch",
-      "intent": "Select the WEST-014 branch",
+      "id": "s3_select_the_supplied_branch",
+      "intent": "Select the supplied branch",
       "action": {
         "type": "select",
         "value": "{{input.branch}}"
@@ -262,7 +262,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Select the WEST-014 branch"
+        "description": "Select the supplied branch"
       },
       "risk": "safe",
       "preconditions": [],
@@ -404,7 +404,7 @@
     },
     {
       "id": "s7_submit_the_search_with_mem",
-      "intent": "Submit the search with member number 103001 already entered",
+      "intent": "Submit the search for the supplied member number",
       "action": {
         "type": "click"
       },
@@ -419,7 +419,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Submit the search with member number 103001 already entered"
+        "description": "Submit the search for the supplied member number"
       },
       "risk": "safe",
       "preconditions": [],
@@ -437,8 +437,8 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s8_select_member_103001_vaugh",
-      "intent": "Select member 103001 Vaughan, Dorothy to open the member record",
+      "id": "s8_select_the_matching_member",
+      "intent": "Select the matching member to open the member record",
       "action": {
         "type": "click"
       },
@@ -464,7 +464,7 @@
           "attr": "href",
           "value": "/members/{{input.member_number}}"
         },
-        "description": "Select member 103001 Vaughan, Dorothy to open the member record"
+        "description": "Select the matching member to open the member record"
       },
       "risk": "safe",
       "preconditions": [],

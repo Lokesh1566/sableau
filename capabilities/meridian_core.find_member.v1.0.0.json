@@ -222,8 +222,8 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s3_select_the_west_014_branch",
-      "intent": "Select the WEST-014 branch as specified in the parameters",
+      "id": "s3_select_the_supplied_branch",
+      "intent": "Select the supplied branch",
       "action": {
         "type": "select",
         "value": "{{input.branch}}"
@@ -244,7 +244,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Select the WEST-014 branch as specified in the parameters"
+        "description": "Select the supplied branch"
       },
       "risk": "safe",
       "preconditions": [],
@@ -382,8 +382,8 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s7_type_the_search_query_love",
-      "intent": "Type the search query \"Lovelace\" in the Value field",
+      "id": "s7_type_the_search_query",
+      "intent": "Type the supplied search query in the Value field",
       "action": {
         "type": "type",
         "text": "{{input.query}}",
@@ -405,7 +405,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Type the search query \"Lovelace\" in the Value field"
+        "description": "Type the supplied search query in the Value field"
       },
       "risk": "safe",
       "preconditions": [],
@@ -422,7 +422,7 @@
     },
     {
       "id": "s8_submit_the_search_form_to",
-      "intent": "Submit the search form to find members with last name Lovelace",
+      "intent": "Submit the member search form",
       "action": {
         "type": "click"
       },
@@ -437,7 +437,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Submit the search form to find members with last name Lovelace"
+        "description": "Submit the member search form"
       },
       "risk": "safe",
       "preconditions": [],

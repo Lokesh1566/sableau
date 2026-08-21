@@ -1,0 +1,42 @@
+name: Live MERIDIAN read-only smoke test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  balance-replay-stability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - run: python -m playwright install --with-deps chromium
+      - name: Replay the same read-only capability three times
+        env:
+          SABLEAU_HEADLESS: "1"
+          SABLEAU_CDP_PORT: "9444"
+          SABLEAU_EVIDENCE: /tmp/sableau-live-evidence
+          SABLEAU_POLICY: policy-core.json
+        run: |
+          for attempt in 1 2 3; do
+            echo "read-only balance replay $attempt/3"
+            python -m sableau.cli replay \
+              --capability capabilities/meridian_core.check_member_balance.v1.0.0.json \
+              --param operator=teller1 \
+              --param password=password \
+              --param branch=MAIN-001 \
+              --param member_number=102777
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-meridian-read-only-evidence
+          path: /tmp/sableau-live-evidence
+          if-no-files-found: warn
+          retention-days: 7

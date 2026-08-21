@@ -27,6 +27,11 @@ The heuristic rows are intentionally identified as such in both this index and `
 - returns with `llm_calls=0` and without posting the hold.
 
 This is a natural target permission error, not an injected or mocked exception.
+The committed run predates the interactive dashboard controls and intentionally
+ends at `PAUSED`. Current watchable runs retain that same CDP session for an
+identified operator to take control, act through the effective policy, and
+return an explicit retry/continue/abort decision; the API integration suite
+verifies the complete ownership cycle without mutating the public target.
 
 ## Data handling
 
