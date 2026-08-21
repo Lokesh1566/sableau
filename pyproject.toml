@@ -9,7 +9,7 @@ description = "Turn LLM-discovered UI workflows into deterministic, replayable c
 requires-python = ">=3.11"
 dependencies = [
   "pydantic>=2.7",
-  "playwright>=1.44",
+  "playwright>=1.60",
   "fastapi>=0.110",
   "uvicorn>=0.29",
   "jinja2>=3.1",

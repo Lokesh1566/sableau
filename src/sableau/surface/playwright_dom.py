@@ -11,7 +11,14 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from playwright.async_api import Browser, Frame, Page, Playwright, async_playwright
+from playwright.async_api import (
+    Browser,
+    Frame,
+    Page,
+    Playwright,
+    TimeoutError as PlaywrightTimeoutError,
+    async_playwright,
+)
 
 from ..schema import Action, Condition, TargetSpec
 from ..schema.errors import (
@@ -51,7 +58,7 @@ class PlaywrightDomSurface:
     @classmethod
     async def connect(cls, cdp_url: str, viewport_note: str = "") -> "PlaywrightDomSurface":
         pw = await async_playwright().start()
-        browser = await pw.chromium.connect_over_cdp(cdp_url)
+        browser = await pw.chromium.connect_over_cdp(cdp_url, no_defaults=True)
         ctx = browser.contexts[0]
         # Chrome can retain a stale startup ``about:blank`` target alongside the
         # live application tab. Prefer the newest usable HTTP(S) page so repeat
@@ -202,7 +209,20 @@ class PlaywrightDomSurface:
             loc = resolution.handle
             if t == "click":
                 before = await self._page_fingerprint()
-                await loc.click()
+                try:
+                    await loc.click()
+                except PlaywrightTimeoutError:
+                    # MERIDIAN's legacy submit controls are occasionally
+                    # attached and visible but never become "stable" enough
+                    # for Playwright's pointer-actionability check. The narrow
+                    # fallback below validates that the element is a usable
+                    # anchor or submit control and lets the browser activate
+                    # it without bypassing the form or its hidden token.
+                    note = await self._click_fallback(loc)
+                    if not note:
+                        raise
+                    await self._settle()
+                    return ActionResult(ok=True, note=f"{note} after pointer click timed out")
                 await self._settle()
                 if await self._page_fingerprint() == before:
                     note = await self._click_fallback(loc)
@@ -270,6 +290,14 @@ class PlaywrightDomSurface:
             return await loc.evaluate(
                 """(el) => {
                   const tag = el.tagName.toLowerCase();
+                  const rect = el.getBoundingClientRect();
+                  const style = window.getComputedStyle(el);
+                  const visible = rect.width > 0 && rect.height > 0
+                               && style.display !== 'none'
+                               && style.visibility !== 'hidden';
+                  const disabled = Boolean(el.disabled)
+                                || el.getAttribute('aria-disabled') === 'true';
+                  if (!visible || disabled) return null;
                   if (tag === 'a' && el.getAttribute('href')) {
                     el.click();
                     return 'legacy anchor activated via DOM click';
