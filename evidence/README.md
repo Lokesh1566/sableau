@@ -36,3 +36,17 @@ verifies the complete ownership cycle without mutating the public target.
 ## Data handling
 
 Passwords, contact data, memos, and hold notes are redacted. The live form token appears only as `[opaque]` in observations and is absent from compiled artifacts. The public demo contains synthetic records; no real customer data is included.
+
+## Live dashboard human handoff
+
+Run: `api_20260821T045740Z_4e6889`
+
+The live MERIDIAN account-hold workflow detected that `teller1` lacked
+supervisor permission and paused automation. The identified dashboard operator
+`operator.demo` took control of the same browser session and returned control
+with `RETRY_STEP`. When MERIDIAN denied the operation again, the operator took
+control a second time and selected `ABORT`.
+
+The run finished as `HARD_FAILURE/ABORTED_BY_OPERATOR`, which is the expected
+safe outcome. No account hold was posted. The run contains redacted logs,
+control transitions, escalation records, DOM evidence, and screenshots.

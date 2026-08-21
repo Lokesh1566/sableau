@@ -1,0 +1,149 @@
+{
+  "run_id": "api_20260821T045740Z_4e6889",
+  "capability_id": "meridian_core.place_account_hold",
+  "capability_version": "1.0.0",
+  "started_at": "2026-08-21T04:57:42.099342+00:00",
+  "duration_ms": 368409,
+  "category": "HARD_FAILURE",
+  "code": "ABORTED_BY_OPERATOR",
+  "outputs": {},
+  "business_outcome": null,
+  "error": {
+    "code": "ABORTED_BY_OPERATOR",
+    "category": "HARD_FAILURE",
+    "message": "operator aborted during handoff",
+    "step_id": "s13_continue_to_the_hold_revie",
+    "retryable": false,
+    "attempts": 1,
+    "evidence": {
+      "screenshot": "evidence/runs/api_20260821T045740Z_4e6889/screenshots/abort_s13_continue_to_the_hold_revie.png",
+      "dom_snapshot": "evidence/runs/api_20260821T045740Z_4e6889/abort_s13_continue_to_the_hold_revie.dom.html",
+      "url": "https://web-sample.interface-hiring.com/members/101555/hold/review",
+      "log_ref": "evidence/runs/api_20260821T045740Z_4e6889/log.jsonl"
+    }
+  },
+  "control": {
+    "final_owner": "nobody",
+    "escalated": true,
+    "escalation_id": "esc_a5054de4",
+    "escalation_reason": "PERMISSION_DENIED",
+    "human_actions": 0,
+    "resume_decision": "ABORT"
+  },
+  "steps": [
+    {
+      "step_id": "s1_enter_the_supplied_operato",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 73,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s2_enter_the_supplied_passwor",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 37,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s3_select_the_supplied_branch",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 13,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s4_submit_the_sign_on_form",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2734,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s5_open_member_inquiry_select",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2903,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s6_enter_the_supplied_member",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 27,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s7_search_for_the_member",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2775,
+      "resolved_strategy": "css",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s8_open_the_first_matching_me",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2834,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s9_open_place_account_hold",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 2868,
+      "resolved_strategy": "role",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s10_select_the_supplied_share",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 25,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s11_select_the_supplied_hold_r",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 11,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    },
+    {
+      "step_id": "s12_enter_the_hold_notes",
+      "status": "ok",
+      "attempts": 1,
+      "duration_ms": 13,
+      "resolved_strategy": "name",
+      "candidate_index": 0,
+      "note": null
+    }
+  ],
+  "llm_calls": 0,
+  "drift": {
+    "steps_resolved": 12,
+    "first_choice": 12,
+    "degraded": []
+  }
+}
