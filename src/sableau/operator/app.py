@@ -165,8 +165,12 @@ def build_console(
         return HTMLResponse(
             _render(
                 PAGE,
-                state=snap["state"], owner=snap["owner"], run_id=control.run_id, url=url,
-                escalation=_escalation_html(), controls=controls,
+                state=snap["state"],
+                owner=snap["owner"],
+                run_id=control.run_id,
+                url=url,
+                escalation=_escalation_html(),
+                controls=controls,
                 nonce=len(control.history),
             )
         )
@@ -176,8 +180,9 @@ def build_console(
         bundle = await surface.evidence()
         if not bundle.screenshot_png:
             return Response(status_code=404)
-        return Response(bundle.screenshot_png, media_type="image/png",
-                        headers={"Cache-Control": "no-store"})
+        return Response(
+            bundle.screenshot_png, media_type="image/png", headers={"Cache-Control": "no-store"}
+        )
 
     @app.get("/api/state")
     async def state() -> JSONResponse:
@@ -208,7 +213,9 @@ def build_console(
     async def resume(request: Request):
         form = await request.form()
         decision = ResumeDecision(str(form.get("decision", "CONTINUE_FROM_CURRENT_STEP")))
-        operator = str(form.get("operator") or (control.active.operator if control.active else "operator.demo"))
+        operator = str(
+            form.get("operator") or (control.active.operator if control.active else "operator.demo")
+        )
         async with lock:
             control.resume(decision, operator)
         recorder.log("operator.resumed", decision=decision.value, operator=operator)

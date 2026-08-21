@@ -21,7 +21,8 @@ cd sableau
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+python -m pip install --require-hashes -r requirements.lock
+python -m pip install -e . --no-deps
 python -m playwright install chromium
 ```
 
@@ -264,9 +265,10 @@ All bundled data is synthetic public-demo data. Do not point this demo policy at
 ```
 
 The verification script validates exactly seven artifacts, scans tracked files
-for a real-looking Anthropic key, runs the browser-free suite, and checks patch
-whitespace. Current clean result: `96 passed, 13 skipped`. The skipped tests
-require live services and are opt-in:
+for a real-looking Anthropic key, runs the browser-free suite with an enforced
+80% branch-coverage floor over the deterministic production core, runs Ruff and
+mypy, and checks patch whitespace. The skipped tests require live services and
+are opt-in:
 
 ```bash
 RUN_LIVE_MERIDIAN_TESTS=1 python -m pytest tests/integration/test_api.py -q
@@ -274,10 +276,21 @@ RUN_LIVE_LEGACY_TESTS=1 ./scripts/up.sh
 RUN_LIVE_LEGACY_TESTS=1 python -m pytest tests/integration/test_live_stack.py -q
 ```
 
-GitHub Actions runs the unit and local-live legacy suites on both `main` and
-`main-2`. The **Live MERIDIAN read-only smoke test** workflow is deliberately
-manual; it replays balance inquiry three times and uploads short-lived evidence
-without repeatedly mutating the public target.
+GitHub Actions runs lint, format, static typing, tests, coverage, dependency
+audit, and the local-live legacy suite on both `main` and `main-2`, with the
+offline quality suite tested on Python 3.11 and 3.12. The **Live MERIDIAN
+read-only smoke test** workflow is deliberately manual; it replays balance
+inquiry three times and uploads short-lived evidence without repeatedly
+mutating the public target.
+
+`requirements.lock` is generated on the lowest supported Python version and
+pins the complete development dependency graph with package hashes. To refresh
+it after intentionally changing `pyproject.toml`:
+
+```bash
+python3.11 -m piptools compile pyproject.toml --extra dev --generate-hashes \
+  --strip-extras --allow-unsafe --output-file requirements.lock
+```
 
 The committed MERIDIAN evidence was produced against the public live UI, including real LLM discoveries, parameter-varied deterministic replays, successful writes, a natural permission failure, screenshot capture, and escalation.
 
@@ -289,7 +302,13 @@ src/sableau/replay/          deterministic engine and outcome handling
 src/sableau/schema/          capability and result contracts
 src/sableau/surface/         surface protocol and Playwright DOM adapter
 src/sableau/kernel/          policy, redaction, evidence, control ownership
-src/sableau/api/             catalog, invoke API, chat, dashboard
+src/sableau/api/app.py       FastAPI route composition and execution wiring
+src/sableau/api/catalog.py   capability loading and agent-facing projection
+src/sableau/api/chat.py      transparent banking-intent grammar
+src/sableau/api/evidence.py  persisted run/evidence read models
+src/sableau/api/live_runs.py durable live-state store and active-session boundary
+src/sableau/api/models.py    typed HTTP request/response contracts
+src/sableau/api/static/      separately packaged HTML, CSS, and JavaScript
 src/sableau/operator/        policy-checked same-session human actions
 jobs/core_*.json             seven MERIDIAN discovery specifications
 capabilities/meridian_core.* seven compiled capabilities

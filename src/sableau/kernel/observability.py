@@ -98,7 +98,12 @@ class RunRecorder:
         dom = None
         if bundle.dom_snapshot:
             dom = str(self.write_text(f"{label}.dom.html", bundle.dom_snapshot))
-        out = {"screenshot": shot, "dom_snapshot": dom, "url": bundle.url, "log_ref": str(self._log_path)}
+        out = {
+            "screenshot": shot,
+            "dom_snapshot": dom,
+            "url": bundle.url,
+            "log_ref": str(self._log_path),
+        }
         self.log("evidence.captured", label=label, url=bundle.url, screenshot=shot)
         return out
 

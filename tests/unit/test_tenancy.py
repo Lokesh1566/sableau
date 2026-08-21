@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from sableau.kernel.observability import RunRecorder
 from sableau.kernel.policy import Policy
 from sableau.replay import ReplayEngine
-from sableau.schema import Capability, OutcomeCategory
+from sableau.schema import OutcomeCategory
 from sableau.schema.errors import PolicyViolation
-from sableau.surface.null_surface import FakeElement, NullSurface
+from sableau.surface.null_surface import NullSurface
 from sableau.tenancy import TenantOverlay, apply_overlay, unused_aliases
-
 from tests.conftest import SEARCH, build_screens, wire
 
 OVERLAY = {
@@ -48,8 +48,8 @@ def test_overlay_adds_candidates_without_removing_the_base(capability, overlay):
     out = apply_overlay(capability, overlay)
     step = out.step("s1_type_query")
     strategies = [(c.strategy, getattr(c, "value", None)) for c in step.target.candidates]
-    assert strategies[0] == ("testid", "q")            # base survives, still first
-    assert ("testid", "search-field") in strategies    # tenant added after it
+    assert strategies[0] == ("testid", "q")  # base survives, still first
+    assert ("testid", "search-field") in strategies  # tenant added after it
 
 
 def test_overlay_rewrites_host_and_entry_url(capability, overlay):
@@ -70,7 +70,7 @@ def test_overlay_cannot_change_what_the_capability_does(capability, overlay):
 
 def test_overlay_has_no_field_for_adding_steps():
     """Structural, not a convention: the schema simply cannot express it."""
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         TenantOverlay.model_validate({**OVERLAY, "steps": [{"id": "s99", "intent": "sneak"}]})
 
 
@@ -123,7 +123,9 @@ def test_frame_aliases_are_applied(capability, overlay):
     assert out.steps[0].target.frame_path == ["decisionPanel"]
 
 
-async def test_overlaid_capability_replays_against_the_variant(capability, overlay, params, tmp_path):
+async def test_overlaid_capability_replays_against_the_variant(
+    capability, overlay, params, tmp_path
+):
     """The point of the exercise: one recording, two tenants, no re-recording."""
     screens = build_screens()
     # this tenant names two controls differently and ships no test id on search
@@ -135,14 +137,22 @@ async def test_overlaid_capability_replays_against_the_variant(capability, overl
                 el.testid = "save-btn"
     surface = wire(NullSurface(screens, SEARCH))
 
-    plain = ReplayEngine(surface, RunRecorder("t_base", root=str(tmp_path), echo=False),
-                         Policy(allowed_hosts=["127.0.0.1:8098"]), confirm_risky=True)
+    plain = ReplayEngine(
+        surface,
+        RunRecorder("t_base", root=str(tmp_path), echo=False),
+        Policy(allowed_hosts=["127.0.0.1:8098"]),
+        confirm_risky=True,
+    )
     base_result = await plain.run(capability, params)
     assert base_result.category is not OutcomeCategory.SUCCESS  # base alone cannot find them
 
     surface2 = wire(NullSurface(screens, SEARCH))
-    tenant = ReplayEngine(surface2, RunRecorder("t_tenant", root=str(tmp_path), echo=False),
-                          Policy(allowed_hosts=["127.0.0.1:8098"]), confirm_risky=True)
+    tenant = ReplayEngine(
+        surface2,
+        RunRecorder("t_tenant", root=str(tmp_path), echo=False),
+        Policy(allowed_hosts=["127.0.0.1:8098"]),
+        confirm_risky=True,
+    )
     tenant_result = await tenant.run(apply_overlay(capability, overlay), params)
     assert tenant_result.category is OutcomeCategory.SUCCESS
     assert tenant_result.outputs["confirmation_code"] == "MCD-90001"
@@ -154,8 +164,9 @@ async def test_overlaid_capability_replays_against_the_variant(capability, overl
 async def test_drift_is_one_when_every_control_is_found_first_try(
     surface, capability, params, tmp_path
 ):
-    eng = ReplayEngine(surface, RunRecorder("t_d1", root=str(tmp_path), echo=False),
-                       Policy(), confirm_risky=True)
+    eng = ReplayEngine(
+        surface, RunRecorder("t_d1", root=str(tmp_path), echo=False), Policy(), confirm_risky=True
+    )
     result = await eng.run(capability, params)
     # s3 deliberately falls back in the fixture, so not every step is first choice
     assert 0.0 < result.drift.score <= 1.0
@@ -169,8 +180,12 @@ async def test_drift_names_the_controls_that_moved(capability, overlay, params, 
             if el.testid == "q":
                 el.testid = "search-field"
     surface = wire(NullSurface(screens, SEARCH))
-    eng = ReplayEngine(surface, RunRecorder("t_d2", root=str(tmp_path), echo=False),
-                       Policy(allowed_hosts=["127.0.0.1:8098"]), confirm_risky=True)
+    eng = ReplayEngine(
+        surface,
+        RunRecorder("t_d2", root=str(tmp_path), echo=False),
+        Policy(allowed_hosts=["127.0.0.1:8098"]),
+        confirm_risky=True,
+    )
     result = await eng.run(apply_overlay(capability, overlay), params)
 
     assert result.ok
@@ -182,8 +197,11 @@ async def test_drift_names_the_controls_that_moved(capability, overlay, params, 
 def test_drift_appears_in_the_result_contract():
     from sableau.schema.results import DriftReport
 
-    d = DriftReport(steps_resolved=4, first_choice=3,
-                    degraded=[{"step_id": "s2", "resolved_via": "role", "candidate_index": 1}])
+    d = DriftReport(
+        steps_resolved=4,
+        first_choice=3,
+        degraded=[{"step_id": "s2", "resolved_via": "role", "candidate_index": 1}],
+    )
     assert d.score == 0.75
     assert "degraded" in d.model_dump_json()
 
@@ -202,10 +220,11 @@ def test_url_checkpoints_drop_the_host():
     """
     from sableau.discovery.compiler import _strip_host
 
-    assert _strip_host(r"http://127\.0\.0\.1:8099/claims/{{input.claim_id}}") == \
-        "/claims/{{input.claim_id}}"
+    assert (
+        _strip_host(r"http://127\.0\.0\.1:8099/claims/{{input.claim_id}}")
+        == "/claims/{{input.claim_id}}"
+    )
     assert _strip_host("http://127.0.0.1:8099/claims/X") == "/claims/X"
     assert _strip_host(r"^https://bank\.example\.com/claims/123") == "/claims/123"
     # already relative: left alone
-    assert _strip_host("/claims/{{input.claim_id}}/receipt") == \
-        "/claims/{{input.claim_id}}/receipt"
+    assert _strip_host("/claims/{{input.claim_id}}/receipt") == "/claims/{{input.claim_id}}/receipt"

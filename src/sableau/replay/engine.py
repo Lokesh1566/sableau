@@ -36,9 +36,7 @@ from ..schema import (
 from ..schema.errors import (
     ESCALATABLE,
     RETRYABLE,
-    AmbiguousControlError,
     CheckpointFailed,
-    ControlResolutionError,
     InvalidInput,
     OperatorAbort,
     PolicyViolation,
@@ -47,8 +45,8 @@ from ..schema.errors import (
 )
 from ..schema.results import (
     BusinessOutcome,
-    DriftReport,
     ControlReport,
+    DriftReport,
     ErrorDetail,
     Evidence,
     ReplayResult,
@@ -136,9 +134,7 @@ class ReplayEngine:
             if capability.surface.entry_url:
                 self.policy.check_url(bind_text(capability.surface.entry_url, {}, None))
         except (SurfaceIncompatible, PolicyViolation) as exc:
-            return finish(
-                exc.category, exc.code, error=ErrorDetail.of(exc.code, exc.message)
-            )
+            return finish(exc.category, exc.code, error=ErrorDetail.of(exc.code, exc.message))
         except InvalidInput as exc:
             return finish(exc.category, exc.code, error=ErrorDetail.of(exc.code, exc.message))
 
@@ -172,7 +168,9 @@ class ReplayEngine:
                     error=term.error,
                 )
             except _SkipStep:
-                self._reports.append(StepReport(step_id=step.id, status="skipped", note="operator skipped"))
+                self._reports.append(
+                    StepReport(step_id=step.id, status="skipped", note="operator skipped")
+                )
                 index += 1
             except _RetryStep:
                 continue
@@ -185,14 +183,24 @@ class ReplayEngine:
                         error=ErrorDetail.of(
                             restart.code,
                             f"{restart.reason} (restart budget of {max_restarts} exhausted)",
-                            step_id=step.id, evidence=Evidence(**ev),
+                            step_id=step.id,
+                            evidence=Evidence(**ev),
                         ),
                     )
                 restarts += 1
-                self.recorder.log("replay.restart", attempt=restarts, reason=restart.reason,
-                                  code=restart.code.value)
-                self._reports.append(StepReport(step_id=step.id, status="recovered",
-                                                note=f"capability restarted after {restart.code.value}"))
+                self.recorder.log(
+                    "replay.restart",
+                    attempt=restarts,
+                    reason=restart.reason,
+                    code=restart.code.value,
+                )
+                self._reports.append(
+                    StepReport(
+                        step_id=step.id,
+                        status="recovered",
+                        note=f"capability restarted after {restart.code.value}",
+                    )
+                )
                 self._step_values.clear()
                 index = 0
                 if capability.surface.entry_url:
@@ -204,7 +212,9 @@ class ReplayEngine:
                     OutcomeCategory.HARD_FAILURE,
                     ErrorCode.ABORTED_BY_OPERATOR,
                     error=ErrorDetail.of(
-                        ErrorCode.ABORTED_BY_OPERATOR, exc.message, step_id=step.id,
+                        ErrorCode.ABORTED_BY_OPERATOR,
+                        exc.message,
+                        step_id=step.id,
                         evidence=Evidence(**ev),
                     ),
                 )
@@ -213,16 +223,16 @@ class ReplayEngine:
                 detail = ErrorDetail.of(
                     exc.code, exc.message, step_id=step.id, evidence=Evidence(**ev)
                 )
-                self._reports.append(StepReport(step_id=step.id, status="failed", note=exc.code.value))
+                self._reports.append(
+                    StepReport(step_id=step.id, status="failed", note=exc.code.value)
+                )
                 return finish(exc.category, exc.code, error=detail)
 
         # 4. outputs
         try:
             outputs = self._collect_outputs(capability, strict=True)
         except SableauError as exc:
-            return finish(
-                exc.category, exc.code, error=ErrorDetail.of(exc.code, exc.message)
-            )
+            return finish(exc.category, exc.code, error=ErrorDetail.of(exc.code, exc.message))
         return finish(OutcomeCategory.SUCCESS, ErrorCode.NONE, outputs=outputs)
 
     # ------------------------------------------------------------------
@@ -402,7 +412,7 @@ class ReplayEngine:
         details: dict[str, Any] = {}
         if not ko.result.capture:
             return details
-        from ..schema.capability import ReadAction, TargetSpec  # local, schema only
+        from ..schema.capability import ReadAction  # local, schema only
 
         for name, source in ko.result.capture.items():
             try:
@@ -440,8 +450,12 @@ class ReplayEngine:
             decision = await self.control.await_resume(self.escalation_timeout_s)
         except asyncio.TimeoutError:
             return False
-        self.recorder.log("escalation.resolved", escalation=esc.escalation_id,
-                          decision=decision.value, outcome=ko.id)
+        self.recorder.log(
+            "escalation.resolved",
+            escalation=esc.escalation_id,
+            decision=decision.value,
+            outcome=ko.id,
+        )
         if decision is ResumeDecision.ABORT:
             raise OperatorAbort("operator aborted during handoff", step_id=step.id)
         if decision is ResumeDecision.RETRY_STEP:
@@ -470,7 +484,9 @@ class ReplayEngine:
             decision = await self.control.await_resume(self.escalation_timeout_s)
         except asyncio.TimeoutError:
             return exc
-        self.recorder.log("escalation.resolved", escalation=esc.escalation_id, decision=decision.value)
+        self.recorder.log(
+            "escalation.resolved", escalation=esc.escalation_id, decision=decision.value
+        )
 
         if decision is ResumeDecision.ABORT:
             return OperatorAbort("operator aborted the run", step_id=step.id)
@@ -530,8 +546,11 @@ class ReplayEngine:
     def _drift_report(self) -> DriftReport:
         resolved = [r for r in self._reports if r.candidate_index is not None]
         degraded = [
-            {"step_id": r.step_id, "resolved_via": r.resolved_strategy,
-             "candidate_index": r.candidate_index}
+            {
+                "step_id": r.step_id,
+                "resolved_via": r.resolved_strategy,
+                "candidate_index": r.candidate_index,
+            }
             for r in resolved
             if (r.candidate_index or 0) > 0
         ]

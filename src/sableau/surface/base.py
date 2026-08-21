@@ -22,16 +22,16 @@ from ..schema import Action, Condition, TargetSpec
 
 
 class SurfaceFeature(str, Enum):
-    ROLE_QUERY = "role_query"        # can find by accessibility role plus name
-    TEXT_QUERY = "text_query"        # can find by visible text
-    LABEL_QUERY = "label_query"      # can find a form control by its label
-    TESTID_QUERY = "testid_query"    # can find by test id attribute
-    DOM_QUERY = "dom_query"          # can evaluate CSS selectors
-    FRAMES = "frames"                # can descend into iframes or framesets
-    COORDINATES = "coordinates"      # can click an x, y point
-    SCREENSHOT = "screenshot"        # can capture pixels
-    A11Y_TREE = "a11y_tree"          # can dump an accessibility tree
-    DOM_SNAPSHOT = "dom_snapshot"    # can dump markup for evidence
+    ROLE_QUERY = "role_query"  # can find by accessibility role plus name
+    TEXT_QUERY = "text_query"  # can find by visible text
+    LABEL_QUERY = "label_query"  # can find a form control by its label
+    TESTID_QUERY = "testid_query"  # can find by test id attribute
+    DOM_QUERY = "dom_query"  # can evaluate CSS selectors
+    FRAMES = "frames"  # can descend into iframes or framesets
+    COORDINATES = "coordinates"  # can click an x, y point
+    SCREENSHOT = "screenshot"  # can capture pixels
+    A11Y_TREE = "a11y_tree"  # can dump an accessibility tree
+    DOM_SNAPSHOT = "dom_snapshot"  # can dump markup for evidence
 
 
 #: Which surface feature each locator strategy needs. Used for compatibility checks.

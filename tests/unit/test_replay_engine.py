@@ -8,15 +8,12 @@ from __future__ import annotations
 
 import asyncio
 
-import pytest
-
 from sableau.kernel.control import ControlState, ResumeDecision, SessionControl
 from sableau.kernel.observability import RunRecorder
 from sableau.kernel.policy import Policy
 from sableau.replay import ReplayEngine
-from sableau.schema import Capability, ErrorCode, OutcomeCategory
+from sableau.schema import ErrorCode, OutcomeCategory
 from sableau.surface.null_surface import FakeScreen, NullSurface
-
 from tests.conftest import DENIED, LOGIN, RECEIPT, SEARCH, build_screens, wire
 
 
@@ -117,7 +114,9 @@ async def test_retry_budget_is_bounded(surface, capability, params, tmp_path):
 async def test_risky_step_blocked_without_confirmation(surface, capability, params, tmp_path):
     policy = Policy(require_confirmation=True)
     recorder = RunRecorder("t_risky", root=str(tmp_path), echo=False)
-    result = await ReplayEngine(surface, recorder, policy, confirm_risky=False).run(capability, params)
+    result = await ReplayEngine(surface, recorder, policy, confirm_risky=False).run(
+        capability, params
+    )
 
     assert result.code is ErrorCode.POLICY_VIOLATION
     assert "s6_save" in result.error.message
@@ -126,7 +125,9 @@ async def test_risky_step_blocked_without_confirmation(surface, capability, para
 
 async def test_surface_incompatibility_is_refused_up_front(surface, capability, params, tmp_path):
     cap = capability.model_copy(
-        update={"surface": capability.surface.model_copy(update={"required_features": ["a11y_tree"]})}
+        update={
+            "surface": capability.surface.model_copy(update={"required_features": ["a11y_tree"]})
+        }
     )
     result = await engine(surface, tmp_path).run(cap, params)
 
@@ -138,7 +139,9 @@ async def test_surface_incompatibility_is_refused_up_front(surface, capability, 
 async def test_capability_cannot_widen_deployment_policy(surface, capability, params, tmp_path):
     recorder = RunRecorder("t_policy", root=str(tmp_path), echo=False)
     policy = Policy(allowed_hosts=["other.example.com"])
-    result = await ReplayEngine(surface, recorder, policy, confirm_risky=True).run(capability, params)
+    result = await ReplayEngine(surface, recorder, policy, confirm_risky=True).run(
+        capability, params
+    )
 
     assert result.code is ErrorCode.POLICY_VIOLATION
 
@@ -152,8 +155,9 @@ async def test_missing_control_escalates_and_a_human_can_resume(capability, para
     s = wire(NullSurface(screens, SEARCH))
     recorder = RunRecorder("t_esc", root=str(tmp_path), echo=False)
     control = SessionControl("t_esc")
-    eng = ReplayEngine(s, recorder, Policy(), control=control, confirm_risky=True,
-                       escalation_timeout_s=10)
+    eng = ReplayEngine(
+        s, recorder, Policy(), control=control, confirm_risky=True, escalation_timeout_s=10
+    )
 
     async def operator():
         for _ in range(100):
@@ -183,8 +187,14 @@ async def test_operator_abort_is_its_own_code(capability, params, tmp_path):
     screens[RECEIPT].elements = []
     s = wire(NullSurface(screens, SEARCH))
     control = SessionControl("t_abort")
-    eng = ReplayEngine(s, RunRecorder("t_abort", root=str(tmp_path), echo=False), Policy(),
-                       control=control, confirm_risky=True, escalation_timeout_s=10)
+    eng = ReplayEngine(
+        s,
+        RunRecorder("t_abort", root=str(tmp_path), echo=False),
+        Policy(),
+        control=control,
+        confirm_risky=True,
+        escalation_timeout_s=10,
+    )
 
     async def operator():
         for _ in range(100):
@@ -205,8 +215,14 @@ async def test_ambiguous_control_is_detected(capability, params, tmp_path):
             el.duplicate = 2  # two identical save buttons
     s = wire(NullSurface(screens, SEARCH))
     control = SessionControl("t_amb")
-    eng = ReplayEngine(s, RunRecorder("t_amb", root=str(tmp_path), echo=False), Policy(),
-                       control=control, confirm_risky=True, escalation_timeout_s=0.2)
+    eng = ReplayEngine(
+        s,
+        RunRecorder("t_amb", root=str(tmp_path), echo=False),
+        Policy(),
+        control=control,
+        confirm_risky=True,
+        escalation_timeout_s=0.2,
+    )
     result = await eng.run(capability, params)
     assert result.code in (ErrorCode.AMBIGUOUS_CONTROL, ErrorCode.MISSING_CONTROL)
 
@@ -214,7 +230,9 @@ async def test_ambiguous_control_is_detected(capability, params, tmp_path):
 async def test_required_output_that_cannot_be_read_fails_loudly(capability, params, tmp_path):
     """A silent None output would be worse than a failure."""
     screens = build_screens()
-    screens[RECEIPT].elements = [e for e in screens[RECEIPT].elements if e.testid == "decided-amount"]
+    screens[RECEIPT].elements = [
+        e for e in screens[RECEIPT].elements if e.testid == "decided-amount"
+    ]
     s = wire(NullSurface(screens, SEARCH))
     cap = capability.model_copy(
         update={"recovery": capability.recovery.model_copy(update={"escalation_mode": "none"})}
@@ -226,7 +244,12 @@ async def test_required_output_that_cannot_be_read_fails_loudly(capability, para
 def test_result_serialises_to_json(capability):
     from sableau.schema.results import ReplayResult
 
-    r = ReplayResult(run_id="r", capability_id="c", capability_version="1.0.0",
-                     started_at="2026-01-01T00:00:00Z", duration_ms=1,
-                     category=OutcomeCategory.SUCCESS)
+    r = ReplayResult(
+        run_id="r",
+        capability_id="c",
+        capability_version="1.0.0",
+        started_at="2026-01-01T00:00:00Z",
+        duration_ms=1,
+        category=OutcomeCategory.SUCCESS,
+    )
     assert "llm_calls" in r.model_dump_json()

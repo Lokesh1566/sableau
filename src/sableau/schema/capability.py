@@ -104,8 +104,15 @@ class CssLocator(Base):
 
 
 Locator = Annotated[
-    Union[RoleLocator, TestIdLocator, NameAttrLocator, LabelLocator,
-          PlaceholderLocator, TextLocator, CssLocator],
+    Union[
+        RoleLocator,
+        TestIdLocator,
+        NameAttrLocator,
+        LabelLocator,
+        PlaceholderLocator,
+        TextLocator,
+        CssLocator,
+    ],
     Field(discriminator="strategy"),
 ]
 
@@ -307,7 +314,9 @@ class OutcomeResult(Base):
     terminal: bool = True
     message: str | None = None
     capture: dict[str, OutputSource] | None = None
-    recovery: Literal["none", "retry_step", "restart_capability", "dismiss_and_continue", "escalate"] = "none"
+    recovery: Literal[
+        "none", "retry_step", "restart_capability", "dismiss_and_continue", "escalate"
+    ] = "none"
 
 
 class KnownOutcome(Base):

@@ -55,7 +55,10 @@ def _wait_for_cdp(port: int, seconds: float = 25.0) -> bool:
 
 def _headless_from_env() -> bool:
     return os.environ.get("SABLEAU_HEADLESS", "1").strip().lower() not in {
-        "0", "false", "no", "off",
+        "0",
+        "false",
+        "no",
+        "off",
     }
 
 
@@ -76,8 +79,13 @@ def launch_browser(
         env = dict(os.environ, SABLEAU_CDP_PORT=str(port))
         if headless and shutil.which("xvfb-run"):
             cmd = ["xvfb-run", "-a", *cmd]
-        proc = subprocess.Popen(cmd, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                                start_new_session=True)
+        proc = subprocess.Popen(
+            cmd,
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
         if _wait_for_cdp(port):
             return proc
         proc.terminate()
@@ -95,13 +103,19 @@ def launch_browser(
             "or run 'make browser' to fetch the Electron shell used for offline setups."
         )
     cmd = [
-        exe, f"--remote-debugging-port={port}", "--no-sandbox", "--no-first-run",
-        "--remote-allow-origins=*", f"--user-data-dir=/tmp/sableau-profile-{port}", "about:blank",
+        exe,
+        f"--remote-debugging-port={port}",
+        "--no-sandbox",
+        "--no-first-run",
+        "--remote-allow-origins=*",
+        f"--user-data-dir=/tmp/sableau-profile-{port}",
+        "about:blank",
     ]
     if headless:
         cmd.insert(1, "--headless=new")
-    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                            start_new_session=True)
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True
+    )
     if _wait_for_cdp(port):
         return proc
     proc.terminate()

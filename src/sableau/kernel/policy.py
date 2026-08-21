@@ -33,7 +33,14 @@ class Policy:
     #: Action plus intent patterns that require an explicit confirmation flag.
     risky_intent_keywords: list[str] = field(
         default_factory=lambda: [
-            "approve", "reject", "delete", "submit", "save", "pay", "cancel", "transfer",
+            "approve",
+            "reject",
+            "delete",
+            "submit",
+            "save",
+            "pay",
+            "cancel",
+            "transfer",
         ]
     )
     allow_risky: bool = True

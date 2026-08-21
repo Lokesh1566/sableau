@@ -93,8 +93,16 @@ class SessionControl:
     """Single source of truth for who may touch the live session."""
 
     _LEGAL = {
-        ControlState.AUTOMATION_RUNNING: {ControlState.PAUSED, ControlState.DONE, ControlState.ABORTED},
-        ControlState.PAUSED: {ControlState.HUMAN_CONTROL, ControlState.ABORTED, ControlState.AUTOMATION_RUNNING},
+        ControlState.AUTOMATION_RUNNING: {
+            ControlState.PAUSED,
+            ControlState.DONE,
+            ControlState.ABORTED,
+        },
+        ControlState.PAUSED: {
+            ControlState.HUMAN_CONTROL,
+            ControlState.ABORTED,
+            ControlState.AUTOMATION_RUNNING,
+        },
         ControlState.HUMAN_CONTROL: {ControlState.AUTOMATION_RUNNING, ControlState.ABORTED},
         ControlState.ABORTED: set(),
         ControlState.DONE: set(),
@@ -113,7 +121,9 @@ class SessionControl:
 
     # -- internals -------------------------------------------------------
 
-    def _transition(self, to: ControlState, owner: Owner, actor: str, note: str | None = None) -> None:
+    def _transition(
+        self, to: ControlState, owner: Owner, actor: str, note: str | None = None
+    ) -> None:
         if to not in self._LEGAL[self.state]:
             raise RuntimeError(f"illegal control transition {self.state.value} -> {to.value}")
         t = Transition(_now(), self.state, to, owner, actor, note)
@@ -121,7 +131,13 @@ class SessionControl:
         self.state, self.owner = to, owner
         self._on_event(
             "control.transition",
-            {"from": t.frm.value, "to": t.to.value, "owner": owner.value, "actor": actor, "note": note},
+            {
+                "from": t.frm.value,
+                "to": t.to.value,
+                "owner": owner.value,
+                "actor": actor,
+                "note": note,
+            },
         )
 
     # -- automation side --------------------------------------------------
@@ -157,7 +173,9 @@ class SessionControl:
             await asyncio.wait_for(self._resumed.wait(), timeout=timeout_s)
         if self.state is ControlState.ABORTED:
             return ResumeDecision.ABORT
-        return (self.active.decision if self.active else None) or ResumeDecision.CONTINUE_FROM_CURRENT_STEP
+        return (
+            self.active.decision if self.active else None
+        ) or ResumeDecision.CONTINUE_FROM_CURRENT_STEP
 
     def automation_may_act(self) -> bool:
         return self.state is ControlState.AUTOMATION_RUNNING and self.owner is Owner.AUTOMATION
@@ -194,7 +212,9 @@ class SessionControl:
         if decision is ResumeDecision.ABORT:
             self._transition(ControlState.ABORTED, Owner.NOBODY, operator, "operator aborted")
         else:
-            self._transition(ControlState.AUTOMATION_RUNNING, Owner.AUTOMATION, operator, decision.value)
+            self._transition(
+                ControlState.AUTOMATION_RUNNING, Owner.AUTOMATION, operator, decision.value
+            )
         self._on_event("control.resumed", {"decision": decision.value, "operator": operator})
         self._resumed.set()
 
@@ -207,7 +227,14 @@ class SessionControl:
             "owner": self.owner.value,
             "active_escalation": self.active.to_dict() if self.active else None,
             "transitions": [
-                {"at": t.at, "from": t.frm.value, "to": t.to.value, "owner": t.owner.value, "actor": t.actor, "note": t.note}
+                {
+                    "at": t.at,
+                    "from": t.frm.value,
+                    "to": t.to.value,
+                    "owner": t.owner.value,
+                    "actor": t.actor,
+                    "note": t.note,
+                }
                 for t in self.history
             ],
         }

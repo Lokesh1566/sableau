@@ -37,7 +37,9 @@ def app_alive() -> bool:
 needs_stack = pytest.mark.skipif(
     not (
         os.environ.get("RUN_LIVE_LEGACY_TESTS") == "1"
-        and cdp_alive() and app_alive() and CAP_PATH.exists()
+        and cdp_alive()
+        and app_alive()
+        and CAP_PATH.exists()
     ),
     reason="set RUN_LIVE_LEGACY_TESTS=1 after running ./scripts/up.sh and discovery",
 )
@@ -59,18 +61,24 @@ async def live_surface():
 
 async def run(surface, cap, tmp_path, params, **kw):
     rec = RunRecorder("it_" + str(abs(hash(str(params))))[:6], root=str(tmp_path), echo=False)
-    eng = ReplayEngine(surface, rec, Policy(), confirm_risky=True,
-                       escalation_timeout_s=kw.pop("timeout", 5), **kw)
+    eng = ReplayEngine(
+        surface, rec, Policy(), confirm_risky=True, escalation_timeout_s=kw.pop("timeout", 5), **kw
+    )
     return await eng.run(cap, params)
 
 
 @needs_stack
 async def test_replay_against_the_real_application(live_surface, cap, tmp_path):
-    result = await run(live_surface, cap, tmp_path, {
-        "claim_id": "CLM-004211",
-        "outcome": "APPROVED",
-        "note": "Reviewed against the plan schedule, provider in network.",
-    })
+    result = await run(
+        live_surface,
+        cap,
+        tmp_path,
+        {
+            "claim_id": "CLM-004211",
+            "outcome": "APPROVED",
+            "note": "Reviewed against the plan schedule, provider in network.",
+        },
+    )
     assert result.category is OutcomeCategory.SUCCESS
     assert result.outputs["confirmation_code"].startswith("MCD-")
     assert result.outputs["decided_amount"] == 148.0
@@ -83,11 +91,16 @@ async def test_replay_against_the_real_application(live_surface, cap, tmp_path):
 
 @needs_stack
 async def test_same_capability_different_parameters(live_surface, cap, tmp_path):
-    result = await run(live_surface, cap, tmp_path, {
-        "claim_id": "CLM-004212",
-        "outcome": "REJECTED",
-        "note": "Imaging not covered under this plan tier, see policy 4.2.",
-    })
+    result = await run(
+        live_surface,
+        cap,
+        tmp_path,
+        {
+            "claim_id": "CLM-004212",
+            "outcome": "REJECTED",
+            "note": "Imaging not covered under this plan tier, see policy 4.2.",
+        },
+    )
     assert result.ok
     assert result.outputs["decided_amount"] == 612.5
     assert "REJECTED" in httpx.get(f"{APP}/claims/CLM-004212", timeout=10).text
@@ -95,11 +108,16 @@ async def test_same_capability_different_parameters(live_surface, cap, tmp_path)
 
 @needs_stack
 async def test_record_not_found_is_a_business_outcome(live_surface, cap, tmp_path):
-    result = await run(live_surface, cap, tmp_path, {
-        "claim_id": "CLM-999999",
-        "outcome": "APPROVED",
-        "note": "This claim reference does not exist in the index.",
-    })
+    result = await run(
+        live_surface,
+        cap,
+        tmp_path,
+        {
+            "claim_id": "CLM-999999",
+            "outcome": "APPROVED",
+            "note": "This claim reference does not exist in the index.",
+        },
+    )
     assert result.category is OutcomeCategory.BUSINESS_OUTCOME
     assert result.code is ErrorCode.RECORD_NOT_FOUND
     assert result.business_outcome.id == "search_no_match"
@@ -108,11 +126,16 @@ async def test_record_not_found_is_a_business_outcome(live_surface, cap, tmp_pat
 
 @needs_stack
 async def test_already_decided_stops_before_writing(live_surface, cap, tmp_path):
-    result = await run(live_surface, cap, tmp_path, {
-        "claim_id": "CLM-004213",
-        "outcome": "REJECTED",
-        "note": "Attempting to overwrite an existing decision.",
-    })
+    result = await run(
+        live_surface,
+        cap,
+        tmp_path,
+        {
+            "claim_id": "CLM-004213",
+            "outcome": "REJECTED",
+            "note": "Attempting to overwrite an existing decision.",
+        },
+    )
     assert result.code is ErrorCode.ALREADY_PROCESSED
     # the original decision is untouched
     assert "APPROVED" in httpx.get(f"{APP}/claims/CLM-004213", timeout=10).text
@@ -120,11 +143,16 @@ async def test_already_decided_stops_before_writing(live_surface, cap, tmp_path)
 
 @needs_stack
 async def test_permission_denial_is_a_hard_failure_with_evidence(live_surface, cap, tmp_path):
-    result = await run(live_surface, cap, tmp_path, {
-        "claim_id": "CLM-004215",
-        "outcome": "APPROVED",
-        "note": "Behavioural health claim, expecting a denial.",
-    })
+    result = await run(
+        live_surface,
+        cap,
+        tmp_path,
+        {
+            "claim_id": "CLM-004215",
+            "outcome": "APPROVED",
+            "note": "Behavioural health claim, expecting a denial.",
+        },
+    )
     assert result.code is ErrorCode.PERMISSION_DENIED
     assert result.error.evidence is not None
     assert Path(result.error.evidence.screenshot).exists()
@@ -132,11 +160,16 @@ async def test_permission_denial_is_a_hard_failure_with_evidence(live_surface, c
 
 @needs_stack
 async def test_transient_failure_recovers_within_budget(live_surface, cap, tmp_path):
-    result = await run(live_surface, cap, tmp_path, {
-        "claim_id": "CLM-004216",
-        "outcome": "APPROVED",
-        "note": "Expecting the claims index to be re-syncing on first load.",
-    })
+    result = await run(
+        live_surface,
+        cap,
+        tmp_path,
+        {
+            "claim_id": "CLM-004216",
+            "outcome": "APPROVED",
+            "note": "Expecting the claims index to be re-syncing on first load.",
+        },
+    )
     assert result.ok
     assert any(s.status == "recovered" for s in result.steps)
 
@@ -146,14 +179,19 @@ async def test_secret_inputs_never_reach_disk(live_surface, cap, tmp_path):
     secret = "PATIENT-REF-4482-CONFIDENTIAL"
     rec = RunRecorder("it_secret", root=str(tmp_path), echo=False)
     eng = ReplayEngine(live_surface, rec, Policy(), confirm_risky=True)
-    await eng.run(cap, {
-        "claim_id": "CLM-004217",
-        "outcome": "APPROVED",
-        "note": f"Vision screening approved. {secret}",
-    })
+    await eng.run(
+        cap,
+        {
+            "claim_id": "CLM-004217",
+            "outcome": "APPROVED",
+            "note": f"Vision screening approved. {secret}",
+        },
+    )
     leaked = [
-        str(p) for p in Path(rec.dir).rglob("*")
-        if p.is_file() and p.suffix in (".json", ".jsonl", ".html")
+        str(p)
+        for p in Path(rec.dir).rglob("*")
+        if p.is_file()
+        and p.suffix in (".json", ".jsonl", ".html")
         and secret in p.read_text(errors="ignore")
     ]
     assert leaked == [], f"secret leaked into {leaked}"
@@ -190,7 +228,10 @@ def tenant_alive() -> bool:
 needs_tenant = pytest.mark.skipif(
     not (
         os.environ.get("RUN_LIVE_LEGACY_TESTS") == "1"
-        and cdp_alive() and tenant_alive() and CAP_PATH.exists() and OVERLAY_PATH.exists()
+        and cdp_alive()
+        and tenant_alive()
+        and CAP_PATH.exists()
+        and OVERLAY_PATH.exists()
     ),
     reason="set RUN_LIVE_LEGACY_TESTS=1 with the two legacy target instances running",
 )
@@ -214,13 +255,21 @@ async def test_one_capability_serves_a_second_tenant(cap, tmp_path):
     try:
         await surface.navigate(f"{TENANT_APP}/claims")
         rec = RunRecorder("it_tenant", root=str(tmp_path), echo=False)
-        eng = ReplayEngine(surface, rec, Policy(allowed_hosts=["127.0.0.1:8098"]),
-                           confirm_risky=True, escalation_timeout_s=5)
-        result = await eng.run(specialised, {
-            "claim_id": "CLM-004212",
-            "outcome": "APPROVED",
-            "note": "Imaging authorised under referral 88213, within schedule.",
-        })
+        eng = ReplayEngine(
+            surface,
+            rec,
+            Policy(allowed_hosts=["127.0.0.1:8098"]),
+            confirm_risky=True,
+            escalation_timeout_s=5,
+        )
+        result = await eng.run(
+            specialised,
+            {
+                "claim_id": "CLM-004212",
+                "outcome": "APPROVED",
+                "note": "Imaging authorised under referral 88213, within schedule.",
+            },
+        )
     finally:
         await surface.close()
 
@@ -242,13 +291,21 @@ async def test_drift_quantifies_how_far_the_tenant_has_moved(cap, tmp_path):
     try:
         await surface.navigate(f"{TENANT_APP}/claims")
         rec = RunRecorder("it_drift", root=str(tmp_path), echo=False)
-        eng = ReplayEngine(surface, rec, Policy(allowed_hosts=["127.0.0.1:8098"]),
-                           confirm_risky=True, escalation_timeout_s=5)
-        result = await eng.run(specialised, {
-            "claim_id": "CLM-004211",
-            "outcome": "APPROVED",
-            "note": "Within plan limits, provider in network, no duplicate found.",
-        })
+        eng = ReplayEngine(
+            surface,
+            rec,
+            Policy(allowed_hosts=["127.0.0.1:8098"]),
+            confirm_risky=True,
+            escalation_timeout_s=5,
+        )
+        result = await eng.run(
+            specialised,
+            {
+                "claim_id": "CLM-004211",
+                "outcome": "APPROVED",
+                "note": "Within plan limits, provider in network, no duplicate found.",
+            },
+        )
     finally:
         await surface.close()
 

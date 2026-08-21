@@ -128,8 +128,9 @@ class DiscoveryLoop:
         context["outputs_remaining"] = list(declared_outputs)
         context["outputs_captured"] = captured
 
-        self.recorder.log("discovery.start", goal=goal, planner=self.planner.name,
-                          entry_url=job["entry_url"])
+        self.recorder.log(
+            "discovery.start", goal=goal, planner=self.planner.name, entry_url=job["entry_url"]
+        )
 
         for turn in range(1, self.max_turns + 1):
             obs = await self.surface.observe(with_screenshot=False)
@@ -180,8 +181,9 @@ class DiscoveryLoop:
                     f"{self.repeat_warn} times and the screen did not change. "
                     "Check the controls' current_value, then do the NEXT step or call finish."
                 )
-                self.recorder.log("discovery.repeat_warning", signature=signature,
-                                  count=repeats[signature])
+                self.recorder.log(
+                    "discovery.repeat_warning", signature=signature, count=repeats[signature]
+                )
             if repeats[signature] >= self.repeat_abort:
                 trace.status = "stuck"
                 trace.summary = (
@@ -232,7 +234,9 @@ class DiscoveryLoop:
                 entry.status = "error"
                 entry.error = f"{exc.code.value}: {exc.message}"
                 trace.entries.append(entry)
-                self.recorder.log("discovery.action_failed", code=exc.code.value, message=exc.message)
+                self.recorder.log(
+                    "discovery.action_failed", code=exc.code.value, message=exc.message
+                )
                 history.append(f"{history_key(planned)} FAILED {exc.code.value}")
                 continue
 
@@ -265,8 +269,9 @@ class DiscoveryLoop:
         shot = await self.surface.observe(with_screenshot=True)
         self.recorder.write_screenshot("discovery_final.png", shot.screenshot_png)
         self.recorder.write_json("trace.json", trace.to_dict())
-        self.recorder.log("discovery.finish", status=trace.status, turns=len(trace.entries),
-                          summary=trace.summary)
+        self.recorder.log(
+            "discovery.finish", status=trace.status, turns=len(trace.entries), summary=trace.summary
+        )
         return trace
 
     # ------------------------------------------------------------------
@@ -297,9 +302,7 @@ class DiscoveryLoop:
         entry.probes = await self._probe(descriptor, frame_path)
 
         if kind == "read" and not a.get("output"):
-            remaining = [
-                o for o in (entry.args.get("_outputs_remaining") or [])
-            ]
+            remaining = [o for o in (entry.args.get("_outputs_remaining") or [])]
             if len(remaining) == 1:
                 a["output"] = remaining[0]
                 entry.args["output"] = remaining[0]
@@ -346,12 +349,18 @@ class DiscoveryLoop:
         )
         return await self.surface.evaluate(cond, timeout_ms=3000)
 
-    async def _probe(self, descriptor: dict[str, Any], frame_path: list[str]) -> list[ProbedLocator]:
+    async def _probe(
+        self, descriptor: dict[str, Any], frame_path: list[str]
+    ) -> list[ProbedLocator]:
         """Try every candidate locator against the live page and count matches."""
         probes: list[ProbedLocator] = []
         for loc in _candidate_locators(descriptor):
             spec = TargetSpec.model_validate(
-                {"candidates": [loc], "frame_path": frame_path, "ambiguity_policy": "fail_if_multiple"}
+                {
+                    "candidates": [loc],
+                    "frame_path": frame_path,
+                    "ambiguity_policy": "fail_if_multiple",
+                }
             )
             try:
                 res = await self.surface.resolve(spec, timeout_ms=900)
@@ -410,7 +419,9 @@ def _hint_target(args: dict[str, Any], frame_path: list[str]) -> TargetSpec:
     if args.get("target_name_attr"):
         cands.append({"strategy": "name", "value": args["target_name_attr"]})
     if args.get("target_role") and args.get("target_name"):
-        cands.append({"strategy": "role", "role": args["target_role"], "name_equals": args["target_name"]})
+        cands.append(
+            {"strategy": "role", "role": args["target_role"], "name_equals": args["target_name"]}
+        )
     if args.get("target_label"):
         cands.append({"strategy": "label", "text": args["target_label"], "exact": False})
     if args.get("target_placeholder"):
@@ -443,8 +454,12 @@ def _hint_target(args: dict[str, Any], frame_path: list[str]) -> TargetSpec:
     if not cands:
         raise PolicyViolation("planner proposed an action with no way to identify the control")
     return TargetSpec.model_validate(
-        {"candidates": cands, "frame_path": frame_path, "ambiguity_policy": "first",
-         "description": args.get("intent", "")[:80]}
+        {
+            "candidates": cands,
+            "frame_path": frame_path,
+            "ambiguity_policy": "first",
+            "description": args.get("intent", "")[:80],
+        }
     )
 
 
@@ -511,9 +526,13 @@ def _candidate_locators(descriptor: dict[str, Any]) -> list[dict[str, Any]]:
     if role and name:
         out.append({"strategy": "role", "role": role, "name_equals": name, "confidence": 0.9})
     if descriptor.get("label"):
-        out.append({"strategy": "label", "text": descriptor["label"], "exact": True, "confidence": 0.85})
+        out.append(
+            {"strategy": "label", "text": descriptor["label"], "exact": True, "confidence": 0.85}
+        )
     if descriptor.get("placeholder"):
-        out.append({"strategy": "placeholder", "text": descriptor["placeholder"], "confidence": 0.7})
+        out.append(
+            {"strategy": "placeholder", "text": descriptor["placeholder"], "confidence": 0.7}
+        )
     if name and len(name) < 60:
         out.append({"strategy": "text", "text": name, "exact": False, "confidence": 0.6})
     if descriptor.get("css_path"):
@@ -545,11 +564,26 @@ def _signature(planned: Planned, observation) -> str:
     """
     a = planned.args
     bits = [planned.tool, str(a.get("action")), observation.url]
-    bits += [str(a.get(k, "")) for k in
-             ("target_testid", "target_name_attr", "target_placeholder",
-              "target_role", "target_name", "target_label",
-              "target_text", "output", "value", "text", "key", "url",
-              "id", "description", "kind")]
+    bits += [
+        str(a.get(k, ""))
+        for k in (
+            "target_testid",
+            "target_name_attr",
+            "target_placeholder",
+            "target_role",
+            "target_name",
+            "target_label",
+            "target_text",
+            "output",
+            "value",
+            "text",
+            "key",
+            "url",
+            "id",
+            "description",
+            "kind",
+        )
+    ]
     # A successful fill changes field state without changing the URL or visible
     # body text. Include that state so the first accidental re-issue is not
     # falsely counted as "no progress"; truly repeated actions on unchanged

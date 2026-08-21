@@ -41,8 +41,14 @@ ACT_TOOL = {
                 "type": "string",
                 "description": "Name of the iframe holding the control, or 'main'.",
             },
-            "target_role": {"type": "string", "description": "button, link, textbox, combobox, heading..."},
-            "target_name": {"type": "string", "description": "Visible or accessible name of the control."},
+            "target_role": {
+                "type": "string",
+                "description": "button, link, textbox, combobox, heading...",
+            },
+            "target_name": {
+                "type": "string",
+                "description": "Visible or accessible name of the control.",
+            },
             "target_testid": {"type": "string"},
             "target_name_attr": {
                 "type": "string",
@@ -135,9 +141,13 @@ class Planned:
 
     @property
     def intent(self) -> str:
-        return self.args.get("intent") or self.args.get("description") or self.args.get("summary", "")
+        return (
+            self.args.get("intent") or self.args.get("description") or self.args.get("summary", "")
+        )
 
 
 def hint_summary(args: dict[str, Any]) -> str:
-    bits = [f"{k.replace('target_', '')}={v}" for k, v in args.items() if k.startswith("target_") and v]
+    bits = [
+        f"{k.replace('target_', '')}={v}" for k, v in args.items() if k.startswith("target_") and v
+    ]
     return ", ".join(bits) or "(no target)"

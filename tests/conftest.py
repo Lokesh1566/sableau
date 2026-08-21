@@ -38,8 +38,9 @@ def build_screens() -> dict[str, FakeScreen]:
             url=RESULTS,
             body_text="Results\nCLM-004211 Priya Nadar",
             elements=[
-                FakeElement("row_link", role="link", name="CLM-004211",
-                            attrs={"href": "/claims/CLM-004211"}),
+                FakeElement(
+                    "row_link", role="link", name="CLM-004211", attrs={"href": "/claims/CLM-004211"}
+                ),
             ],
         ),
         RECORD: FakeScreen(
@@ -59,7 +60,9 @@ def build_screens() -> dict[str, FakeScreen]:
                 FakeElement("amount", testid="decided-amount", role="text", text="148.00"),
             ],
         ),
-        DENIED: FakeScreen(url=DENIED, body_text="You do not have permission to decide this claim."),
+        DENIED: FakeScreen(
+            url=DENIED, body_text="You do not have permission to decide this claim."
+        ),
         LOGIN: FakeScreen(url=LOGIN, body_text="Your session has ended."),
     }
 
@@ -103,62 +106,117 @@ CAPABILITY = {
     "inputs": [
         {"name": "claim_id", "type": "string", "required": True, "pattern": "^CLM-[0-9]{6}$"},
         {"name": "outcome", "type": "enum", "required": True, "enum": ["APPROVED", "REJECTED"]},
-        {"name": "note", "type": "string", "required": True, "min_length": 12, "sensitivity": "secret"},
+        {
+            "name": "note",
+            "type": "string",
+            "required": True,
+            "min_length": 12,
+            "sensitivity": "secret",
+        },
     ],
     "outputs": [
-        {"name": "confirmation_code", "type": "string", "required": True,
-         "source": {"step": "s7_read_code", "binding": "text", "extract_regex": "MCD-[0-9]+"}},
-        {"name": "decided_amount", "type": "number", "required": True,
-         "source": {"step": "s8_read_amount", "binding": "text"}},
+        {
+            "name": "confirmation_code",
+            "type": "string",
+            "required": True,
+            "source": {"step": "s7_read_code", "binding": "text", "extract_regex": "MCD-[0-9]+"},
+        },
+        {
+            "name": "decided_amount",
+            "type": "number",
+            "required": True,
+            "source": {"step": "s8_read_amount", "binding": "text"},
+        },
     ],
     "steps": [
-        {"id": "s1_type_query", "intent": "Enter the claim reference",
-         "action": {"type": "type", "text": "{{input.claim_id}}"},
-         "target": {"candidates": [{"strategy": "testid", "value": "q"}]}},
-        {"id": "s2_search", "intent": "Run the search",
-         "action": {"type": "click"},
-         "target": {"candidates": [{"strategy": "testid", "value": "go"}]}},
-        {"id": "s3_open", "intent": "Open the claim record",
-         "action": {"type": "click"},
-         "target": {
-             "candidates": [
-                 {"strategy": "testid", "value": "row-link"},
-                 {"strategy": "role", "role": "link", "name_equals": "{{input.claim_id}}"},
-             ],
-             "verify": {"kind": "attribute_contains", "attr": "href", "value": "{{input.claim_id}}"},
-         },
-         "postconditions": ["cp_record_open"]},
-        {"id": "s4_outcome", "intent": "Choose the outcome",
-         "action": {"type": "select", "value": "{{input.outcome}}"},
-         "target": {"candidates": [{"strategy": "testid", "value": "decision-select"}]}},
-        {"id": "s5_note", "intent": "Record the decision note",
-         "action": {"type": "type", "text": "{{input.note}}"},
-         "target": {"candidates": [{"strategy": "label", "text": "Decision note"}]}},
-        {"id": "s6_save", "intent": "Save the decision", "risk": "risky",
-         "action": {"type": "click"},
-         "target": {"candidates": [{"strategy": "testid", "value": "decision-submit"}]},
-         "postconditions": ["cp_recorded"],
-         "on_error": {"retry": {"max_attempts": 2, "backoff_ms": 1}, "escalate": True}},
-        {"id": "s7_read_code", "intent": "Capture the confirmation code",
-         "action": {"type": "read", "binding": "text"},
-         "target": {"candidates": [{"strategy": "testid", "value": "confirmation-code"}]}},
-        {"id": "s8_read_amount", "intent": "Capture the decided amount",
-         "action": {"type": "read", "binding": "text"},
-         "target": {"candidates": [{"strategy": "testid", "value": "decided-amount"}]}},
+        {
+            "id": "s1_type_query",
+            "intent": "Enter the claim reference",
+            "action": {"type": "type", "text": "{{input.claim_id}}"},
+            "target": {"candidates": [{"strategy": "testid", "value": "q"}]},
+        },
+        {
+            "id": "s2_search",
+            "intent": "Run the search",
+            "action": {"type": "click"},
+            "target": {"candidates": [{"strategy": "testid", "value": "go"}]},
+        },
+        {
+            "id": "s3_open",
+            "intent": "Open the claim record",
+            "action": {"type": "click"},
+            "target": {
+                "candidates": [
+                    {"strategy": "testid", "value": "row-link"},
+                    {"strategy": "role", "role": "link", "name_equals": "{{input.claim_id}}"},
+                ],
+                "verify": {
+                    "kind": "attribute_contains",
+                    "attr": "href",
+                    "value": "{{input.claim_id}}",
+                },
+            },
+            "postconditions": ["cp_record_open"],
+        },
+        {
+            "id": "s4_outcome",
+            "intent": "Choose the outcome",
+            "action": {"type": "select", "value": "{{input.outcome}}"},
+            "target": {"candidates": [{"strategy": "testid", "value": "decision-select"}]},
+        },
+        {
+            "id": "s5_note",
+            "intent": "Record the decision note",
+            "action": {"type": "type", "text": "{{input.note}}"},
+            "target": {"candidates": [{"strategy": "label", "text": "Decision note"}]},
+        },
+        {
+            "id": "s6_save",
+            "intent": "Save the decision",
+            "risk": "risky",
+            "action": {"type": "click"},
+            "target": {"candidates": [{"strategy": "testid", "value": "decision-submit"}]},
+            "postconditions": ["cp_recorded"],
+            "on_error": {"retry": {"max_attempts": 2, "backoff_ms": 1}, "escalate": True},
+        },
+        {
+            "id": "s7_read_code",
+            "intent": "Capture the confirmation code",
+            "action": {"type": "read", "binding": "text"},
+            "target": {"candidates": [{"strategy": "testid", "value": "confirmation-code"}]},
+        },
+        {
+            "id": "s8_read_amount",
+            "intent": "Capture the decided amount",
+            "action": {"type": "read", "binding": "text"},
+            "target": {"candidates": [{"strategy": "testid", "value": "decided-amount"}]},
+        },
     ],
     "checkpoints": [
-        {"id": "cp_record_open", "description": "the record is open",
-         "condition": {"kind": "text_present", "value": "{{input.claim_id}}"}},
-        {"id": "cp_recorded", "description": "the receipt is showing",
-         "condition": {"kind": "text_present", "value": "Confirmation code"}},
+        {
+            "id": "cp_record_open",
+            "description": "the record is open",
+            "condition": {"kind": "text_present", "value": "{{input.claim_id}}"},
+        },
+        {
+            "id": "cp_recorded",
+            "description": "the receipt is showing",
+            "condition": {"kind": "text_present", "value": "Confirmation code"},
+        },
     ],
     "known_outcomes": [
-        {"id": "permission_denied", "description": "operator may not decide this claim",
-         "detector": {"kind": "text_present", "value": "You do not have permission"},
-         "result": {"category": "HARD_FAILURE", "code": "PERMISSION_DENIED", "terminal": True}},
-        {"id": "session_expired", "description": "the session ended",
-         "detector": {"kind": "text_present", "value": "Your session has ended"},
-         "result": {"category": "RECOVERABLE", "code": "SESSION_EXPIRED", "terminal": True}},
+        {
+            "id": "permission_denied",
+            "description": "operator may not decide this claim",
+            "detector": {"kind": "text_present", "value": "You do not have permission"},
+            "result": {"category": "HARD_FAILURE", "code": "PERMISSION_DENIED", "terminal": True},
+        },
+        {
+            "id": "session_expired",
+            "description": "the session ended",
+            "detector": {"kind": "text_present", "value": "Your session has ended"},
+            "result": {"category": "RECOVERABLE", "code": "SESSION_EXPIRED", "terminal": True},
+        },
     ],
     "recovery": {
         "global_max_retries": 4,

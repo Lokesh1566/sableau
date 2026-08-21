@@ -29,7 +29,6 @@ from ..kernel.policy import Policy
 from ..schema import (
     Capability,
     Checkpoint,
-    Condition,
     ErrorCode,
     InputSpec,
     KnownOutcome,
@@ -102,9 +101,7 @@ def compile_capability(
             )
             pending_asserts = []
 
-        step = _step_from_entry(
-            entry, len(steps) + 1, params, declared, display_declared, policy
-        )
+        step = _step_from_entry(entry, len(steps) + 1, params, declared, display_declared, policy)
         if step is None:
             continue
         steps.append(step)
@@ -208,7 +205,9 @@ def compile_capability(
         ),
     )
     bound_inputs = {name for kind, name in cap.iter_bindings() if kind == "input"}
-    unused_required = sorted(i.name for i in cap.inputs if i.required and i.name not in bound_inputs)
+    unused_required = sorted(
+        i.name for i in cap.inputs if i.required and i.name not in bound_inputs
+    )
     if unused_required:
         raise CompilationError(
             "required inputs were declared but never recorded into an action, locator, or "
@@ -250,9 +249,7 @@ def _parameterise_deep(node: Any, params: dict[str, Any], declared: set[str]) ->
     return node
 
 
-def _parameterise_display(
-    value: Any, params: dict[str, Any], display_declared: set[str]
-) -> Any:
+def _parameterise_display(value: Any, params: dict[str, Any], display_declared: set[str]) -> Any:
     """Parameterise invocation examples in human-facing labels.
 
     Planner intents and checkpoint descriptions are documentation, but they
@@ -274,9 +271,7 @@ def _parameterise_display(
     return out
 
 
-def _captured_output_literals(
-    trace: DiscoveryTrace, job: dict[str, Any]
-) -> dict[str, str]:
+def _captured_output_literals(trace: DiscoveryTrace, job: dict[str, Any]) -> dict[str, str]:
     """Concrete business values read during this discovery run.
 
     These values are legitimate evidence, but they must never become replay
@@ -303,9 +298,7 @@ def _captured_output_literals(
     return captured
 
 
-def _matching_output_literals(
-    value: Any, captured_outputs: dict[str, str]
-) -> list[str]:
+def _matching_output_literals(value: Any, captured_outputs: dict[str, str]) -> list[str]:
     if not isinstance(value, str) or not value:
         return []
     folded = value.casefold()
@@ -316,9 +309,7 @@ def _matching_output_literals(
     ]
 
 
-def _generalise_output_display(
-    value: Any, captured_outputs: dict[str, str]
-) -> Any:
+def _generalise_output_display(value: Any, captured_outputs: dict[str, str]) -> Any:
     """Remove concrete captured outputs from human-facing artifact labels."""
     if not isinstance(value, str) or not value:
         return value
@@ -332,9 +323,7 @@ def _generalise_output_display(
     return out
 
 
-def _parameterised_runtime_url(
-    url: str, params: dict[str, Any], declared: set[str]
-) -> str | None:
+def _parameterised_runtime_url(url: str, params: dict[str, Any], declared: set[str]) -> str | None:
     """Build a host-neutral URL checkpoint while preserving input bindings.
 
     When a model asserts a concrete output such as a member name on a search
@@ -380,7 +369,8 @@ def _durable_candidates(entry, params, declared) -> list[dict[str, Any]]:
     kept = [
         dict(p.locator)
         for p in entry.probes
-        if p.ok and p.match_count == 1
+        if p.ok
+        and p.match_count == 1
         and not (p.locator["strategy"] == "text" and (value_bearing or is_read))
     ]
     kept.sort(key=lambda c: c.get("confidence", 0.5), reverse=True)
@@ -424,9 +414,7 @@ def _step_from_entry(
 ) -> Step | None:
     a = entry.args
     kind = a.get("action")
-    intent = _parameterise_display(
-        a.get("intent", kind or "step"), params, display_declared
-    )
+    intent = _parameterise_display(a.get("intent", kind or "step"), params, display_declared)
     step_id = f"s{index}_{_slug(intent)}"
 
     if kind == "navigate":
@@ -499,7 +487,7 @@ def _parameterise_select_value(value: Any, params: dict[str, Any], declared: set
         literal = str(params[name])
         if value == literal:
             return f"{{{{input.{name}}}}}"
-        if value.startswith(literal) and value[len(literal):len(literal) + 1] in {" ", "-", "("}:
+        if value.startswith(literal) and value[len(literal) : len(literal) + 1] in {" ", "-", "("}:
             return f"{{{{input.{name}}}}}"
     return _parameterise(value, params, declared)
 
@@ -540,14 +528,11 @@ def _checkpoint_from_assert(
     a = entry.args
     kind = a["kind"]
     captured_outputs = captured_outputs or {}
-    description = _parameterise_display(
-        a.get("description", a["id"]), params, display_declared
-    )
+    description = _parameterise_display(a.get("description", a["id"]), params, display_declared)
     description = _generalise_output_display(description, captured_outputs)
 
     condition_source = " ".join(
-        str(a.get(field, ""))
-        for field in ("value", "target_name", "target_testid")
+        str(a.get(field, "")) for field in ("value", "target_name", "target_testid")
     )
     output_matches = _matching_output_literals(condition_source, captured_outputs)
 

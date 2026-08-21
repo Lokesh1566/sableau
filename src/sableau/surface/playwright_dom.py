@@ -16,18 +16,20 @@ from playwright.async_api import (
     Frame,
     Page,
     Playwright,
-    TimeoutError as PlaywrightTimeoutError,
     async_playwright,
+)
+from playwright.async_api import (
+    TimeoutError as PlaywrightTimeoutError,
 )
 
 from ..schema import Action, Condition, TargetSpec
 from ..schema.errors import (
     AmbiguousControlError,
     ControlResolutionError,
+    ErrorCode,
     SableauError,
     TransientFailure,
 )
-from ..schema.errors import ErrorCode
 from .base import ActionResult, EvidenceBundle, Observation, Resolution, SurfaceFeature
 
 
@@ -64,10 +66,17 @@ class PlaywrightDomSurface:
         # live application tab. Prefer the newest usable HTTP(S) page so repeat
         # CLI invocations attach to the operator-visible session reliably.
         pages = [candidate for candidate in ctx.pages if not candidate.is_closed()]
-        page = next(
-            (candidate for candidate in reversed(pages) if candidate.url.startswith(("http://", "https://"))),
-            None,
-        ) or await ctx.new_page()
+        page = (
+            next(
+                (
+                    candidate
+                    for candidate in reversed(pages)
+                    if candidate.url.startswith(("http://", "https://"))
+                ),
+                None,
+            )
+            or await ctx.new_page()
+        )
         page.set_default_timeout(8000)
         return cls(page, browser, pw)
 
@@ -479,7 +488,9 @@ class PlaywrightDomSurface:
         try:
             text = await self.page.locator("body").inner_text()
             for fr in self.page.frames[1:]:
-                text += "\n[frame " + (fr.name or "?") + "]\n" + await fr.locator("body").inner_text()
+                text += (
+                    "\n[frame " + (fr.name or "?") + "]\n" + await fr.locator("body").inner_text()
+                )
         except Exception:  # noqa: BLE001
             text = ""
         shot = await self.page.screenshot() if with_screenshot else None

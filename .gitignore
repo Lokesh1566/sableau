@@ -9,6 +9,8 @@ browser/node_modules/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.coverage
+htmlcov/
 *.egg-info/
 .venv/
 build/

@@ -104,8 +104,10 @@ async def cmd_discover(args) -> int:
     (recorder.dir / "capability.json").write_text(json.dumps(safe_capability, indent=2))
 
     print(f"\ncapability written: {out}")
-    print(f"  steps={len(cap.steps)} checkpoints={len(cap.checkpoints)} "
-          f"outputs={len(cap.outputs)} known_outcomes={len(cap.known_outcomes)}")
+    print(
+        f"  steps={len(cap.steps)} checkpoints={len(cap.checkpoints)} "
+        f"outputs={len(cap.outputs)} known_outcomes={len(cap.known_outcomes)}"
+    )
     print(f"  evidence: {recorder.dir}")
     return 0
 
@@ -152,19 +154,28 @@ async def cmd_replay(args) -> int:
     try:
         if cap.surface.entry_url:
             await surface.navigate(cap.surface.entry_url)
-        engine = ReplayEngine(surface, recorder, policy, confirm_risky=args.confirm_risky,
-                              escalation_timeout_s=args.escalation_timeout)
+        engine = ReplayEngine(
+            surface,
+            recorder,
+            policy,
+            confirm_risky=args.confirm_risky,
+            escalation_timeout_s=args.escalation_timeout,
+        )
         result = await engine.run(cap, params)
     finally:
         await surface.close()
 
     print("\n" + result.summary())
     if result.drift.degraded:
-        print(f"  drift: {result.drift.first_choice}/{result.drift.steps_resolved} controls "
-              f"found by their preferred locator")
+        print(
+            f"  drift: {result.drift.first_choice}/{result.drift.steps_resolved} controls "
+            f"found by their preferred locator"
+        )
         for d in result.drift.degraded:
-            print(f"    {d['step_id']}: fell back to candidate {d['candidate_index']} "
-                  f"({d['resolved_via']})")
+            print(
+                f"    {d['step_id']}: fell back to candidate {d['candidate_index']} "
+                f"({d['resolved_via']})"
+            )
     print(f"  evidence: {recorder.dir}")
     return 0 if result.ok else (0 if args.tolerate else 1)
 
@@ -196,9 +207,14 @@ async def cmd_handoff(args) -> int:
     try:
         if cap.surface.entry_url:
             await surface.navigate(cap.surface.entry_url)
-        engine = ReplayEngine(surface, recorder, policy, control=control,
-                              confirm_risky=args.confirm_risky,
-                              escalation_timeout_s=args.escalation_timeout)
+        engine = ReplayEngine(
+            surface,
+            recorder,
+            policy,
+            control=control,
+            confirm_risky=args.confirm_risky,
+            escalation_timeout_s=args.escalation_timeout,
+        )
         result = await engine.run(cap, params)
     finally:
         recorder.write_json("control.json", control.snapshot())
@@ -210,8 +226,10 @@ async def cmd_handoff(args) -> int:
         await surface.close()
 
     print("\n" + result.summary())
-    print(f"  control: {control.state.value} escalations={len(control.escalations)} "
-          f"human_actions={control.human_action_count}")
+    print(
+        f"  control: {control.state.value} escalations={len(control.escalations)} "
+        f"human_actions={control.human_action_count}"
+    )
     print(f"  evidence: {recorder.dir}")
     return 0 if result.ok else 1
 
@@ -227,7 +245,9 @@ def cmd_validate(args) -> int:
     print(f"  surface     {cap.surface.kind} requires {cap.surface.required_features}")
     print(f"  inputs      {[i.name for i in cap.inputs]}")
     print(f"  outputs     {[o.name for o in cap.outputs]}")
-    print(f"  steps       {len(cap.steps)} ({sum(1 for s in cap.steps if s.risk == 'risky')} risky)")
+    print(
+        f"  steps       {len(cap.steps)} ({sum(1 for s in cap.steps if s.risk == 'risky')} risky)"
+    )
     print(f"  checkpoints {[c.id for c in cap.checkpoints]}")
     print(f"  outcomes    {[o.id for o in cap.known_outcomes]}")
     print(f"  hosts       {cap.safety.allowed_hosts}")
@@ -274,8 +294,9 @@ def cmd_schema(args) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="sableau", description=__doc__,
-                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(
+        prog="sableau", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     sub = p.add_subparsers(dest="cmd", required=True)
 
     common_params = lambda sp: (  # noqa: E731
@@ -296,10 +317,12 @@ def build_parser() -> argparse.ArgumentParser:
     r = sub.add_parser("replay", help="execute a capability with no LLM in the loop")
     r.add_argument("--capability", required=True)
     r.add_argument("--confirm-risky", action="store_true")
-    r.add_argument("--overlay", default=None,
-                   help="tenant overlay to specialise the capability with")
-    r.add_argument("--tolerate", action="store_true",
-                   help="exit 0 even on a non-success outcome, for demos")
+    r.add_argument(
+        "--overlay", default=None, help="tenant overlay to specialise the capability with"
+    )
+    r.add_argument(
+        "--tolerate", action="store_true", help="exit 0 even on a non-success outcome, for demos"
+    )
     r.add_argument("--escalation-timeout", type=float, default=20.0)
     common_params(r)
     r.set_defaults(func=cmd_replay, is_async=True)

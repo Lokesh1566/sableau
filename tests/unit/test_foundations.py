@@ -11,7 +11,6 @@ from sableau.kernel.redaction import MASK, Redactor, redactor_for
 from sableau.replay.bindings import bind_text, cast_output, validate_inputs
 from sableau.schema import Capability, ErrorCode, SafetyConstraints
 from sableau.schema.errors import DEFAULT_CATEGORY, InvalidInput, PolicyViolation
-
 from tests.conftest import CAPABILITY
 
 
@@ -159,8 +158,9 @@ def test_risk_classification_only_flags_mutations():
 
 
 def test_intersection_can_only_narrow():
-    deployment = Policy(allowed_hosts=["a.example", "b.example"],
-                        allowed_actions=["click", "type", "read"])
+    deployment = Policy(
+        allowed_hosts=["a.example", "b.example"], allowed_actions=["click", "type", "read"]
+    )
     narrowed = deployment.intersect(
         SafetyConstraints(allowed_hosts=["a.example"], allowed_actions=["click"])
     )
@@ -213,8 +213,9 @@ def test_redaction_survives_nesting():
 def test_recorder_redacts_what_it_writes(tmp_path, capability, params):
     from sableau.kernel.observability import RunRecorder
 
-    rec = RunRecorder("t_red", root=str(tmp_path), redactor=redactor_for(capability, params),
-                      echo=False)
+    rec = RunRecorder(
+        "t_red", root=str(tmp_path), redactor=redactor_for(capability, params), echo=False
+    )
     rec.redactor.add_secret(params["note"])
     rec.log("step.ok", note=params["note"], claim=params["claim_id"])
     written = rec.log_path.read_text()
@@ -249,7 +250,9 @@ def test_full_handoff_cycle():
     assert c.automation_may_act() is True
     assert c.human_action_count == 1
     assert [t.to.value for t in c.history] == [
-        "PAUSED", "HUMAN_CONTROL", "AUTOMATION_RUNNING",
+        "PAUSED",
+        "HUMAN_CONTROL",
+        "AUTOMATION_RUNNING",
     ]
 
 
@@ -280,8 +283,9 @@ def test_abort_is_terminal():
 
 def test_snapshot_is_a_complete_audit_record():
     c = SessionControl("r1")
-    c.escalate("UNEXPECTED_DIALOG", "modal", step_id="s3", state_url="app://x",
-               screenshot_ref="shot.png")
+    c.escalate(
+        "UNEXPECTED_DIALOG", "modal", step_id="s3", state_url="app://x", screenshot_ref="shot.png"
+    )
     c.take_control("alex")
     c.record_human_action("click", {"target": "ack"})
     c.resume(ResumeDecision.SKIP_STEP, "alex")

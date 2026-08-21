@@ -1,5 +1,11 @@
 from .base import (
-    ActionResult, EvidenceBundle, Observation, Resolution, STRATEGY_FEATURE,
-    Surface, SurfaceFeature, missing_features,
+    STRATEGY_FEATURE,
+    ActionResult,
+    EvidenceBundle,
+    Observation,
+    Resolution,
+    Surface,
+    SurfaceFeature,
+    missing_features,
 )
 from .null_surface import FakeElement, FakeScreen, NullSurface

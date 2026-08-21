@@ -148,9 +148,7 @@ def test_compiler_replaces_output_specific_checkpoint_with_parameterised_url():
                 "sensitivity": "low",
             }
         ],
-        "outputs": [
-            {"name": "member_name", "type": "string", "required": True}
-        ],
+        "outputs": [{"name": "member_name", "type": "string", "required": True}],
     }
 
     cap = compile_capability(trace, job, Policy())
@@ -218,9 +216,7 @@ def test_compiler_rejects_output_specific_checkpoint_without_stable_fallback():
         "goal": "Read receipt",
         "entry_url": "https://example.test/receipt",
         "inputs": [{"name": "operator", "type": "string", "required": True}],
-        "outputs": [
-            {"name": "confirmation_reference", "type": "string", "required": True}
-        ],
+        "outputs": [{"name": "confirmation_reference", "type": "string", "required": True}],
     }
 
     with pytest.raises(CompilationError, match="depends on captured output"):

@@ -88,7 +88,11 @@ async def test_a_full_replay_completes_with_the_llm_sdk_poisoned(
     from sableau.kernel.policy import Policy
     from sableau.replay import ReplayEngine
 
-    eng = ReplayEngine(surface, RunRecorder("t_poison", root=str(tmp_path), echo=False),
-                       Policy(), confirm_risky=True)
+    eng = ReplayEngine(
+        surface,
+        RunRecorder("t_poison", root=str(tmp_path), echo=False),
+        Policy(),
+        confirm_risky=True,
+    )
     result = await eng.run(capability, params)
     assert result.ok and result.llm_calls == 0

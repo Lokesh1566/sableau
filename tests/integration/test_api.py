@@ -10,8 +10,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from sableau.api import build_api
 from sableau.api import app as api_app
+from sableau.api import build_api
 from sableau.api.app import InvokeRequest, LiveRunContext, _parse_intent
 from sableau.browser import cdp_alive
 from sableau.kernel import (
@@ -23,8 +23,7 @@ from sableau.kernel import (
     SessionControl,
 )
 from sableau.surface.base import EvidenceBundle
-from sableau.surface.null_surface import FakeScreen, NullSurface
-from sableau.surface.null_surface import FakeElement
+from sableau.surface.null_surface import FakeElement, FakeScreen, NullSurface
 
 CAP_ID = "meridian_core.check_member_balance"
 CAP_PATH = Path("capabilities/meridian_core.check_member_balance.v1.0.0.json")
@@ -125,9 +124,7 @@ def test_unknown_tenant_is_404_before_browser_use(client):
 @needs_capability
 @needs_live_target
 def test_live_invoke_returns_the_engine_contract(client):
-    response = client.post(
-        f"/api/capabilities/{CAP_ID}/invoke", json={"params": demo_params()}
-    )
+    response = client.post(f"/api/capabilities/{CAP_ID}/invoke", json={"params": demo_params()})
     assert response.status_code == 200
     body = response.json()
     assert body["category"] == "SUCCESS"
@@ -166,12 +163,15 @@ def test_chat_declines_what_it_cannot_map(client):
 
 
 def test_chat_requires_explicit_confirmation_for_writes(client):
-    body = client.post("/api/chat", json={
-        "message": (
-            "update member 101555 email ada@example.com phone 555-0142 "
-            "address 19 Analytical Way"
-        )
-    }).json()
+    body = client.post(
+        "/api/chat",
+        json={
+            "message": (
+                "update member 101555 email ada@example.com phone 555-0142 "
+                "address 19 Analytical Way"
+            )
+        },
+    ).json()
     assert body["invoked"] == "meridian_core.update_member_information"
     assert body["requires_confirmation"] is True
     assert body["params"]["password"] == "[REDACTED]"
@@ -179,12 +179,15 @@ def test_chat_requires_explicit_confirmation_for_writes(client):
 
 
 def test_watchable_chat_preserves_confirmation_guard(client):
-    body = client.post("/api/chat/start", json={
-        "message": (
-            "transfer member 101555 from 101555-CERT to 101555-MMKT-3 "
-            "amount 1.00 memo dashboard demo"
-        )
-    }).json()
+    body = client.post(
+        "/api/chat/start",
+        json={
+            "message": (
+                "transfer member 101555 from 101555-CERT to 101555-MMKT-3 "
+                "amount 1.00 memo dashboard demo"
+            )
+        },
+    ).json()
     assert body["invoked"] == "meridian_core.transfer_funds"
     assert body["requires_confirmation"] is True
     assert "run_id" not in body
@@ -199,8 +202,7 @@ def test_all_dashboard_chat_examples_map_to_capabilities():
             "transfer member 101555 from 101555-CERT to 101555-MMKT-3 "
             "amount 1.00 memo dashboard demo confirm"
         ): "meridian_core.transfer_funds",
-        "open share for member 103001 MMKT deposit 5.00 confirm":
-            "meridian_core.open_new_share",
+        "open share for member 103001 MMKT deposit 5.00 confirm": "meridian_core.open_new_share",
         (
             "update member 101555 email grace.hopper@example.com phone 555-0188 "
             "address 85 Compiler Way, Arlington confirm"
@@ -249,9 +251,7 @@ def test_watchable_start_finishes_without_blocking_the_start_response(monkeypatc
     monkeypatch.setattr(api_app, "EVIDENCE_DIR", tmp_path / "runs")
     monkeypatch.setenv("SABLEAU_POLICY", "policy-core.json")
     with TestClient(build_api()) as local:
-        started = local.post(
-            f"/api/capabilities/{CAP_ID}/start", json={"params": {}}
-        ).json()
+        started = local.post(f"/api/capabilities/{CAP_ID}/start", json={"params": {}}).json()
         assert started["status"] in {"queued", "running"}
         for _ in range(50):
             watched = local.get(f"/api/live-runs/{started['run_id']}").json()
@@ -376,14 +376,18 @@ def test_unknown_run_is_404(client):
 
 def test_dashboard_is_served(client):
     response = client.get("/")
+    script = client.get("/static/app.js")
+    stylesheet = client.get("/static/styles.css")
     assert response.status_code == 200
+    assert script.status_code == 200
+    assert stylesheet.status_code == 200
     assert "capability console" in response.text
     assert "check balance for member 101555" in response.text
     assert "Live processing" in response.text
-    assert "/api/chat/start" in response.text
-    assert "ESCALATED" in response.text
-    assert "Human takeover available" in response.text
-    assert "/take-control" in response.text
-    assert "/operator-actions" in response.text
-    assert "/resume" in response.text
     assert "Run evidence" in response.text
+    assert "/api/chat/start" in script.text
+    assert "ESCALATED" in script.text
+    assert "Human takeover available" in script.text
+    assert "/take-control" in script.text
+    assert "/operator-actions" in script.text
+    assert "/resume" in script.text
