@@ -1,5 +1,6 @@
 # secrets
 .env
+.env.save
 *.key
 
 # the Electron shell is ~270MB of downloaded binary, never commit it
@@ -10,9 +11,11 @@ __pycache__/
 .pytest_cache/
 *.egg-info/
 .venv/
+build/
 
 # macOS
 .DS_Store
+.Rhistory
 
 # local backups
 .before-tenant/

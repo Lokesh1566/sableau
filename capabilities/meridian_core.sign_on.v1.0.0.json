@@ -178,8 +178,8 @@
       "timeout_ms": 8000
     },
     {
-      "id": "s3_select_the_west_014_branch",
-      "intent": "Select the WEST-014 branch from the Branch dropdown",
+      "id": "s3_select_the_supplied_branch",
+      "intent": "Select the supplied branch from the Branch dropdown",
       "action": {
         "type": "select",
         "value": "{{input.branch}}"
@@ -200,7 +200,7 @@
         "frame_path": [],
         "ambiguity_policy": "fail_if_multiple",
         "verify": null,
-        "description": "Select the WEST-014 branch from the Branch dropdown"
+        "description": "Select the supplied branch from the Branch dropdown"
       },
       "risk": "safe",
       "preconditions": [],
@@ -287,7 +287,7 @@
   "checkpoints": [
     {
       "id": "cp_main_menu_displayed",
-      "description": "The MAIN MENU page is displayed after successful sign-on with operator TELLER1 on branch WEST-014",
+      "description": "The MAIN MENU page is displayed after successful sign-on",
       "condition": {
         "kind": "text_present",
         "target": null,

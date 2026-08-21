@@ -174,6 +174,14 @@ escalated: true
 llm_calls=0
 ```
 
+For watchable dashboard runs, escalation is interactive rather than merely a
+final badge. The Live processing panel displays the paused browser screenshot,
+lets an identified operator take ownership of that exact CDP session, performs
+policy-checked click/type/select/press actions, and returns control with one of
+`RETRY_STEP`, `CONTINUE_FROM_CURRENT_STEP`, or `ABORT`. Typed values are used by
+the browser but stored as `[REDACTED]` in the handoff audit trail. Set
+`SABLEAU_HANDOFF_TIMEOUT` to change the default five-minute wait for a person.
+
 The original local claims fixture remains under `targetapp/` as a reproducible test harness for the full take-control/resume console. Its artifact is isolated under `tests/fixtures/`, so it is not exposed by the production capability catalog. Run `./scripts/up.sh` and `python scripts/demo_handoff.py` to see a scripted operator take the same live browser session, perform the blocked action, and hand control back. It is auxiliary to the live MERIDIAN adaptation, not part of the production capability catalog.
 
 ## API, chatbot, and dashboard
@@ -212,6 +220,10 @@ Useful endpoints:
 | `POST /api/capabilities/{id}/invoke` | deterministic execution |
 | `POST /api/capabilities/{id}/start` | start a dashboard run immediately and return its run ID |
 | `GET /api/live-runs/{run_id}` | redacted live status, step events, timings, and final result |
+| `GET /api/live-runs/{run_id}/screenshot` | current pixels from an active shared session |
+| `POST /api/live-runs/{run_id}/take-control` | transfer a paused session to an identified human |
+| `POST /api/live-runs/{run_id}/operator-actions` | policy-check and record one human action |
+| `POST /api/live-runs/{run_id}/resume` | return control with retry/continue/abort decision |
 | `POST /api/chat` | thin natural-language front door |
 | `POST /api/chat/start` | parse chat and start a watchable replay |
 | `GET /api/runs` | discovery and replay history |
@@ -241,22 +253,31 @@ Eleven target-specific detectors cover bad sign-on, session timeout, transaction
 - The per-form `_token` is represented only as `[opaque]` in observations and is never persisted.
 - Locator ambiguity fails closed; bounded retries never guess a different control.
 - Escalation preserves the same CDP browser session and records ownership transitions and human actions.
+- Dashboard handoff actions use the effective capability/deployment policy; navigation outside the allowlist is refused and typed values are redacted from the audit.
 
 All bundled data is synthetic public-demo data. Do not point this demo policy at a real institution.
 
 ## Testing
 
 ```bash
-python -m pytest -q
+./scripts/verify_submission.sh
 ```
 
-Current clean result: `90 passed, 13 skipped`. The skipped tests require live services and are opt-in:
+The verification script validates exactly seven artifacts, scans tracked files
+for a real-looking Anthropic key, runs the browser-free suite, and checks patch
+whitespace. Current clean result: `96 passed, 13 skipped`. The skipped tests
+require live services and are opt-in:
 
 ```bash
 RUN_LIVE_MERIDIAN_TESTS=1 python -m pytest tests/integration/test_api.py -q
 RUN_LIVE_LEGACY_TESTS=1 ./scripts/up.sh
 RUN_LIVE_LEGACY_TESTS=1 python -m pytest tests/integration/test_live_stack.py -q
 ```
+
+GitHub Actions runs the unit and local-live legacy suites on both `main` and
+`main-2`. The **Live MERIDIAN read-only smoke test** workflow is deliberately
+manual; it replays balance inquiry three times and uploads short-lived evidence
+without repeatedly mutating the public target.
 
 The committed MERIDIAN evidence was produced against the public live UI, including real LLM discoveries, parameter-varied deterministic replays, successful writes, a natural permission failure, screenshot capture, and escalation.
 
@@ -269,6 +290,7 @@ src/sableau/schema/          capability and result contracts
 src/sableau/surface/         surface protocol and Playwright DOM adapter
 src/sableau/kernel/          policy, redaction, evidence, control ownership
 src/sableau/api/             catalog, invoke API, chat, dashboard
+src/sableau/operator/        policy-checked same-session human actions
 jobs/core_*.json             seven MERIDIAN discovery specifications
 capabilities/meridian_core.* seven compiled capabilities
 capabilities/outcomes/       target runtime detectors

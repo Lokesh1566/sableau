@@ -2,7 +2,7 @@ name: Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, main-2]
   pull_request:
   workflow_dispatch:
 
@@ -36,7 +36,9 @@ jobs:
             --user-data-dir=/tmp/profile about:blank > /tmp/browser.log 2>&1 &
           for _ in $(seq 1 40); do curl -sf http://127.0.0.1:9222/json/version && break; sleep 0.5; done
       - run: |
+          SABLEAU_EVIDENCE=/tmp/sableau-ci-discovery-evidence \
           python -m sableau.cli discover --job jobs/approve_claim.json --planner heuristic \
+            --out /tmp/legacy-claim-capability.json \
             --param claim_id=CLM-004211 --param outcome=APPROVED \
             --param "note=Within plan limits, provider in network, no duplicate found."
-      - run: python -m pytest tests/integration -v
+      - run: RUN_LIVE_LEGACY_TESTS=1 python -m pytest tests/integration -v
